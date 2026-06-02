@@ -1,0 +1,10 @@
+﻿# 環境設定（本番DBパスワードが含まれるため除外）
+# config.phpは含める（さくら設定済みのため）
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+*.swp
+*.bak
