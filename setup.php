@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once 'config.php';
 startSession();
 $isLocal   = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1']);
