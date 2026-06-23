@@ -15,60 +15,75 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Noto Sans JP',sans-serif;backgr
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 0%,#4c1d95 0%,transparent 55%),radial-gradient(ellipse at 85% 0%,#1e3a8a 0%,transparent 55%),radial-gradient(ellipse at 50% 110%,#312e81 0%,transparent 60%);z-index:0;pointer-events:none;}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(15,10,30,.78);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
-.topbar-badge{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:4px 13px;border-radius:20px;font-size:.74rem;font-weight:700;}
+.topbar-badge{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:4px 13px;border-radius:20px;font-size:.74rem;font-weight:700;letter-spacing:.05em;}
 .topbar-name{color:#fff;font-size:.95rem;font-weight:600;}
 .topbar-right{display:flex;align-items:center;gap:8px;}
 .btn-nav{padding:7px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:8px;cursor:pointer;font-size:.8rem;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
 .btn-nav:hover{background:rgba(255,255,255,.16);color:#fff;}
 
 .container{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px 64px;}
-.page-header{padding:28px 0 20px;color:#fff;text-align:center;}
-.page-header h1{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.page-header p{margin-top:6px;font-size:.85rem;color:rgba(255,255,255,.5);}
+.page-header{padding:28px 0 18px;color:#fff;text-align:center;}
+.page-header h1{font-size:1.55rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-header p{margin-top:5px;font-size:.83rem;color:rgba(255,255,255,.45);}
 
-/* クラスパネル */
-.panel{background:rgba(255,255,255,.96);border-radius:20px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);margin-bottom:16px;}
-.panel-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
-.panel-title{font-size:.97rem;font-weight:800;color:#1e293b;}
-.btn-group{display:flex;gap:7px;flex-wrap:wrap;}
-.btn-outline{padding:7px 14px;border-radius:9px;font-size:.82rem;font-weight:700;border:1.5px solid;cursor:pointer;background:#fff;transition:background .15s;font-family:inherit;}
-.btn-add   {border-color:#16a34a;color:#16a34a;}  .btn-add:hover   {background:#f0fdf4;}
-.btn-export{border-color:#2563eb;color:#2563eb;}  .btn-export:hover{background:#eff6ff;}
-.btn-import{border-color:#7c3aed;color:#7c3aed;}  .btn-import:hover{background:#f5f3ff;}
-.btn-bulk-del{border-color:#dc2626;color:#dc2626;} .btn-bulk-del:hover:not(:disabled){background:#fef2f2;}
-.btn-bulk-del:disabled{border-color:#cbd5e1;color:#cbd5e1;cursor:not-allowed;}
+/* ツールバー（カード外） */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.search-input{flex:1;min-width:180px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:#7c3aed;}
+.filter-select{padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;cursor:pointer;}
+.btn-primary{padding:10px 16px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.btn-primary:hover{opacity:.9;}
+.btn-outline{padding:9px 14px;border-radius:10px;font-size:.85rem;font-weight:700;border:1.5px solid;cursor:pointer;background:#fff;transition:background .15s;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.btn-export{border-color:#2563eb;color:#2563eb;} .btn-export:hover{background:#eff6ff;}
+.btn-import{border-color:#7c3aed;color:#7c3aed;} .btn-import:hover{background:#f5f3ff;}
 
-/* クラスタグ */
-.class-tags{display:flex;flex-wrap:wrap;gap:10px;}
-.class-tag{display:flex;align-items:center;gap:8px;border:2px solid #e2e8f0;border-radius:12px;padding:8px 14px;transition:border-color .2s;background:#fff;}
-.class-tag-name{font-weight:700;font-size:.9rem;color:#1e293b;}
-.class-tag-count{font-size:.76rem;color:#94a3b8;}
-.class-tag-actions{display:flex;gap:3px;margin-left:4px;}
-.btn-icon{width:24px;height:24px;border-radius:6px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;}
+/* メインカード */
+.main-card{background:rgba(255,255,255,.96);border-radius:20px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+
+/* クラスセクション */
+.section-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;}
+.btn-add-sm{padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:700;border:1.5px solid #16a34a;color:#16a34a;cursor:pointer;background:#fff;transition:background .15s;font-family:inherit;}
+.btn-add-sm:hover{background:#f0fdf4;}
+.class-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.class-tag{display:flex;align-items:center;gap:7px;border:1.5px solid #e2e8f0;border-radius:10px;padding:7px 12px;background:#fff;}
+.class-tag-name{font-weight:700;font-size:.87rem;color:#1e293b;}
+.class-tag-count{font-size:.74rem;color:#94a3b8;}
+.class-tag-actions{display:flex;gap:3px;margin-left:2px;}
+.btn-icon{width:22px;height:22px;border-radius:6px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center;}
 .btn-icon:hover{background:#f1f5f9;} .btn-icon.del:hover{background:#fee2e2;border-color:#fca5a5;}
 
-/* フィルタタブ */
-.filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
-.filter-tab{padding:5px 14px;border-radius:20px;font-size:.82rem;font-weight:600;border:1.5px solid #e2e8f0;cursor:pointer;background:#fff;color:#64748b;transition:all .15s;font-family:inherit;}
+/* 区切り */
+.divider{border:none;border-top:1.5px solid #f1f5f9;margin:20px 0;}
+
+/* フィルタ＋一括削除 行 */
+.list-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.filter-tabs{display:flex;gap:5px;flex-wrap:wrap;}
+.filter-tab{padding:4px 13px;border-radius:20px;font-size:.8rem;font-weight:600;border:1.5px solid #e2e8f0;cursor:pointer;background:#fff;color:#64748b;transition:all .15s;font-family:inherit;}
 .filter-tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed;}
+.btn-bulk-del{padding:5px 13px;border-radius:8px;font-size:.78rem;font-weight:700;border:1.5px solid #dc2626;color:#dc2626;cursor:pointer;background:#fff;font-family:inherit;transition:background .15s;}
+.btn-bulk-del:hover:not(:disabled){background:#fef2f2;}
+.btn-bulk-del:disabled{border-color:#cbd5e1;color:#cbd5e1;cursor:not-allowed;}
 
 /* テーブル */
 .table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:.78rem;color:#64748b;font-weight:700;border-bottom:1.5px solid #e2e8f0;white-space:nowrap;}
-td{padding:10px 14px;border-bottom:1px solid #f1f5f9;font-size:.87rem;color:#1e293b;vertical-align:middle;}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:#faf8ff;}
+table{width:100%;border-collapse:collapse;font-size:.87rem;}
+thead tr{border-bottom:2px solid #e2e8f0;}
+th{padding:9px 12px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;white-space:nowrap;}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover td{background:#faf8ff;}
 tr.row-selected td{background:#fdf4ff!important;}
-.th-chk,.td-chk{width:38px;text-align:center;padding-left:8px!important;padding-right:4px!important;}
-input[type=checkbox].row-chk{width:16px;height:16px;cursor:pointer;accent-color:#7c3aed;vertical-align:middle;}
-.sid-text{font-weight:700;color:#7c3aed;}
-.class-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.76rem;font-weight:700;}
+td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
+.th-chk,.td-chk{width:36px;text-align:center;padding-left:6px!important;padding-right:4px!important;}
+input[type=checkbox].row-chk{width:15px;height:15px;cursor:pointer;accent-color:#7c3aed;vertical-align:middle;}
+.sid-text{font-weight:700;color:#7c3aed;font-size:.83rem;}
+.class-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.75rem;font-weight:700;}
 .class-select{padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;background:#fff;cursor:pointer;font-family:inherit;}
-.btn-act{padding:4px 11px;border-radius:7px;font-size:.77rem;font-weight:600;cursor:pointer;border:1.5px solid;background:#fff;transition:background .15s;font-family:inherit;margin-right:3px;}
+.btn-act{padding:4px 10px;border-radius:7px;font-size:.76rem;font-weight:600;cursor:pointer;border:1.5px solid;background:#fff;transition:background .15s;font-family:inherit;margin-right:3px;}
 .btn-del-s{border-color:#fca5a5;color:#dc2626;} .btn-del-s:hover{background:#fef2f2;}
 .btn-karte{border-color:#c4b5fd;color:#7c3aed;} .btn-karte:hover{background:#f5f3ff;}
-.empty-row td{text-align:center;color:#94a3b8;padding:32px;}
+.empty-row td{text-align:center;color:#94a3b8;padding:40px;}
 
 /* モーダル */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
@@ -79,7 +94,6 @@ input[type=checkbox].row-chk{width:16px;height:16px;cursor:pointer;accent-color:
 .f-label{font-size:.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:block;}
 .f-input,.f-select{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;color:#1e293b;outline:none;transition:border-color .2s;margin-bottom:14px;}
 .f-input:focus,.f-select:focus{border-color:#7c3aed;}
-.f-hint{font-size:.78rem;color:#94a3b8;margin:-10px 0 14px;line-height:1.5;}
 .f-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
 .btn-cancel{padding:10px 20px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;font-family:inherit;}
@@ -101,8 +115,8 @@ input[type=checkbox].row-chk{width:16px;height:16px;cursor:pointer;accent-color:
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
 @media(max-width:640px){
-.filter-tabs{gap:4px;} .filter-tab{font-size:.76rem;padding:4px 10px;}
-.btn-group{gap:5px;} .btn-outline{font-size:.78rem;padding:6px 10px;}
+.toolbar{flex-direction:column;} .search-input{width:100%;}
+.filter-tabs{gap:4px;} .filter-tab{font-size:.75rem;padding:4px 10px;}
 td,th{padding:8px 10px;font-size:.82rem;}
 .f-2col{grid-template-columns:1fr;}
 }
@@ -126,35 +140,38 @@ td,th{padding:8px 10px;font-size:.82rem;}
     <p>生徒の登録・編集・CSV インポート / エクスポート</p>
   </div>
 
-  <!-- クラス管理 -->
-  <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title">🏫 クラス一覧</span>
-      <div class="btn-group">
-        <button class="btn-outline btn-add"    onclick="openAddClassModal()">＋ クラス追加</button>
-        <button class="btn-outline btn-export" onclick="exportCSV()">↓ CSV出力</button>
-        <button class="btn-outline btn-import" onclick="openImportModal()">↑ CSV読込</button>
-      </div>
-    </div>
-    <div class="class-tags" id="classTags">
-      <span style="color:#94a3b8;font-size:.88rem;">読み込み中…</span>
-    </div>
+  <!-- ツールバー（カード外） -->
+  <div class="toolbar">
+    <input class="search-input" id="searchInput" type="text" placeholder="氏名・学籍番号で検索…" oninput="applySearch()">
+    <button class="btn-outline btn-export" onclick="exportCSV()">↓ CSV出力</button>
+    <button class="btn-outline btn-import" onclick="openImportModal()">↑ CSV読込</button>
+    <button class="btn-primary" onclick="openAddStudentModal()">＋ 生徒追加</button>
   </div>
 
-  <!-- 生徒一覧 -->
-  <div class="panel">
-    <div class="panel-head">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span class="panel-title">生徒一覧</span>
-        <button class="btn-outline btn-add" onclick="openAddStudentModal()" style="font-size:.8rem;padding:6px 12px;">＋ 生徒追加</button>
-        <button class="btn-outline btn-bulk-del" id="btnBulkDel" onclick="openBulkDeleteModal()" disabled style="font-size:.8rem;padding:6px 12px;">
-          🗑 一括削除（<span id="bulkCount">0</span>件）
-        </button>
-      </div>
+  <!-- メインカード -->
+  <div class="main-card">
+
+    <!-- クラス管理 -->
+    <div class="section-header">
+      <span class="section-title">🏫 クラス</span>
+      <button class="btn-add-sm" onclick="openAddClassModal()">＋ クラス追加</button>
+    </div>
+    <div class="class-tags" id="classTags">
+      <span style="color:#94a3b8;font-size:.86rem;">読み込み中…</span>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 生徒一覧 -->
+    <div class="list-bar">
       <div class="filter-tabs" id="filterTabs">
         <button class="filter-tab active" onclick="filterClass('all',this)">すべて</button>
       </div>
+      <button class="btn-bulk-del" id="btnBulkDel" onclick="openBulkDeleteModal()" disabled>
+        🗑 一括削除（<span id="bulkCount">0</span>件）
+      </button>
     </div>
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -168,7 +185,8 @@ td,th{padding:8px 10px;font-size:.82rem;}
         </tbody>
       </table>
     </div>
-  </div>
+
+  </div><!-- /.main-card -->
 </div>
 
 <!-- 生徒追加モーダル -->
@@ -330,9 +348,12 @@ function renderFilterTabs(){
 }
 
 /* テーブル */
+function applySearch(){renderTable(currentFilter);}
 function renderTable(cls){
+    const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
     const body = document.getElementById('tbody');
-    const list = cls==='all' ? allStudents : allStudents.filter(s=>s.class_name===cls);
+    let list = cls==='all' ? allStudents : allStudents.filter(s=>s.class_name===cls);
+    if(q) list=list.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.furigana||'').toLowerCase().includes(q)||(s.student_id||'').toLowerCase().includes(q));
     if (!list.length){ body.innerHTML='<tr class="empty-row"><td colspan="7">生徒がいません</td></tr>'; updateCheckAll(); return; }
     const opts = allClasses.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
     body.innerHTML = list.map(s=>{
