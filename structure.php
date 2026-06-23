@@ -171,6 +171,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <dt>統計表示</dt><dd>生徒総数 / カルテ記録数 / 出欠記録数</dd>
           <dt>機能</dt><dd>検索（名前/ふりがな）、クラスフィルター、生徒追加モーダル</dd>
           <dt>生徒行クリック</dt><dd>karte_detail.php?id={student_id} へ遷移</dd>
+          <dt>前回の続きバー</dt><dd>localStorage['karte_last_state'] を読み込み、24時間以内なら「{氏名}さんのカルテを XX分前に閲覧」バーを表示。クリックで直接前回タブへ遷移</dd>
           <dt>モバイル対応</dt><dd>≤480px でハンバーガーメニュー（ドロワー）</dd>
         </dl>
       </div>
@@ -185,10 +186,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         </div>
         <dl class="kv">
           <dt>URLパラメータ</dt><dd>?id={student_id}</dd>
-          <dt>タブ一覧</dt><dd>基本情報 / カルテ記録 / 出欠 / 面談 / メモ / 学籍台帳 / 📄家庭調査票</dd>
+          <dt>タブ一覧</dt><dd>基本情報 / カルテ記録 / 出欠 / 面談 / メモ / 学籍台帳 / 📄家庭調査票 / 📜履歴</dd>
           <dt>前後切替</dt><dd>◀▶ボタン + マウスホイール + 横スワイプ（タッチ）</dd>
           <dt>データ優先順位</dt><dd>gakuseki > students（名前・住所・電話等）</dd>
           <dt>写真表示</dt><dd>gak['photo'] ?? s['photo']（gakuseki優先）</dd>
+          <dt>履歴タブ</dt><dd>activity_log テーブルから取得。操作種別ごとにアイコン色分け（追加=緑/編集=青/削除=赤/メモ=紫/基本情報=黄）。日付セパレータ付き時系列表示</dd>
+          <dt>最終閲覧記憶</dt><dd>saveLastState() → localStorage['karte_last_state']（student_id, panel, tab_label, ts）。再ロード時に同一生徒なら前回タブを自動復元</dd>
           <dt>モバイル対応</dt><dd>≤480px ハンバーガーメニュー、タブ横スクロール</dd>
         </dl>
       </div>
@@ -297,7 +300,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         </div>
         <dl class="kv">
           <dt>アクセス条件</dt><dd>localhost OR ログイン済み OR ?token={KARTE_SETUP_TOKEN}</dd>
-          <dt>作成テーブル</dt><dd>teachers, students, karte_records, karte_attendance, login_attempts, karte_interviews, gakuseki, student_nendo</dd>
+          <dt>作成テーブル</dt><dd>teachers, students, karte_records, karte_attendance, login_attempts, karte_interviews, gakuseki, student_nendo, activity_log</dd>
           <dt>ALTER TABLE</dt><dd>後付カラム追加（gakno, memo_posi, memo_nega, memo_main, photo 等）</dd>
         </dl>
       </div>
@@ -400,6 +403,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <tr><td><span class="method m-get">GET</span></td><td><span class="action-name">list_interviews</span></td><td>student_id</td><td>karte_interviews（interview_date DESC）</td></tr>
           <tr><td><span class="method m-get">GET</span></td><td><span class="action-name">get_gakno</span></td><td>student_id</td><td>students.gakno を返却</td></tr>
           <tr><td><span class="method m-get">GET</span></td><td><span class="action-name">get_memos</span></td><td>student_id</td><td>memo_posi / memo_nega / memo_main</td></tr>
+          <tr><td><span class="method m-get">GET</span></td><td><span class="action-name">list_history</span></td><td>student_id</td><td>activity_log から最新300件をDESC取得。テーブル未存在時は空配列返却（エラーにならない）</td></tr>
           <tr><td><span class="method m-post">POST</span></td><td><span class="action-name">add_student</span></td><td>student_id, name, class_name, furigana</td><td>students に INSERT（重複は1062エラー）</td></tr>
           <tr><td><span class="method m-post">POST</span></td><td><span class="action-name">save_basic</span></td><td>student_id, name, furigana, class_name, seat_number, gender, birthday, phone, parent_name, address, notes</td><td>students を UPDATE</td></tr>
           <tr><td><span class="method m-post">POST</span></td><td><span class="action-name">add_record</span></td><td>student_id, record_date, record_type, content, teacher, next_action</td><td>karte_records に INSERT</td></tr>
@@ -412,6 +416,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <tr><td><span class="method m-post">POST</span></td><td><span class="action-name">save_gakno</span></td><td>student_id, gakno</td><td>students.gakno を UPDATE。gakno紐付け時にstudents.photo→gakuseki.photoへ移行（gakusekiに写真がない場合のみ）</td></tr>
           <tr><td><span class="method m-post">POST</span></td><td><span class="action-name">save_memos</span></td><td>student_id, posi, nega, main</td><td>students の memo_posi / nega / main を UPDATE</td></tr>
         </tbody>
+        <tfoot><tr><td colspan="4" style="padding:6px 8px;font-size:.72rem;color:#8b949e;">※ 書き込み系アクション（add/update/delete/save_memos/save_basic）はすべて <code style="color:#f0883e;">logActivity()</code> を呼び出し activity_log に記録。logActivity() は実行時にテーブルを自動作成（CREATE TABLE IF NOT EXISTS）するため setup.php 不要。</td></tr></tfoot>
       </table>
     </div>
   </div>
@@ -619,6 +624,21 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
       </div>
 
       <div class="db-card">
+        <div class="db-card-head"><span class="db-card-name">activity_log</span><span class="db-card-label">操作履歴ログ</span></div>
+        <div class="db-cols">
+          <div class="db-col"><span class="db-key">🔑</span><span class="db-col-name">id</span><span class="db-col-type">INT AUTO_INCREMENT</span></div>
+          <div class="db-col"><span class="db-fk">FK</span><span class="db-col-name">teacher_id</span><span class="db-col-type">INT → teachers.id（0=不明）</span></div>
+          <div class="db-col"><span></span><span class="db-col-name">teacher_name</span><span class="db-col-type">VARCHAR(100)（操作者表示名）</span></div>
+          <div class="db-col"><span class="db-fk">FK</span><span class="db-col-name">student_id</span><span class="db-col-type">VARCHAR(10) → students.student_id</span></div>
+          <div class="db-col"><span></span><span class="db-col-name">action_type</span><span class="db-col-type">VARCHAR(50)（指導記録を追加/削除, 出欠, 面談, メモ, 基本情報等）</span></div>
+          <div class="db-col"><span></span><span class="db-col-name">detail</span><span class="db-col-type">TEXT（最大300文字 mb_strimwidth）</span></div>
+          <div class="db-col"><span></span><span class="db-col-name">created_at</span><span class="db-col-type">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span></div>
+          <div class="db-col"><span></span><span class="db-col-name">INDEX</span><span class="db-col-type">idx_student(student_id), idx_created(created_at)</span></div>
+        </div>
+        <div style="padding:4px 12px 8px;font-size:.7rem;color:#6e7681;">logActivity() が初回呼び出し時に自動作成（setup.php 不要）</div>
+      </div>
+
+      <div class="db-card">
         <div class="db-card-head"><span class="db-card-name">login_attempts</span><span class="db-card-label">ログイン試行記録</span></div>
         <div class="db-cols">
           <div class="db-col"><span class="db-key">🔑</span><span class="db-col-name">id</span><span class="db-col-type">INT AUTO_INCREMENT</span></div>
@@ -736,6 +756,34 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         <div class="fn hi"><span class="fn-icon">🌸</span><span class="fn-label">deploy.php → pull（更新）</span><span class="fn-sub">git reset --hard origin/master</span></div>
         <div class="fn-arrow">→</div>
         <div class="fn"><span class="fn-icon">✅</span><span class="fn-label">30秒後 ログ確認</span><span class="fn-sub">opened.sakura.ne.jp</span></div>
+      </div>
+    </div>
+
+    <div class="flow-item">
+      <div class="flow-title"><span>📜</span> 操作履歴の記録・表示</div>
+      <div class="flow-nodes">
+        <div class="fn hi"><span class="fn-icon">✏</span><span class="fn-label">書き込み操作</span><span class="fn-sub">add/update/delete/save</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">📝</span><span class="fn-label">logActivity()</span><span class="fn-sub">api/karte.php</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">🗄</span><span class="fn-label">activity_log</span><span class="fn-sub">自動CREATE IF NOT EXISTS</span></div>
+        <div class="fn-arrow">→ 履歴タブ開く</div>
+        <div class="fn"><span class="fn-icon">📡</span><span class="fn-label">list_history API</span><span class="fn-sub">GET action=list_history</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">📜</span><span class="fn-label">時系列表示</span><span class="fn-sub">日付セパレータ+アイコン</span></div>
+      </div>
+    </div>
+
+    <div class="flow-item">
+      <div class="flow-title"><span>💾</span> 最終閲覧状態の記憶・復元</div>
+      <div class="flow-nodes">
+        <div class="fn"><span class="fn-icon">👆</span><span class="fn-label">タブ切替</span><span class="fn-sub">karte_detail.php</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">💾</span><span class="fn-label">saveLastState()</span><span class="fn-sub">localStorage に保存</span></div>
+        <div class="fn-arrow">→ 再ログイン後</div>
+        <div class="fn"><span class="fn-icon">🏠</span><span class="fn-label">home.php</span><span class="fn-sub">前回の続きバー表示</span></div>
+        <div class="fn-arrow">→ クリック</div>
+        <div class="fn hi"><span class="fn-icon">📋</span><span class="fn-label">karte_detail.php</span><span class="fn-sub">前回タブを自動復元</span></div>
       </div>
     </div>
 
