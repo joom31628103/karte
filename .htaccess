@@ -1,0 +1,48 @@
+# ── HTTPS強制リダイレクト ──
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} !^localhost$ [NC]
+RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1$
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# ── セキュリティヘッダー ──
+<IfModule mod_headers.c>
+    # クリックジャッキング防止
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # MIMEスニッフィング防止
+    Header always set X-Content-Type-Options "nosniff"
+    # XSS フィルター（レガシーブラウザ向け）
+    Header always set X-XSS-Protection "1; mode=block"
+    # リファラー情報制限
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # HTTPSのみを強制（本番環境）
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+    # Content Security Policy
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-src https://maps.google.com https://www.google.com; connect-src 'self';"
+    # Permissions Policy
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    # サーバー情報を隠す
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+</IfModule>
+
+# ── 機密ファイルへのアクセス禁止 ──
+<FilesMatch "^(config\.php|\.env|composer\.(json|lock)|package\.json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ── .gitディレクトリ保護 ──
+RedirectMatch 404 /\.git
+
+# ── ディレクトリリスティング無効化 ──
+Options -Indexes
+
+# ── PHPエラー表示をオフ（本番） ──
+php_flag display_errors off
+php_flag log_errors on
+
+# ── セッションのセキュリティ設定 ──
+php_value session.cookie_httponly 1
+php_value session.use_strict_mode 1
+php_value session.cookie_samesite "Strict"

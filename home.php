@@ -87,6 +87,7 @@ td{padding:11px 12px;color:#1e293b;}
     <span class="topbar-name"><?= $teacher ?> 先生</span>
   </div>
   <div class="topbar-right">
+    <a href="/karte/gakuseki.php" class="btn-logout">📚 学籍管理</a>
     <a href="/karte/student_manager.php" class="btn-logout">👥 生徒管理</a>
     <a href="/karte/logout.php" class="btn-logout">ログアウト</a>
   </div>

@@ -8,3 +8,5 @@ Thumbs.db
 # エディタ
 *.swp
 *.bak
+
+deploy.php
