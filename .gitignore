@@ -10,3 +10,15 @@ Thumbs.db
 *.bak
 
 deploy.php
+config.local.php
+check_ext.php
+
+# アップロードされたファイル（一時作業フォルダ）
+uploads/tmp_crops/*
+!uploads/tmp_crops/.htaccess
+
+# 顔写真・調査票は除外（容量・個人情報）
+uploads/photos/*
+!uploads/photos/.htaccess
+uploads/survey/*
+!uploads/survey/.htaccess

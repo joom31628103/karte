@@ -76,8 +76,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-btn-top.active{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.6);}
 
 /* ── ナビゲーションボタン行 ── */
-.fm-navbar{background:#3b4f8a;padding:4px 10px;display:flex;gap:4px;align-items:center;border-bottom:2px solid #263570;}
-.fm-navbtn{padding:5px 13px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#dce4ff;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.fm-navbar{background:#3b4f8a;padding:4px 10px;display:flex;gap:4px;align-items:center;border-bottom:2px solid #263570;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;}
+.fm-navbar::-webkit-scrollbar{display:none;}
+.fm-navbar::after{content:'';position:sticky;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to left,#3b4f8a,transparent);pointer-events:none;flex-shrink:0;}
+.fm-navbtn{padding:0 13px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#dce4ff;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;}
 .fm-navbtn:hover,.fm-navbtn.active{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);color:#fff;}
 .fm-navbtn.active{border-color:#8ba4ff;}
 
@@ -99,8 +101,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .photo-wrap:hover .photo-del-btn{display:flex;}
 
 /* ── タブ ── */
-.fm-tabs{background:#4a5a96;display:flex;gap:2px;padding:6px 10px 0;border-bottom:3px solid #2c3e6b;overflow-x:auto;}
-.fm-tab{padding:7px 14px 6px;background:linear-gradient(180deg,#6a7bb5 0%,#4a5a96 100%);border:1px solid #3b4f8a;border-bottom:none;border-radius:5px 5px 0 0;color:#c4d0ff;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;}
+.fm-tabs{background:#4a5a96;display:flex;gap:2px;padding:6px 10px 0;border-bottom:3px solid #2c3e6b;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;}
+.fm-tabs::-webkit-scrollbar{display:none;}
+.fm-tabs::after{content:'';position:sticky;right:0;top:0;bottom:0;width:32px;background:linear-gradient(to left,#4a5a96,transparent);pointer-events:none;flex-shrink:0;}
+.fm-tab{padding:7px 14px 6px;background:linear-gradient(180deg,#6a7bb5 0%,#4a5a96 100%);border:1px solid #3b4f8a;border-bottom:none;border-radius:5px 5px 0 0;color:#c4d0ff;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;min-height:44px;display:inline-flex;align-items:center;}
 .fm-tab:hover{background:linear-gradient(180deg,#8a9fd5 0%,#6a7bb5 100%);color:#fff;}
 .fm-tab.active{background:#f0f2f8;color:#1a2240;border-color:#aab0cc;border-bottom:3px solid #f0f2f8;margin-bottom:-3px;padding-bottom:9px;}
 
@@ -241,15 +245,29 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 
 /* ── iPad縦 / 大型スマホ（〜768px） ── */
 @media(max-width:768px){
-  .fm-navbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;}
-  .fm-navbtn{font-size:.74rem;padding:5px 10px;}
+  .fm-navbar{overflow-x:auto;flex-wrap:nowrap;}
+  .fm-navbtn{font-size:.74rem;padding:0 10px;min-height:44px;}
+  .fm-tab{min-height:44px;padding:0 12px;font-size:.78rem;}
   .map-layout{grid-template-columns:1fr;}
   .map-frame-wrap{min-height:280px;}
   .map-frame-wrap iframe{min-height:280px;}
   .fm-info-grid{grid-template-columns:1fr 1fr;}
   .modal-2col{grid-template-columns:1fr 1fr;}
   .posineg-grid{grid-template-columns:1fr 1fr;}
+  /* タップしやすいボタン */
+  .fm-add-btn{min-height:40px;padding:0 14px;}
+  .fm-save-btn{min-height:40px;}
 }
+
+/* ── モバイルドロワー（detail用） ── */
+.mobile-menu-btn{display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;font-size:1.1rem;cursor:pointer;line-height:1;}
+.mobile-drawer{display:none;position:fixed;top:0;right:0;bottom:0;width:220px;background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);z-index:300;padding:16px 12px;box-shadow:-4px 0 20px rgba(0,0,0,.4);flex-direction:column;gap:6px;}
+.mobile-drawer.open{display:flex;}
+.mobile-drawer a{display:block;padding:11px 14px;color:#e8ecff;text-decoration:none;font-size:.88rem;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);}
+.mobile-drawer a:hover{background:rgba(255,255,255,.2);}
+.mobile-drawer-close{font-size:1.2rem;color:#c4d4ff;background:none;border:none;cursor:pointer;align-self:flex-end;margin-bottom:4px;padding:4px;}
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;}
+.drawer-overlay.open{display:block;}
 
 /* ── iPhone / 小型スマホ（〜480px） ── */
 @media(max-width:480px){
@@ -257,17 +275,19 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-topbar{padding:4px 8px;gap:4px;}
   .fm-topbar-title{font-size:1rem;}
   .fm-topbar-student{display:none;}
-  .fm-btn-top{font-size:.7rem;padding:4px 8px;}
-  .fm-arrow{width:32px;height:32px;font-size:1.1rem;}
+  /* モバイルではトップバー右のボタンを隠してハンバーガーに */
+  .fm-topbar-right{display:none;}
+  .mobile-menu-btn{display:block;}
+  .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
   .fm-navbar{padding:4px 6px;gap:3px;}
-  .fm-navbtn{font-size:.72rem;padding:5px 8px;}
+  .fm-navbtn{font-size:.72rem;padding:0 8px;min-height:44px;}
   .fm-student-header{padding:8px;}
   .fm-field{min-width:90px;}
   .fm-field-label{font-size:.64rem;}
   .fm-field-value{font-size:.78rem;}
   .fm-photo{width:60px;height:72px;}
   .fm-tabs{padding:5px 6px 0;gap:1px;}
-  .fm-tab{padding:6px 8px;font-size:.73rem;}
+  .fm-tab{padding:0 10px;font-size:.75rem;min-height:44px;}
   .fm-panel{padding:10px;}
   .fm-panel-toolbar{gap:6px;}
   .fm-add-btn{font-size:.74rem;padding:5px 10px;}
@@ -314,6 +334,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
     <a href="/karte/home.php" class="fm-btn-top">← 一覧</a>
     <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
+  <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
+</div>
+
+<!-- モバイルドロワー -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="mobile-drawer-close" onclick="closeDrawer()">✕</button>
+  <a href="/karte/home.php">← 一覧に戻る</a>
+  <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード印刷</a>
+  <a href="/karte/gakuseki.php">📚 学籍管理</a>
+  <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
 <!-- ── ナビゲーションボタン行 ── -->
@@ -323,6 +354,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   <button class="fm-navbtn" onclick="switchNav(this,'panel-interview')">💬 面談記録</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-memo')">📋 メモ・所見</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-family')">🏠 家庭環境</button>
+  <button class="fm-navbtn" onclick="switchNav(this,'panel-survey')">📄 家庭調査票</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-basic')">👤 基本情報</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-map')">🗺 地図</button>
 </div>
@@ -415,6 +447,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   <button class="fm-tab" data-panel="panel-interview">💬 面談記録</button>
   <button class="fm-tab" data-panel="panel-memo">📋 メモ・所見</button>
   <button class="fm-tab" data-panel="panel-family">🏠 家庭環境</button>
+  <button class="fm-tab" data-panel="panel-survey">📄 家庭調査票</button>
   <button class="fm-tab" data-panel="panel-basic">👤 基本情報</button>
   <button class="fm-tab" data-panel="panel-map">🗺 地図</button>
 </div>
@@ -514,6 +547,27 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
       <button class="fm-save-btn" id="btnSaveFamily">保存する</button>
       <span class="save-ok" id="family-save-ok">✓ 保存しました</span>
     </div>
+  </div>
+
+  <!-- 家庭環境調査票 -->
+  <div class="fm-panel" id="panel-survey">
+    <div class="fm-panel-toolbar">
+      <span class="fm-panel-title">家庭環境調査票（A4横）</span>
+      <label class="fm-add-btn" style="cursor:pointer;">
+        📤 画像をアップロード
+        <input type="file" id="surveyInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadSurvey(this)">
+      </label>
+      <button class="fm-add-btn" id="btnDelSurvey" style="background:linear-gradient(180deg,#dc2626 0%,#b91c1c 100%);border-color:#991b1b;display:none;" onclick="deleteSurvey()">🗑 削除</button>
+    </div>
+    <div id="survey-area" style="background:#fff;border:1px solid #aab0cc;border-radius:6px;min-height:300px;display:flex;align-items:center;justify-content:center;overflow:auto;">
+      <div id="survey-placeholder" style="text-align:center;color:#9aa0c0;padding:40px;">
+        <div style="font-size:3rem;margin-bottom:12px;">📄</div>
+        <div style="font-size:.9rem;font-weight:700;">家庭環境調査票の画像がありません</div>
+        <div style="font-size:.78rem;margin-top:6px;">「画像をアップロード」から登録してください（A4横・JPEG/PNG推奨）</div>
+      </div>
+      <img id="survey-img" style="display:none;max-width:100%;height:auto;border-radius:4px;" alt="家庭環境調査票">
+    </div>
+    <div style="margin-top:8px;font-size:.72rem;color:#5a6080;">※ 調査票をスキャン・撮影した画像をアップロードしてください。印刷時はA4横で出力されます。</div>
   </div>
 
   <!-- 基本情報 -->
@@ -1112,6 +1166,59 @@ loadRecords();
   }, { passive: true });
 })();
 
+/* ── 家庭調査票 ── */
+(async () => {
+  const params = new URLSearchParams();
+  <?php if ($gakno): ?>params.append('gakno','<?= htmlspecialchars($gakno) ?>');<?php else: ?>params.append('student_id',SID);<?php endif; ?>
+  const res = await fetch('/karte/api/survey.php?' + params);
+  const data = await res.json();
+  if (data.success && data.url) showSurveyImg(data.url);
+})();
+
+function showSurveyImg(url) {
+  document.getElementById('survey-placeholder').style.display = 'none';
+  const img = document.getElementById('survey-img');
+  img.src = url;
+  img.style.display = 'block';
+  document.getElementById('btnDelSurvey').style.display = '';
+}
+
+async function uploadSurvey(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { alert('10MB以下のファイルを選択してください'); input.value=''; return; }
+  const fd = new FormData();
+  fd.append('action', 'upload');
+  fd.append('csrf_token', CSRF);
+  fd.append('survey', file);
+  <?php if ($gakno): ?>fd.append('gakno','<?= htmlspecialchars($gakno) ?>');<?php else: ?>fd.append('student_id',SID);<?php endif; ?>
+  // プレビュー即時表示
+  const reader = new FileReader();
+  reader.onload = e => showSurveyImg(e.target.result);
+  reader.readAsDataURL(file);
+  const res = await fetch('/karte/api/survey.php', {method:'POST', body:fd});
+  const data = await res.json();
+  if (!data.success) alert('アップロードエラー: ' + (data.error||'不明'));
+  else showSurveyImg(data.url);
+  input.value = '';
+}
+
+async function deleteSurvey() {
+  if (!confirm('調査票の画像を削除しますか？')) return;
+  const fd = new FormData();
+  fd.append('action','delete');
+  fd.append('csrf_token',CSRF);
+  <?php if ($gakno): ?>fd.append('gakno','<?= htmlspecialchars($gakno) ?>');<?php else: ?>fd.append('student_id',SID);<?php endif; ?>
+  const res = await fetch('/karte/api/survey.php',{method:'POST',body:fd});
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('survey-img').style.display = 'none';
+    document.getElementById('survey-img').src = '';
+    document.getElementById('survey-placeholder').style.display = '';
+    document.getElementById('btnDelSurvey').style.display = 'none';
+  }
+}
+
 /* ── 写真アップロード ── */
 async function uploadPhoto(input) {
   const file = input.files[0];
@@ -1158,6 +1265,9 @@ async function uploadPhoto(input) {
   }
   input.value = '';
 }
+
+function openDrawer()  { document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
+function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
 
 async function deletePhoto(e) {
   e.stopPropagation();

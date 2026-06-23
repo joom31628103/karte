@@ -92,16 +92,34 @@ td:last-child{border-right:none;}
 
 .table-wrap{-webkit-overflow-scrolling:touch;}
 
+/* ── モバイルメニュー ── */
+.mobile-menu-btn{display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;font-size:1.1rem;cursor:pointer;line-height:1;}
+.mobile-menu-btn:hover{background:rgba(255,255,255,.25);}
+.mobile-drawer{display:none;position:fixed;top:0;right:0;bottom:0;width:220px;background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);z-index:300;padding:16px 12px;box-shadow:-4px 0 20px rgba(0,0,0,.4);flex-direction:column;gap:6px;}
+.mobile-drawer.open{display:flex;}
+.mobile-drawer a,.mobile-drawer button{display:block;padding:11px 14px;color:#e8ecff;text-decoration:none;font-size:.88rem;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);width:100%;text-align:left;font-family:inherit;cursor:pointer;}
+.mobile-drawer a:hover,.mobile-drawer button:hover{background:rgba(255,255,255,.2);}
+.mobile-drawer-close{font-size:1.2rem;color:#c4d4ff;background:none;border:none;cursor:pointer;align-self:flex-end;margin-bottom:4px;padding:4px;}
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;}
+.drawer-overlay.open{display:block;}
+
 @media(max-width:768px){
   .fm-topbar-name{display:none;}
   .container{padding:10px 12px 40px;}
   .stats{grid-template-columns:1fr 1fr 1fr;}
 }
+@media(max-width:600px){
+  /* トップバー：アイコンのみに縮小 */
+  .fm-btn-top .btn-label{display:none;}
+  .fm-btn-top{padding:6px 8px;font-size:1rem;}
+}
 @media(max-width:480px){
   body{font-size:12px;}
   .fm-topbar{padding:4px 8px;}
   .fm-topbar-title{font-size:.95rem;}
-  .fm-btn-top{font-size:.7rem;padding:4px 8px;}
+  /* モバイルはハンバーガーメニューに切り替え */
+  .fm-topbar-right{display:none;}
+  .mobile-menu-btn{display:block;}
   .stats{gap:5px;}
   .stat-num{font-size:1.3rem;}
   .stat-label{font-size:.62rem;}
@@ -123,10 +141,24 @@ td:last-child{border-right:none;}
     <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
   <div class="fm-topbar-right">
-    <a href="/karte/gakuseki.php" class="fm-btn-top">📚 学籍管理</a>
-    <a href="/karte/student_manager.php" class="fm-btn-top">👥 生徒管理</a>
-    <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
+    <a href="/karte/gakuseki.php" class="fm-btn-top">📚<span class="btn-label"> 学籍管理</span></a>
+    <a href="/karte/student_manager.php" class="fm-btn-top">👥<span class="btn-label"> 生徒管理</span></a>
+    <a href="/karte/photo_import.php" class="fm-btn-top">📸<span class="btn-label"> 写真取込</span></a>
+    <a href="/karte/survey_import.php" class="fm-btn-top">📋<span class="btn-label"> 調査票取込</span></a>
+    <a href="/karte/logout.php" class="fm-btn-top">🚪<span class="btn-label"> ログアウト</span></a>
   </div>
+  <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
+</div>
+
+<!-- モバイルドロワー -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="mobile-drawer-close" onclick="closeDrawer()">✕</button>
+  <a href="/karte/gakuseki.php">📚 学籍管理</a>
+  <a href="/karte/student_manager.php">👥 生徒管理</a>
+  <a href="/karte/photo_import.php">📸 写真取込</a>
+  <a href="/karte/survey_import.php">📋 調査票取込</a>
+  <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
 <div class="container">
@@ -281,6 +313,9 @@ document.getElementById('btnSaveAdd').onclick = async () => {
 };
 
 loadStudents();
+
+function openDrawer()  { document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
+function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
 </script>
 </body>
 </html>

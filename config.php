@@ -20,6 +20,12 @@ if ($_is_local) {
     define('DB_NAME', 'opened_karte_db');
 }
 
+/* ── Gemini API ── */
+// Gemini APIキーは config.local.php に記載（gitignore済み）
+define('GEMINI_API_KEY', file_exists(__DIR__.'/config.local.php')
+    ? (require __DIR__.'/config.local.php')
+    : '');
+
 /* ── セキュリティヘッダー送信 ── */
 function sendSecurityHeaders(): void {
     if (headers_sent()) return;
