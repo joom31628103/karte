@@ -21,16 +21,28 @@ function ps(mysqli $conn, string $sql, string $types = '', array $params = []): 
     return $result;
 }
 
-// 操作ログ記録（activity_log テーブルが未作成の場合は静かにスキップ）
+// 操作ログ記録（テーブルが未作成の場合は自動作成してから記録）
 function logActivity(mysqli $conn, string $studentId, string $actionType, string $detail): void {
     if (!$studentId) return;
+    // テーブルが存在しなければ作成（MySQL 5.x 対応: CREATE TABLE IF NOT EXISTS は使用可能）
+    $conn->query("CREATE TABLE IF NOT EXISTS activity_log (
+        id           INT PRIMARY KEY AUTO_INCREMENT,
+        teacher_id   INT NOT NULL DEFAULT 0,
+        teacher_name VARCHAR(100) DEFAULT '',
+        student_id   VARCHAR(10) NOT NULL,
+        action_type  VARCHAR(50) NOT NULL,
+        detail       TEXT,
+        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_student (student_id),
+        INDEX idx_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $tid   = (int)($_SESSION['teacher_id'] ?? 0);
     $tname = $_SESSION['teacher_name'] ?? '';
-    $stmt  = @$conn->prepare("INSERT INTO activity_log (teacher_id,teacher_name,student_id,action_type,detail) VALUES (?,?,?,?,?)");
+    $stmt  = $conn->prepare("INSERT INTO activity_log (teacher_id,teacher_name,student_id,action_type,detail) VALUES (?,?,?,?,?)");
     if (!$stmt) return;
     $det = mb_strimwidth($detail, 0, 300, '…');
     $stmt->bind_param('issss', $tid, $tname, $studentId, $actionType, $det);
-    @$stmt->execute();
+    $stmt->execute();
     $stmt->close();
 }
 
