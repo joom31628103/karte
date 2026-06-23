@@ -1,0 +1,5 @@
+# 画像ファイルのみ許可、PHP実行禁止
+Options -Indexes
+<FilesMatch "\.ph(p[0-9]?|tml)$">
+    Deny from all
+</FilesMatch>

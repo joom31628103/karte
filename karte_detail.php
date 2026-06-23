@@ -49,6 +49,7 @@ $dispNendo   = $latestNendo['nendo']    ?? '';
 $dispTannin  = $latestNendo['tanninmei'] ?? '';
 $dispStatus  = $gak['gakuseki_status'] ?? '';
 $dispNyunendo = $gak['nyunendo'] ?? '';
+$dispPhoto   = $gak['photo'] ?? $s['photo'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -90,8 +91,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-field-value{padding:4px 8px;background:#fff;border:1px solid #aab0cc;font-size:.85rem;font-weight:600;color:#1a2240;min-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .fm-field-value.wide{white-space:normal;}
 .fm-field-value.placeholder{color:#9aa0c0;font-weight:400;}
-.fm-photo{width:80px;height:96px;background:#e4e7f0;border:2px solid #aab0cc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9aa0c0;font-size:.75rem;text-align:center;flex-shrink:0;overflow:hidden;}
-.fm-photo img{width:100%;height:100%;object-fit:cover;}
+.fm-photo{width:80px;height:96px;background:#e4e7f0;border:2px solid #aab0cc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9aa0c0;font-size:.75rem;text-align:center;flex-shrink:0;overflow:hidden;transition:border-color .2s;}
+.fm-photo:hover{border-color:#546099;}
+.fm-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-wrap{position:relative;flex-shrink:0;}
+.photo-del-btn{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#dc2626;color:#fff;border:none;cursor:pointer;font-size:.7rem;display:none;align-items:center;justify-content:center;line-height:1;z-index:10;}
+.photo-wrap:hover .photo-del-btn{display:flex;}
 
 /* ── タブ ── */
 .fm-tabs{background:#4a5a96;display:flex;gap:2px;padding:6px 10px 0;border-bottom:3px solid #2c3e6b;overflow-x:auto;}
@@ -389,7 +394,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
       </div>
     </div>
     <!-- 写真欄 -->
-    <div class="fm-photo">写真</div>
+    <div class="photo-wrap">
+      <div class="fm-photo" id="photoBox" onclick="document.getElementById('photoInput').click()" title="クリックして写真をアップロード" style="cursor:pointer;">
+        <?php if ($dispPhoto): ?>
+          <img id="photoImg" src="<?= htmlspecialchars($dispPhoto) ?>" alt="生徒写真">
+        <?php else: ?>
+          <span id="photoPlaceholder" style="font-size:.65rem;color:#9aa0c0;text-align:center;line-height:1.5;">📷<br>写真<br>タップ</span>
+        <?php endif; ?>
+        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadPhoto(this)">
+      </div>
+      <button class="photo-del-btn" id="photoDelBtn" onclick="deletePhoto(event)" title="写真を削除" <?= $dispPhoto ? '' : 'style="display:none"' ?>>×</button>
+    </div>
   </div>
 </div>
 
@@ -1053,6 +1068,79 @@ document.querySelector('.fm-tab[data-panel="panel-map"]').addEventListener('clic
 
 // 初期ロード
 loadRecords();
+
+/* ── 写真アップロード ── */
+async function uploadPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) { alert('4MB以下のファイルを選択してください'); input.value=''; return; }
+
+  const fd = new FormData();
+  fd.append('action',     'upload');
+  fd.append('csrf_token', CSRF);
+  fd.append('photo',      file);
+  <?php if ($gakno): ?>
+  fd.append('gakno', '<?= htmlspecialchars($gakno) ?>');
+  <?php else: ?>
+  fd.append('student_id', '<?= htmlspecialchars($sid) ?>');
+  <?php endif; ?>
+
+  // プレビュー（即時表示）
+  const reader = new FileReader();
+  reader.onload = e => {
+    let img = document.getElementById('photoImg');
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'photoImg';
+      document.getElementById('photoBox').innerHTML = '';
+      document.getElementById('photoBox').appendChild(img);
+      // input を再追加
+      const inp = document.createElement('input');
+      inp.type='file'; inp.id='photoInput'; inp.accept='image/jpeg,image/png,image/gif,image/webp';
+      inp.style.display='none'; inp.onchange = function(){uploadPhoto(this);};
+      document.getElementById('photoBox').appendChild(inp);
+    }
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  const res  = await fetch('/karte/api/photo.php', { method:'POST', body:fd });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('photoDelBtn').style.display = 'flex';
+    const ph = document.getElementById('photoPlaceholder');
+    if (ph) ph.remove();
+  } else {
+    alert('アップロードエラー: ' + (data.error || '不明'));
+  }
+  input.value = '';
+}
+
+async function deletePhoto(e) {
+  e.stopPropagation();
+  if (!confirm('写真を削除しますか？')) return;
+  const fd = new FormData();
+  fd.append('action',     'delete');
+  fd.append('csrf_token', CSRF);
+  <?php if ($gakno): ?>
+  fd.append('gakno', '<?= htmlspecialchars($gakno) ?>');
+  <?php else: ?>
+  fd.append('student_id', '<?= htmlspecialchars($sid) ?>');
+  <?php endif; ?>
+  const res  = await fetch('/karte/api/photo.php', { method:'POST', body:fd });
+  const data = await res.json();
+  if (data.success) {
+    const box = document.getElementById('photoBox');
+    box.innerHTML = '<span style="font-size:.65rem;color:#9aa0c0;text-align:center;line-height:1.5;">📷<br>写真<br>タップ</span>';
+    const inp = document.createElement('input');
+    inp.type='file'; inp.id='photoInput'; inp.accept='image/jpeg,image/png,image/gif,image/webp';
+    inp.style.display='none'; inp.onchange = function(){uploadPhoto(this);};
+    box.appendChild(inp);
+    document.getElementById('photoDelBtn').style.display = 'none';
+  } else {
+    alert('削除エラー: ' + (data.error || '不明'));
+  }
+}
 </script>
 </body>
 </html>
