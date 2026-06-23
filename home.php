@@ -23,99 +23,108 @@ $conn->close();
 <title>生徒カルテ 一覧</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Yu Gothic UI','Noto Sans JP',sans-serif;background:#0f0a1e;min-height:100vh;color:#1e293b;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 0%,#4c1d95 0%,transparent 55%),radial-gradient(ellipse at 85% 0%,#1e3a8a 0%,transparent 55%),radial-gradient(ellipse at 50% 110%,#312e81 0%,transparent 60%);z-index:0;pointer-events:none;}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(15,10,30,.78);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
-.topbar-left{display:flex;align-items:center;gap:12px;}
-.topbar-badge{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:4px 13px;border-radius:20px;font-size:.74rem;font-weight:700;letter-spacing:.05em;}
-.topbar-name{color:#fff;font-size:.95rem;font-weight:600;}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.btn-logout{padding:7px 18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:8px;cursor:pointer;font-size:.8rem;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;}
-.btn-logout:hover{background:rgba(255,255,255,.16);color:#fff;}
-.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px 64px;}
-.page-header{padding:34px 0 22px;text-align:center;color:#fff;}
-.page-header h1{font-size:1.65rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.page-header p{margin-top:6px;font-size:.87rem;color:rgba(255,255,255,.5);}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px 14px;text-align:center;backdrop-filter:blur(8px);}
-.stat-num{font-size:1.9rem;font-weight:800;color:#fff;line-height:1;margin-bottom:4px;}
-.stat-label{font-size:.71rem;color:rgba(255,255,255,.5);font-weight:500;}
-.main-card{background:rgba(255,255,255,.96);border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
-.search-input{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;color:#1e293b;outline:none;transition:border-color .2s;}
-.search-input:focus{border-color:#7c3aed;}
-.filter-select{padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;cursor:pointer;}
-.btn-add{padding:10px 18px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
-.btn-add:hover{opacity:.9;}
+body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-serif;background:#d0d4dc;min-height:100vh;font-size:13px;color:#1a2240;}
+
+/* トップバー（FileMaker風濃紺） */
+.fm-topbar{background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);color:#fff;padding:4px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #0f1e40;min-height:44px;position:sticky;top:0;z-index:100;}
+.fm-topbar-left{display:flex;align-items:center;gap:10px;}
+.fm-topbar-title{font-size:1.1rem;font-weight:900;letter-spacing:.04em;color:#e8ecff;display:flex;align-items:center;gap:8px;}
+.fm-topbar-title .dot{width:8px;height:8px;border-radius:50%;background:#6ee7b7;display:inline-block;}
+.fm-topbar-name{color:#c4d4ff;font-size:.85rem;font-weight:600;}
+.fm-topbar-right{display:flex;gap:6px;align-items:center;}
+.fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.fm-btn-top:hover{background:rgba(255,255,255,.25);}
+
+/* コンテンツ */
+.container{max-width:1020px;margin:0 auto;padding:16px 16px 48px;}
+
+/* 統計バー */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat-card{background:#f0f2f8;border:1px solid #aab0cc;border-radius:6px;padding:12px 10px;text-align:center;}
+.stat-num{font-size:1.7rem;font-weight:800;color:#1a2a55;line-height:1;margin-bottom:3px;}
+.stat-label{font-size:.7rem;color:#5a6080;font-weight:600;letter-spacing:.04em;}
+
+/* メインパネル（FileMaker風） */
+.fm-panel-wrap{background:#f0f2f8;border:2px solid #aab0cc;border-radius:4px;}
+.fm-panel-header{background:#3b4f8a;padding:6px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.fm-panel-header-title{color:#dce4ff;font-size:.85rem;font-weight:700;flex:1;}
+.search-input{padding:5px 10px;border:1px solid #6a7ab0;border-radius:4px;font-size:.82rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;min-width:180px;flex:1;}
+.search-input:focus{border-color:#8ba4ff;}
+.filter-select{padding:5px 8px;border:1px solid #6a7ab0;border-radius:4px;font-size:.8rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;cursor:pointer;}
+.fm-add-btn{padding:5px 13px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:4px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.fm-add-btn:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
+
+/* テーブル */
 .table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:.87rem;}
-thead tr{border-bottom:2px solid #e2e8f0;}
-th{padding:10px 12px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;white-space:nowrap;}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s;cursor:pointer;}
-tbody tr:hover{background:#f8f5ff;}
-td{padding:11px 12px;color:#1e293b;}
-.td-id{color:#7c3aed;font-weight:700;font-size:.82rem;}
-.td-name{font-weight:700;}
-.td-furi{color:#94a3b8;font-size:.78rem;}
-.td-class{background:#ede9fe;color:#6d28d9;padding:3px 10px;border-radius:20px;font-size:.76rem;font-weight:700;display:inline-block;}
-.badge-count{background:#f1f5f9;color:#64748b;padding:2px 9px;border-radius:12px;font-size:.76rem;font-weight:600;}
-.badge-count.has{background:#ede9fe;color:#7c3aed;}
-.empty{text-align:center;padding:48px;color:#94a3b8;font-size:.9rem;}
-/* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+thead tr{background:#3b4f8a;}
+th{padding:7px 10px;text-align:left;font-size:.72rem;font-weight:700;color:#dce4ff;border:1px solid #263570;white-space:nowrap;letter-spacing:.04em;}
+tbody tr{background:#fff;border-bottom:1px solid #d0d4e0;cursor:pointer;transition:background .12s;}
+tbody tr:nth-child(even){background:#f5f6fb;}
+tbody tr:hover{background:#e8ecff;}
+td{padding:8px 10px;color:#1a2240;vertical-align:middle;border-right:1px solid #e4e6f0;}
+td:last-child{border-right:none;}
+.td-id{color:#3b4f8a;font-weight:700;font-size:.8rem;}
+.td-name{font-weight:700;font-size:.88rem;}
+.td-furi{color:#7a82a0;font-size:.76rem;}
+.td-class{background:#dde3f5;color:#2c3e6b;padding:2px 9px;border-radius:3px;font-size:.75rem;font-weight:700;display:inline-block;border:1px solid #aab0cc;}
+.badge-count{background:#e8ecf8;color:#3b4f8a;padding:2px 8px;border-radius:3px;font-size:.75rem;font-weight:600;border:1px solid #c0c8e0;}
+.badge-count.has{background:#3b4f8a;color:#dce4ff;border-color:#263570;}
+.empty{text-align:center;padding:48px;color:#7a82a0;font-size:.88rem;}
+
+/* モーダル */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
 .modal-overlay.show{display:flex;}
-.modal{background:#fff;border-radius:20px;padding:32px 28px;max-width:460px;width:90%;box-shadow:0 40px 100px rgba(0,0,0,.4);animation:mi .18s ease;}
-@keyframes mi{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
-.modal h3{font-size:1.1rem;color:#1e293b;margin-bottom:20px;font-weight:800;}
-.form-row{margin-bottom:14px;}
-.form-row label{display:block;font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
-.form-row input,.form-row select{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;color:#1e293b;outline:none;transition:border-color .2s;}
-.form-row input:focus,.form-row select:focus{border-color:#7c3aed;}
-.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-.btn-cancel{padding:10px 20px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;font-size:.88rem;font-family:inherit;}
-.btn-cancel:hover{background:#f8fafc;}
-.btn-save{padding:10px 22px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:.88rem;font-family:inherit;}
-.btn-save:hover{opacity:.9;}
-@media(max-width:640px){.stats{grid-template-columns:1fr 1fr}.toolbar{flex-direction:column}.search-input{min-width:0;width:100%}}
+.modal{background:#f0f2f8;border:2px solid #aab0cc;border-radius:6px;width:90%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:mi .15s ease;}
+@keyframes mi{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);padding:8px 14px;color:#e8ecff;font-size:.95rem;font-weight:700;border-radius:4px 4px 0 0;}
+.modal-body{padding:18px 16px;}
+.form-row{margin-bottom:12px;}
+.form-row label{display:block;font-size:.72rem;font-weight:700;color:#5a6080;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.form-row input,.form-row select{width:100%;padding:7px 10px;border:1px solid #aab0cc;border-radius:4px;font-size:.88rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;}
+.form-row input:focus,.form-row select:focus{border-color:#546099;box-shadow:0 0 0 2px rgba(84,96,153,.2);}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid #d0d4e0;margin-top:4px;}
+.btn-cancel{padding:6px 16px;border:1px solid #aab0cc;border-radius:4px;background:#e4e7f0;cursor:pointer;font-size:.82rem;font-family:inherit;color:#3a4060;}
+.btn-cancel:hover{background:#d4d8e8;}
+.btn-save{padding:6px 18px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:4px;color:#fff;cursor:pointer;font-weight:700;font-size:.82rem;font-family:inherit;}
+.btn-save:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
+
+@media(max-width:640px){.stats{grid-template-columns:1fr 1fr}.search-input{min-width:0;width:100%}.fm-panel-header{flex-direction:column;align-items:stretch;}}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-left">
-    <span class="topbar-badge">📋 生徒カルテ</span>
-    <span class="topbar-name"><?= $teacher ?> 先生</span>
+<div class="fm-topbar">
+  <div class="fm-topbar-left">
+    <div class="fm-topbar-title"><span class="dot"></span>生徒カルテ</div>
+    <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
-  <div class="topbar-right">
-    <a href="/karte/gakuseki.php" class="btn-logout">📚 学籍管理</a>
-    <a href="/karte/student_manager.php" class="btn-logout">👥 生徒管理</a>
-    <a href="/karte/logout.php" class="btn-logout">ログアウト</a>
+  <div class="fm-topbar-right">
+    <a href="/karte/gakuseki.php" class="fm-btn-top">📚 学籍管理</a>
+    <a href="/karte/student_manager.php" class="fm-btn-top">👥 生徒管理</a>
+    <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
 </div>
 
 <div class="container">
-  <div class="page-header">
-    <h1>生徒カルテ 一覧</h1>
-    <p>生徒ごとの基本情報・指導記録・面談記録を管理します</p>
-  </div>
-
   <div class="stats">
     <div class="stat-card">
-      <div class="stat-num" id="s-total"><?= $total ?></div>
+      <div class="stat-num"><?= $total ?></div>
       <div class="stat-label">登録生徒数</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num" id="s-rec"><?= $recCnt ?></div>
+      <div class="stat-num"><?= $recCnt ?></div>
       <div class="stat-label">指導記録</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num" id="s-att"><?= $attCnt ?></div>
+      <div class="stat-num"><?= $attCnt ?></div>
       <div class="stat-label">出欠記録</div>
     </div>
   </div>
 
-  <div class="main-card">
-    <div class="toolbar">
+  <div class="fm-panel-wrap">
+    <div class="fm-panel-header">
+      <span class="fm-panel-header-title">生徒一覧</span>
       <input type="text" class="search-input" id="searchInput" placeholder="名前・ふりがな・番号で検索…">
       <select class="filter-select" id="classFilter">
         <option value="">全クラス</option>
@@ -123,7 +132,7 @@ td{padding:11px 12px;color:#1e293b;}
         <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
         <?php endforeach; ?>
       </select>
-      <button class="btn-add" id="btnAddStudent">＋ 生徒を追加</button>
+      <button class="fm-add-btn" id="btnAddStudent">＋ 生徒を追加</button>
     </div>
     <div class="table-wrap">
       <table id="studentTable">
@@ -147,25 +156,27 @@ td{padding:11px 12px;color:#1e293b;}
 <!-- 生徒追加モーダル -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <h3>生徒を追加</h3>
-    <div class="form-2col">
-      <div class="form-row">
-        <label>学籍番号 *</label>
-        <input type="text" id="f-sid" placeholder="例: 1101">
+    <div class="modal-head">生徒を追加</div>
+    <div class="modal-body">
+      <div class="form-2col">
+        <div class="form-row">
+          <label>学籍番号 *</label>
+          <input type="text" id="f-sid" placeholder="例: 1101">
+        </div>
+        <div class="form-row">
+          <label>クラス</label>
+          <input type="text" id="f-class" placeholder="例: 1年1組">
+        </div>
       </div>
-      <div class="form-row">
-        <label>クラス</label>
-        <input type="text" id="f-class" placeholder="例: 1年1組">
-      </div>
-    </div>
-    <div class="form-2col">
-      <div class="form-row">
-        <label>氏名 *</label>
-        <input type="text" id="f-name" placeholder="山田 太郎">
-      </div>
-      <div class="form-row">
-        <label>ふりがな</label>
-        <input type="text" id="f-furi" placeholder="やまだ たろう">
+      <div class="form-2col">
+        <div class="form-row">
+          <label>氏名 *</label>
+          <input type="text" id="f-name" placeholder="山田 太郎">
+        </div>
+        <div class="form-row">
+          <label>ふりがな</label>
+          <input type="text" id="f-furi" placeholder="やまだ たろう">
+        </div>
       </div>
     </div>
     <div class="modal-btns">

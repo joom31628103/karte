@@ -14,99 +14,105 @@ $conn->close();
 <title>学籍管理 — 生徒カルテ</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Yu Gothic UI','Noto Sans JP',sans-serif;background:#0f0a1e;min-height:100vh;color:#1e293b;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 0%,#4c1d95 0%,transparent 55%),radial-gradient(ellipse at 85% 0%,#1e3a8a 0%,transparent 55%),radial-gradient(ellipse at 50% 110%,#312e81 0%,transparent 60%);z-index:0;pointer-events:none;}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(15,10,30,.78);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
-.topbar-left{display:flex;align-items:center;gap:12px;}
-.topbar-badge{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:4px 13px;border-radius:20px;font-size:.74rem;font-weight:700;}
-.topbar-name{color:#fff;font-size:.95rem;font-weight:600;}
-.btn-nav{padding:7px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:8px;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
-.btn-nav:hover{background:rgba(255,255,255,.16);color:#fff;}
-.container{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px 64px;}
-.page-header{padding:28px 0 18px;text-align:center;color:#fff;}
-.page-header h1{font-size:1.55rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.page-header p{margin-top:5px;font-size:.83rem;color:rgba(255,255,255,.45);}
+body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-serif;background:#d0d4dc;min-height:100vh;font-size:13px;color:#1a2240;}
 
-.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
-.search-input{flex:1;min-width:180px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;font-family:inherit;color:#1e293b;outline:none;}
-.search-input:focus{border-color:#7c3aed;}
-.filter-select{padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.88rem;font-family:inherit;color:#1e293b;background:#fff;outline:none;}
-.btn-primary{padding:10px 18px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;}
-.btn-primary:hover{opacity:.9;}
+/* トップバー */
+.fm-topbar{background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);color:#fff;padding:4px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #0f1e40;min-height:44px;position:sticky;top:0;z-index:100;}
+.fm-topbar-left{display:flex;align-items:center;gap:10px;}
+.fm-topbar-title{font-size:1.05rem;font-weight:900;letter-spacing:.04em;color:#e8ecff;display:flex;align-items:center;gap:7px;}
+.fm-topbar-title .dot{width:8px;height:8px;border-radius:50%;background:#6ee7b7;display:inline-block;}
+.fm-topbar-name{color:#c4d4ff;font-size:.83rem;font-weight:600;}
+.fm-topbar-right{display:flex;gap:6px;align-items:center;}
+.fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.fm-btn-top:hover{background:rgba(255,255,255,.25);}
 
-.main-card{background:rgba(255,255,255,.96);border-radius:20px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.container{max-width:1080px;margin:0 auto;padding:14px 16px 48px;}
+
+/* メインパネル */
+.fm-panel-wrap{background:#f0f2f8;border:2px solid #aab0cc;border-radius:4px;}
+.fm-panel-header{background:#3b4f8a;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.fm-panel-header-title{color:#dce4ff;font-size:.83rem;font-weight:700;flex:1;}
+.search-input{padding:5px 10px;border:1px solid #6a7ab0;border-radius:4px;font-size:.82rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;min-width:160px;flex:1;}
+.search-input:focus{border-color:#8ba4ff;}
+.filter-select{padding:5px 8px;border:1px solid #6a7ab0;border-radius:4px;font-size:.8rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;cursor:pointer;}
+.fm-add-btn{padding:5px 13px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:4px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.fm-add-btn:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
+
+/* テーブル */
 .table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:.86rem;}
-thead tr{border-bottom:2px solid #e2e8f0;}
-th{padding:9px 12px;text-align:left;font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;white-space:nowrap;}
-tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s;}
-tbody tr:hover{background:#f8f5ff;}
-td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
-.gakno-chip{color:#7c3aed;font-weight:700;font-size:.82rem;}
-.gakunen-chip{background:#ede9fe;color:#6d28d9;padding:2px 9px;border-radius:20px;font-size:.76rem;font-weight:700;display:inline-block;}
-.status-chip{padding:2px 9px;border-radius:12px;font-size:.76rem;font-weight:600;}
-.status-在学{background:#dcfce7;color:#15803d;}
-.status-転出{background:#fef3c7;color:#92400e;}
-.status-退学{background:#fee2e2;color:#dc2626;}
-.status-卒業{background:#dbeafe;color:#1d4ed8;}
-.btn-sm{padding:4px 10px;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:inherit;}
-.btn-edit{background:#fff;border:1px solid #bfdbfe;color:#2563eb;} .btn-edit:hover{background:#eff6ff;}
-.btn-del{background:#fff;border:1px solid #fca5a5;color:#dc2626;} .btn-del:hover{background:#fef2f2;}
-.empty{text-align:center;padding:48px;color:#94a3b8;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+thead tr{background:#3b4f8a;}
+th{padding:7px 10px;text-align:left;font-size:.71rem;font-weight:700;color:#dce4ff;border:1px solid #263570;white-space:nowrap;letter-spacing:.03em;}
+tbody tr{background:#fff;border-bottom:1px solid #d0d4e0;transition:background .1s;}
+tbody tr:nth-child(even){background:#f5f6fb;}
+tbody tr:hover{background:#e8ecff;}
+td{padding:8px 10px;color:#1a2240;vertical-align:middle;border-right:1px solid #e4e6f0;}
+td:last-child{border-right:none;}
+.gakno-chip{color:#3b4f8a;font-weight:700;font-size:.8rem;}
+.gakunen-chip{background:#dde3f5;color:#2c3e6b;padding:2px 8px;border-radius:3px;font-size:.76rem;font-weight:700;display:inline-block;border:1px solid #aab0cc;}
+.status-chip{padding:2px 8px;border-radius:3px;font-size:.75rem;font-weight:600;border:1px solid;}
+.status-在学{background:#d4f0dd;color:#1a6638;border-color:#8acea0;}
+.status-転出{background:#fef3c7;color:#7a5010;border-color:#d4aa60;}
+.status-退学{background:#fde0e0;color:#7a2020;border-color:#c08080;}
+.status-卒業{background:#dbeafe;color:#1a3a6e;border-color:#7ab0e0;}
+.btn-sm{padding:3px 9px;border-radius:3px;font-size:.75rem;cursor:pointer;font-family:inherit;border:1px solid;}
+.btn-edit{background:#e8ecf8;border-color:#aab0cc;color:#2c3e6b;} .btn-edit:hover{background:#dde3f5;}
+.btn-del{background:#f8ecec;border-color:#c0a0a0;color:#9b3030;} .btn-del:hover{background:#fce0e0;}
+.empty{text-align:center;padding:48px;color:#7a82a0;}
 
 /* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
 .modal-overlay.show{display:flex;}
-.modal{background:#fff;border-radius:20px;padding:28px 24px;max-width:640px;width:92%;max-height:90vh;overflow-y:auto;box-shadow:0 40px 100px rgba(0,0,0,.4);animation:mi .18s ease;}
-@keyframes mi{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
-.modal h3{font-size:1.1rem;color:#1e293b;margin-bottom:18px;font-weight:800;}
-.modal-section{font-size:.78rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;padding-bottom:4px;border-bottom:1.5px solid #ede9fe;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-row{display:flex;flex-direction:column;gap:4px;}
+.modal{background:#f0f2f8;border:2px solid #aab0cc;border-radius:6px;width:92%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:mi .15s ease;}
+@keyframes mi{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);padding:8px 14px;color:#e8ecff;font-size:.95rem;font-weight:700;border-radius:4px 4px 0 0;}
+.modal-body{padding:16px 14px;}
+.modal-section{font-size:.72rem;font-weight:700;color:#3b4f8a;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px;padding-bottom:3px;border-bottom:1.5px solid #aab0cc;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row{display:flex;flex-direction:column;gap:3px;}
 .form-row.full{grid-column:1/-1;}
-.form-row label{font-size:.74rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
-.form-row input,.form-row select,.form-row textarea{padding:9px 11px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.9rem;font-family:inherit;color:#1e293b;outline:none;}
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#7c3aed;}
-.form-row textarea{resize:vertical;min-height:64px;}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
-.btn-cancel{padding:9px 18px;border:1.5px solid #e2e8f0;border-radius:9px;background:#fff;cursor:pointer;font-size:.88rem;font-family:inherit;}
-.btn-save{padding:9px 20px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:9px;cursor:pointer;font-weight:700;font-size:.88rem;font-family:inherit;}
+.form-row label{font-size:.72rem;font-weight:700;color:#5a6080;text-transform:uppercase;letter-spacing:.04em;}
+.form-row input,.form-row select,.form-row textarea{padding:7px 10px;border:1px solid #aab0cc;border-radius:4px;font-size:.88rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#546099;}
+.form-row textarea{resize:vertical;min-height:60px;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;padding:8px 14px 12px;border-top:1px solid #d0d4e0;}
+.btn-cancel{padding:6px 14px;border:1px solid #aab0cc;border-radius:4px;background:#e4e7f0;cursor:pointer;font-size:.82rem;font-family:inherit;color:#3a4060;}
+.btn-cancel:hover{background:#d4d8e8;}
+.btn-save{padding:6px 16px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:4px;color:#fff;cursor:pointer;font-weight:700;font-size:.82rem;font-family:inherit;}
+.btn-save:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
 
-/* 年度サイドパネル */
-.nendo-panel{background:#f8f5ff;border-radius:14px;padding:16px;margin-top:16px;}
-.nendo-panel h4{font-size:.88rem;font-weight:700;color:#4c1d95;margin-bottom:10px;}
-.nendo-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #ede9fe;font-size:.84rem;}
+/* 年度パネル */
+.nendo-panel{background:#e8ecf8;border:1px solid #aab0cc;border-radius:4px;padding:12px;margin-top:12px;}
+.nendo-panel h4{font-size:.82rem;font-weight:700;color:#2c3e6b;margin-bottom:8px;}
+.nendo-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #c8cce0;font-size:.82rem;}
 .nendo-row:last-child{border-bottom:none;}
-.nendo-year{font-weight:700;color:#7c3aed;min-width:50px;}
-.nendo-info{flex:1;color:#475569;}
-.nendo-add-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:flex-end;}
-.nendo-add-form input,.nendo-add-form select{padding:7px 9px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.84rem;font-family:inherit;outline:none;min-width:80px;}
-.nendo-add-form input:focus,.nendo-add-form select:focus{border-color:#7c3aed;}
-.btn-nendo-add{padding:7px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;}
+.nendo-year{font-weight:700;color:#3b4f8a;min-width:46px;}
+.nendo-info{flex:1;color:#3a4060;}
+.nendo-add-form{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:flex-end;}
+.nendo-add-form input,.nendo-add-form select{padding:5px 8px;border:1px solid #aab0cc;border-radius:4px;font-size:.82rem;font-family:inherit;outline:none;min-width:70px;background:#fff;color:#1a2240;}
+.nendo-add-form input:focus,.nendo-add-form select:focus{border-color:#546099;}
+.btn-nendo-add{padding:5px 12px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;color:#fff;border-radius:4px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-nendo-add:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
 
-@media(max-width:580px){.form-grid{grid-template-columns:1fr}.form-row.full{grid-column:1}}
+@media(max-width:580px){.form-grid{grid-template-columns:1fr}.form-row.full{grid-column:1}.fm-panel-header{flex-direction:column;align-items:stretch;}}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-left">
-    <span class="topbar-badge">📋 生徒カルテ</span>
-    <span class="topbar-name"><?= $teacher ?> 先生</span>
+<div class="fm-topbar">
+  <div class="fm-topbar-left">
+    <div class="fm-topbar-title"><span class="dot"></span>生徒カルテ</div>
+    <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
-  <div style="display:flex;gap:8px;">
-    <a href="/karte/home.php" class="btn-nav">← カルテ一覧</a>
-    <a href="/karte/logout.php" class="btn-nav">ログアウト</a>
+  <div class="fm-topbar-right">
+    <a href="/karte/home.php" class="fm-btn-top">← カルテ一覧</a>
+    <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
 </div>
 
 <div class="container">
-  <div class="page-header">
-    <h1>学籍管理</h1>
-    <p>生徒の学籍台帳・年度別クラス情報を管理します</p>
-  </div>
-
-  <div class="main-card">
-    <div class="toolbar">
+  <div class="fm-panel-wrap">
+    <div class="fm-panel-header">
+      <span class="fm-panel-header-title">学籍管理</span>
       <input type="text" class="search-input" id="searchInput" placeholder="学籍番号・氏名・ふりがなで検索…">
       <select class="filter-select" id="nendoFilter">
         <option value="">全年度</option>
@@ -115,7 +121,7 @@ td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
         <option value="">全状態</option>
         <option>在学</option><option>卒業</option><option>転出</option><option>退学</option>
       </select>
-      <button class="btn-primary" id="btnAdd">＋ 学籍を登録</button>
+      <button class="fm-add-btn" id="btnAdd">＋ 学籍を登録</button>
     </div>
     <div class="table-wrap">
       <table id="gakTable">
@@ -140,7 +146,8 @@ td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
 <!-- 学籍編集モーダル -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h3 id="modalTitle">学籍を登録</h3>
+    <div class="modal-head" id="modalTitle">学籍を登録</div>
+    <div class="modal-body">
     <input type="hidden" id="m-gakno-orig" value="">
 
     <div class="modal-section">基本情報</div>
@@ -250,25 +257,25 @@ td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
       <div class="nendo-panel" style="margin-top:10px;">
         <h4>年度を追加 / 更新</h4>
         <div class="nendo-add-form">
-          <div><label style="font-size:.74rem;color:#64748b">年度</label><br>
-            <input type="number" id="n-nendo" placeholder="2021" min="2000" max="2099" style="width:90px"></div>
-          <div><label style="font-size:.74rem;color:#64748b">学年</label><br>
-            <select id="n-gakunen" style="width:80px">
+          <div><label style="font-size:.7rem;color:#5a6080">年度</label><br>
+            <input type="number" id="n-nendo" placeholder="2021" min="2000" max="2099" style="width:88px"></div>
+          <div><label style="font-size:.7rem;color:#5a6080">学年</label><br>
+            <select id="n-gakunen" style="width:76px">
               <option value="">—</option>
               <option value="1">1年</option><option value="2">2年</option><option value="3">3年</option>
             </select></div>
-          <div><label style="font-size:.74rem;color:#64748b">組</label><br>
-            <input type="text" id="n-class" placeholder="1組" style="width:70px"></div>
-          <div><label style="font-size:.74rem;color:#64748b">番号</label><br>
-            <input type="number" id="n-bango" placeholder="1" min="1" max="99" style="width:70px"></div>
-          <div><label style="font-size:.74rem;color:#64748b">担任</label><br>
+          <div><label style="font-size:.7rem;color:#5a6080">組</label><br>
+            <input type="text" id="n-class" placeholder="1組" style="width:66px"></div>
+          <div><label style="font-size:.7rem;color:#5a6080">番号</label><br>
+            <input type="number" id="n-bango" placeholder="1" min="1" max="99" style="width:66px"></div>
+          <div><label style="font-size:.7rem;color:#5a6080">担任</label><br>
             <select id="n-teacher">
               <option value="">—</option>
               <?php foreach($teachers as $t): ?>
               <option value="<?= $t['id'] ?>"><?= htmlspecialchars($t['display_name']) ?></option>
               <?php endforeach; ?>
             </select></div>
-          <div><label style="font-size:.74rem;color:#64748b">進級状態</label><br>
+          <div><label style="font-size:.7rem;color:#5a6080">進級状態</label><br>
             <select id="n-sinkyu">
               <option value="">—</option>
               <option>進級</option><option>留年</option><option>転出</option><option>退学</option><option>卒業</option>
@@ -278,6 +285,7 @@ td{padding:10px 12px;color:#1e293b;vertical-align:middle;}
       </div>
     </div>
 
+    </div><!-- /.modal-body -->
     <div class="modal-btns">
       <button class="btn-cancel" id="btnCancel">キャンセル</button>
       <button class="btn-save" id="btnSave">保存する</button>
