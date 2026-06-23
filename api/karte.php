@@ -184,6 +184,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'save_gakno':
             $sid   = trim($_POST['student_id'] ?? '');
             $gakno = trim($_POST['gakno'] ?? '') ?: null;
+
+            // 紐づけ時：students.photo を gakuseki.photo へ移行（gakuseki に写真がない場合のみ）
+            if ($gakno) {
+                $rs = ps($conn, "SELECT photo FROM students WHERE student_id=?", 's', [$sid]);
+                $rg = ps($conn, "SELECT photo FROM gakuseki WHERE gakno=?", 's', [$gakno]);
+                $studentPhoto = ($rs->fetch_assoc())['photo'] ?? null;
+                $gakPhoto     = ($rg->fetch_assoc())['photo'] ?? null;
+                if ($studentPhoto && !$gakPhoto) {
+                    ps($conn, "UPDATE gakuseki SET photo=? WHERE gakno=?", 'ss', [$studentPhoto, $gakno]);
+                    ps($conn, "UPDATE students SET photo=NULL WHERE student_id=?", 's', [$sid]);
+                }
+            }
+
             $stmt  = $conn->prepare("UPDATE students SET gakno=? WHERE student_id=?");
             $stmt->bind_param('ss', $gakno, $sid);
             $stmt->execute();
