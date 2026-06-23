@@ -224,12 +224,55 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .modal-save{padding:7px 18px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .modal-save:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
 
-@media(max-width:680px){
-  .fm-header-row1{flex-direction:column;}
+/* ── タッチスクロール ── */
+.fm-navbar,.fm-tabs,.fm-table-wrap,.fm-panel-wrap{-webkit-overflow-scrolling:touch;}
+.fm-navbar::-webkit-scrollbar,.fm-tabs::-webkit-scrollbar{height:3px;}
+.fm-navbar::-webkit-scrollbar-thumb,.fm-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px;}
+
+/* ── iPad（〜1024px） ── */
+@media(max-width:1024px){
+  .fm-topbar-student{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+}
+
+/* ── iPad縦 / 大型スマホ（〜768px） ── */
+@media(max-width:768px){
+  .fm-navbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;}
+  .fm-navbtn{font-size:.74rem;padding:5px 10px;}
+  .map-layout{grid-template-columns:1fr;}
+  .map-frame-wrap{min-height:280px;}
+  .map-frame-wrap iframe{min-height:280px;}
+  .fm-info-grid{grid-template-columns:1fr 1fr;}
+  .modal-2col{grid-template-columns:1fr 1fr;}
+  .posineg-grid{grid-template-columns:1fr 1fr;}
+}
+
+/* ── iPhone / 小型スマホ（〜480px） ── */
+@media(max-width:480px){
+  body{font-size:12px;}
+  .fm-topbar{padding:4px 8px;gap:4px;}
+  .fm-topbar-title{font-size:1rem;}
+  .fm-topbar-student{display:none;}
+  .fm-btn-top{font-size:.7rem;padding:4px 8px;}
+  .fm-arrow{width:32px;height:32px;font-size:1.1rem;}
+  .fm-navbar{padding:4px 6px;gap:3px;}
+  .fm-navbtn{font-size:.72rem;padding:5px 8px;}
+  .fm-student-header{padding:8px;}
+  .fm-field{min-width:90px;}
+  .fm-field-label{font-size:.64rem;}
+  .fm-field-value{font-size:.78rem;}
+  .fm-photo{width:60px;height:72px;}
+  .fm-tabs{padding:5px 6px 0;gap:1px;}
+  .fm-tab{padding:6px 8px;font-size:.73rem;}
+  .fm-panel{padding:10px;}
+  .fm-panel-toolbar{gap:6px;}
+  .fm-add-btn{font-size:.74rem;padding:5px 10px;}
+  .fm-table th,.fm-table td{padding:6px 7px;font-size:.76rem;}
   .fm-info-grid,.modal-2col,.posineg-grid{grid-template-columns:1fr;}
-  .fm-info-group.full{grid-column:1;}
-  .fm-tabs{gap:1px;}
-  .fm-tab{padding:6px 9px;font-size:.75rem;}
+  .fm-info-group.full,.modal-2col>*{grid-column:1;}
+  .fm-header-row1{flex-direction:column;}
+  .modal{width:96%;}
+  .modal-body{padding:12px;}
+  .modal-2col{gap:8px;}
 }
 </style>
 </head>

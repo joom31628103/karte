@@ -112,6 +112,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 /* フッター */
 .fm-footer{background:#1a2a55;border-top:1px solid #0f1e40;padding:6px 16px;text-align:center;}
 .fm-footer p{font-size:.7rem;color:#6a7a9a;}
+
+@media(max-width:480px){
+  .login-panel{max-width:100%;}
+  .fm-body{padding:16px 12px;align-items:flex-start;padding-top:32px;}
+  .login-panel-body{padding:18px 14px;}
+}
 </style>
 </head>
 <body>
