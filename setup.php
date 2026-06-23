@@ -126,6 +126,18 @@ $tables = [
         updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
+    'activity_log' => "CREATE TABLE IF NOT EXISTS activity_log (
+        id           INT PRIMARY KEY AUTO_INCREMENT,
+        teacher_id   INT NOT NULL DEFAULT 0,
+        teacher_name VARCHAR(100) DEFAULT '',
+        student_id   VARCHAR(10) NOT NULL,
+        action_type  VARCHAR(50) NOT NULL,
+        detail       TEXT,
+        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_student (student_id),
+        INDEX idx_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
     'student_nendo' => "CREATE TABLE IF NOT EXISTS student_nendo (
         id          INT PRIMARY KEY AUTO_INCREMENT,
         gakno       VARCHAR(20) NOT NULL,

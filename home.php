@@ -38,6 +38,16 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 /* コンテンツ */
 .container{max-width:1020px;margin:0 auto;padding:16px 16px 48px;}
 
+/* 前回の続き バー */
+.resume-bar{display:none;background:linear-gradient(90deg,#1a3a6b,#263570);border-bottom:2px solid #0f1e40;padding:8px 16px;align-items:center;gap:10px;flex-wrap:wrap;}
+.resume-bar.show{display:flex;}
+.resume-text{color:#c4d4ff;font-size:.82rem;flex:1;min-width:0;}
+.resume-text strong{color:#e8ecff;}
+.resume-btn{padding:5px 14px;border-radius:6px;background:#546099;border:1px solid #8ba4ff;color:#e8ecff;font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s;}
+.resume-btn:hover{background:#7b90d4;}
+.resume-dismiss{background:none;border:none;color:#6d8fd0;font-size:1.1rem;cursor:pointer;padding:2px 6px;line-height:1;flex-shrink:0;}
+.resume-dismiss:hover{color:#e8ecff;}
+
 /* 統計バー */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
 .stat-card{background:#f0f2f8;border:1px solid #aab0cc;border-radius:6px;padding:12px 10px;text-align:center;}
@@ -145,9 +155,17 @@ td:last-child{border-right:none;}
     <a href="/karte/student_manager.php" class="fm-btn-top">👥<span class="btn-label"> 生徒管理</span></a>
     <a href="/karte/photo_import.php" class="fm-btn-top">📸<span class="btn-label"> 写真取込</span></a>
     <a href="/karte/survey_import.php" class="fm-btn-top">📋<span class="btn-label"> 調査票取込</span></a>
+    <a href="/karte/structure.php" class="fm-btn-top">🗺<span class="btn-label"> 構造図</span></a>
     <a href="/karte/logout.php" class="fm-btn-top">🚪<span class="btn-label"> ログアウト</span></a>
   </div>
   <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
+</div>
+
+<!-- 前回の続きバー（JS で表示制御） -->
+<div class="resume-bar" id="resumeBar">
+  <span class="resume-text" id="resumeText">前回の続きから</span>
+  <a href="#" class="resume-btn" id="resumeBtn">続きから開く</a>
+  <button class="resume-dismiss" id="resumeDismiss" title="閉じる">✕</button>
 </div>
 
 <!-- モバイルドロワー -->
@@ -158,6 +176,7 @@ td:last-child{border-right:none;}
   <a href="/karte/student_manager.php">👥 生徒管理</a>
   <a href="/karte/photo_import.php">📸 写真取込</a>
   <a href="/karte/survey_import.php">📋 調査票取込</a>
+  <a href="/karte/structure.php">🗺 構造図</a>
   <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
@@ -316,6 +335,32 @@ loadStudents();
 
 function openDrawer()  { document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
 function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+
+/* ── 前回の続きバー ── */
+(function(){
+  try {
+    const st = JSON.parse(localStorage.getItem('karte_last_state') || 'null');
+    if (!st || !st.student_id || !st.student_name) return;
+    // 24時間以内のみ表示
+    if (Date.now() - st.ts > 86400000) return;
+    const elapsed = Math.round((Date.now() - st.ts) / 60000);
+    const timeStr = elapsed < 60
+      ? `${elapsed}分前`
+      : elapsed < 1440
+      ? `${Math.round(elapsed/60)}時間前`
+      : `${Math.round(elapsed/1440)}日前`;
+    const label = st.tab_label || '指導記録';
+    document.getElementById('resumeText').innerHTML =
+      `<strong>${st.student_name}</strong> さんの <strong>${label}</strong> を ${timeStr} に表示していました`;
+    document.getElementById('resumeBtn').href =
+      `/karte/karte_detail.php?id=${encodeURIComponent(st.student_id)}`;
+    document.getElementById('resumeBar').classList.add('show');
+    document.getElementById('resumeDismiss').onclick = () => {
+      document.getElementById('resumeBar').classList.remove('show');
+      try { localStorage.removeItem('karte_last_state'); } catch(e) {}
+    };
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>

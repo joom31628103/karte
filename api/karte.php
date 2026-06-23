@@ -21,6 +21,19 @@ function ps(mysqli $conn, string $sql, string $types = '', array $params = []): 
     return $result;
 }
 
+// 操作ログ記録（activity_log テーブルが未作成の場合は静かにスキップ）
+function logActivity(mysqli $conn, string $studentId, string $actionType, string $detail): void {
+    if (!$studentId) return;
+    $tid   = (int)($_SESSION['teacher_id'] ?? 0);
+    $tname = $_SESSION['teacher_name'] ?? '';
+    $stmt  = @$conn->prepare("INSERT INTO activity_log (teacher_id,teacher_name,student_id,action_type,detail) VALUES (?,?,?,?,?)");
+    if (!$stmt) return;
+    $det = mb_strimwidth($detail, 0, 300, '…');
+    $stmt->bind_param('issss', $tid, $tname, $studentId, $actionType, $det);
+    @$stmt->execute();
+    $stmt->close();
+}
+
 /* ===== GET ===== */
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     switch ($action) {
@@ -71,6 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $row = $r->fetch_assoc();
             jout(['success'=>true,'posi'=>$row['memo_posi']??'','nega'=>$row['memo_nega']??'','main'=>$row['memo_main']??'']);
 
+        case 'list_history':
+            $sid = $_GET['student_id'] ?? '';
+            if (!$sid) err('student_id が必要です');
+            $result = @$conn->query(
+                "SELECT * FROM activity_log WHERE student_id='".$conn->real_escape_string($sid)."' ORDER BY created_at DESC LIMIT 300"
+            );
+            $rows = [];
+            if ($result) while ($row = $result->fetch_assoc()) $rows[] = $row;
+            jout(['success'=>true,'rows'=>$rows]);
+
         default: err('不明なアクション');
     }
 }
@@ -110,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("UPDATE students SET name=?,furigana=?,class_name=?,seat_number=?,gender=?,birthday=?,phone=?,parent_name=?,address=?,notes=?,updated_at=NOW() WHERE student_id=?");
             $stmt->bind_param('sssississss', $name,$furi,$cls,$seat,$gender,$bday,$phone,$parent,$address,$notes,$sid);
             $stmt->execute();
+            if ($name) logActivity($conn, $sid, '基本情報を更新', $name ? "氏名: $name クラス: $cls" : '家庭状況メモを更新');
             jout(['success'=>true]);
 
         case 'add_record':
@@ -123,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("INSERT INTO karte_records (student_id,record_date,record_type,content,teacher,next_action) VALUES (?,?,?,?,?,?)");
             $stmt->bind_param('ssssss', $sid,$date,$type,$content,$teacher,$next);
             $stmt->execute();
+            logActivity($conn, $sid, '指導記録を追加', "[$type] $date — $content");
             jout(['success'=>true,'id'=>$stmt->insert_id]);
 
         case 'update_record':
@@ -133,15 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $teacher = trim($_POST['teacher'] ?? '');
             $next    = trim($_POST['next_action'] ?? '');
             if (!$id) err('IDが不正です');
+            // 変更前のstudent_idを取得
+            $prevR = ps($conn, "SELECT student_id FROM karte_records WHERE id=?", 'i', [$id]);
+            $prevRow = $prevR ? $prevR->fetch_assoc() : null;
+            $recSid = $prevRow['student_id'] ?? '';
             $stmt = $conn->prepare("UPDATE karte_records SET record_date=?,record_type=?,content=?,teacher=?,next_action=? WHERE id=?");
-            $stmt->bind_param('ssssssi', $date,$type,$content,$teacher,$next,$id);
+            $stmt->bind_param('sssssi', $date,$type,$content,$teacher,$next,$id);
             $stmt->execute();
+            logActivity($conn, $recSid, '指導記録を編集', "[$type] $date — $content");
             jout(['success'=>true]);
 
         case 'delete_record':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) err('IDが不正です');
+            $prevR = ps($conn, "SELECT student_id,record_type,record_date FROM karte_records WHERE id=?", 'i', [$id]);
+            $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_records WHERE id=?", 'i', [$id]);
+            if ($prevRow) logActivity($conn, $prevRow['student_id'], '指導記録を削除', "[{$prevRow['record_type']}] {$prevRow['record_date']}");
             jout(['success'=>true]);
 
         case 'add_attendance':
@@ -154,12 +187,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("INSERT INTO karte_attendance (student_id,att_date,att_type,reason,parent_contacted,notes) VALUES (?,?,?,?,?,?)");
             $stmt->bind_param('ssssss', $sid,$date,$type,$reason,$contact,$notes);
             $stmt->execute();
+            logActivity($conn, $sid, '出欠記録を追加', "[$type] $date" . ($reason ? " 理由: $reason" : ''));
             jout(['success'=>true,'id'=>$stmt->insert_id]);
 
         case 'delete_attendance':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) err('IDが不正です');
+            $prevR = ps($conn, "SELECT student_id,att_type,att_date FROM karte_attendance WHERE id=?", 'i', [$id]);
+            $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_attendance WHERE id=?", 'i', [$id]);
+            if ($prevRow) logActivity($conn, $prevRow['student_id'], '出欠記録を削除', "[{$prevRow['att_type']}] {$prevRow['att_date']}");
             jout(['success'=>true]);
 
         case 'add_interview':
@@ -173,12 +210,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("INSERT INTO karte_interviews (student_id,interview_date,interview_type,participants,content,next_action) VALUES (?,?,?,?,?,?)");
             $stmt->bind_param('ssssss', $sid,$date,$type,$parti,$content,$next);
             $stmt->execute();
+            logActivity($conn, $sid, '面談記録を追加', "[$type] $date" . ($parti ? " 参加: $parti" : '') . " — $content");
             jout(['success'=>true,'id'=>$stmt->insert_id]);
 
         case 'delete_interview':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) err('IDが不正です');
+            $prevR = ps($conn, "SELECT student_id,interview_type,interview_date FROM karte_interviews WHERE id=?", 'i', [$id]);
+            $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_interviews WHERE id=?", 'i', [$id]);
+            if ($prevRow) logActivity($conn, $prevRow['student_id'], '面談記録を削除', "[{$prevRow['interview_type']}] {$prevRow['interview_date']}");
             jout(['success'=>true]);
 
         case 'save_gakno':
@@ -210,6 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("UPDATE students SET memo_posi=?,memo_nega=?,memo_main=? WHERE student_id=?");
             $stmt->bind_param('ssss', $posi,$nega,$main,$sid);
             $stmt->execute();
+            logActivity($conn, $sid, 'メモ・所見を更新', ($posi ? "ポジ: $posi " : '') . ($nega ? "ネガ: $nega" : ''));
             jout(['success'=>true]);
 
         default: err('不明なアクション');

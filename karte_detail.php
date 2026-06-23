@@ -233,6 +233,24 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .modal-save{padding:7px 18px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .modal-save:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
 
+/* ── 履歴パネル ── */
+.hist-list{display:flex;flex-direction:column;}
+.hist-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #d0d4e0;}
+.hist-item:last-child{border-bottom:none;}
+.hist-dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;margin-top:1px;}
+.hist-dot.add{background:#dcfce7;color:#15803d;}
+.hist-dot.edit{background:#dbeafe;color:#1d4ed8;}
+.hist-dot.del{background:#fee2e2;color:#dc2626;}
+.hist-dot.memo{background:#f3e8ff;color:#7e22ce;}
+.hist-dot.basic{background:#fef9c3;color:#92400e;}
+.hist-body{flex:1;min-width:0;}
+.hist-action{font-size:.84rem;font-weight:700;color:#1a2240;}
+.hist-detail{font-size:.77rem;color:#5a6080;margin-top:3px;line-height:1.5;word-break:break-word;}
+.hist-meta{font-size:.71rem;color:#9aa0c0;margin-top:4px;display:flex;gap:8px;align-items:center;}
+.hist-teacher{background:#e8ecff;color:#3b4f8a;padding:1px 7px;border-radius:3px;font-size:.7rem;font-weight:600;}
+.hist-date{color:#9aa0c0;}
+.hist-day-sep{font-size:.72rem;font-weight:700;color:#3b4f8a;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;border-bottom:2px solid #aab0cc;margin-bottom:4px;}
+
 /* ── タッチスクロール ── */
 .fm-navbar,.fm-tabs,.fm-table-wrap,.fm-panel-wrap{-webkit-overflow-scrolling:touch;}
 .fm-navbar::-webkit-scrollbar,.fm-tabs::-webkit-scrollbar{height:3px;}
@@ -357,6 +375,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   <button class="fm-navbtn" onclick="switchNav(this,'panel-survey')">📄 家庭調査票</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-basic')">👤 基本情報</button>
   <button class="fm-navbtn" onclick="switchNav(this,'panel-map')">🗺 地図</button>
+  <button class="fm-navbtn" onclick="switchNav(this,'panel-history')">📜 履歴</button>
 </div>
 
 <!-- ── 生徒情報ヘッダー ── -->
@@ -450,6 +469,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   <button class="fm-tab" data-panel="panel-survey">📄 家庭調査票</button>
   <button class="fm-tab" data-panel="panel-basic">👤 基本情報</button>
   <button class="fm-tab" data-panel="panel-map">🗺 地図</button>
+  <button class="fm-tab" data-panel="panel-history">📜 履歴</button>
 </div>
 
 <!-- ── パネルラッパー ── -->
@@ -734,6 +754,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
     </div>
   </div>
 
+  <!-- 履歴 -->
+  <div class="fm-panel" id="panel-history">
+    <div class="fm-panel-toolbar">
+      <span class="fm-panel-title">変更履歴</span>
+      <button class="fm-add-btn" style="background:linear-gradient(180deg,#546099,#3b4f8a);font-size:.76rem;" onclick="loadHistory()">🔄 更新</button>
+    </div>
+    <div id="hist-list" class="hist-list"></div>
+    <div class="empty-msg" id="empty-hist" style="display:none;">まだ変更履歴がありません。</div>
+    <div id="hist-loading" style="text-align:center;padding:32px;color:#9aa0c0;font-size:.85rem;display:none;">読み込み中…</div>
+  </div>
+
 </div><!-- /fm-panel-wrap -->
 
 <!-- 指導記録モーダル -->
@@ -818,6 +849,20 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function esc2(s){return String(s||'').replace(/'/g,"\\'");}
 function esc3(s){return String(s||'').replace(/`/g,'\\`').replace(/\$/g,'\\$');}
 
+/* ── 最後の閲覧状態を localStorage に保存 ── */
+function saveLastState(panelId) {
+  const tab = document.querySelector(`.fm-tab[data-panel="${panelId}"]`);
+  try {
+    localStorage.setItem('karte_last_state', JSON.stringify({
+      student_id:   SID,
+      student_name: '<?= addslashes(htmlspecialchars($dispName)) ?>',
+      panel:        panelId,
+      tab_label:    tab ? tab.textContent.trim() : '',
+      ts:           Date.now()
+    }));
+  } catch(e) {}
+}
+
 // タブ切り替え
 document.querySelectorAll('.fm-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -826,9 +871,11 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
     tab.classList.add('active');
     const panel = document.getElementById(tab.dataset.panel);
     if (panel) panel.classList.add('active');
+    saveLastState(tab.dataset.panel);
     if (tab.dataset.panel === 'panel-records') loadRecords();
     else if (tab.dataset.panel === 'panel-att') loadAtt();
     else if (tab.dataset.panel === 'panel-interview') loadInt();
+    else if (tab.dataset.panel === 'panel-history') loadHistory();
   });
 });
 
@@ -1120,8 +1167,75 @@ document.querySelector('.fm-tab[data-panel="panel-map"]').addEventListener('clic
   }
 });
 
+/* ── 履歴パネル ── */
+const HIST_ICONS = {
+  '指導記録を追加':'add','指導記録を編集':'edit','指導記録を削除':'del',
+  '出欠記録を追加':'add','出欠記録を削除':'del',
+  '面談記録を追加':'add','面談記録を削除':'del',
+  'メモ・所見を更新':'memo','基本情報を更新':'basic'
+};
+const HIST_EMOJI = {
+  '指導記録を追加':'📝','指導記録を編集':'✏️','指導記録を削除':'🗑',
+  '出欠記録を追加':'📅','出欠記録を削除':'🗑',
+  '面談記録を追加':'💬','面談記録を削除':'🗑',
+  'メモ・所見を更新':'📋','基本情報を更新':'👤'
+};
+
+async function loadHistory() {
+  const list    = document.getElementById('hist-list');
+  const empty   = document.getElementById('empty-hist');
+  const loading = document.getElementById('hist-loading');
+  list.innerHTML = '';
+  empty.style.display = 'none';
+  loading.style.display = '';
+  const res  = await fetch(`/karte/api/karte.php?action=list_history&student_id=${SID}`);
+  const data = await res.json();
+  loading.style.display = 'none';
+  if (!data.rows || !data.rows.length) { empty.style.display = ''; return; }
+  let lastDay = '';
+  data.rows.forEach(r => {
+    const dt   = new Date(r.created_at);
+    const day  = dt.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+    const time = dt.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    if (day !== lastDay) {
+      const sep = document.createElement('div');
+      sep.className = 'hist-day-sep';
+      sep.textContent = day;
+      list.appendChild(sep);
+      lastDay = day;
+    }
+    const cls  = HIST_ICONS[r.action_type] || 'add';
+    const emj  = HIST_EMOJI[r.action_type] || '📌';
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+    item.innerHTML = `
+      <div class="hist-dot ${cls}">${emj}</div>
+      <div class="hist-body">
+        <div class="hist-action">${esc(r.action_type)}</div>
+        ${r.detail ? `<div class="hist-detail">${esc(r.detail)}</div>` : ''}
+        <div class="hist-meta">
+          <span class="hist-teacher">${esc(r.teacher_name)}</span>
+          <span class="hist-date">${time}</span>
+        </div>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
 // 初期ロード
 loadRecords();
+
+/* ── ページ読み込み時: 状態を保存 + 前回タブを復元 ── */
+(function(){
+  saveLastState('panel-records');
+  try {
+    const st = JSON.parse(localStorage.getItem('karte_last_state') || 'null');
+    if (st && st.student_id === SID && st.panel && st.panel !== 'panel-records') {
+      const tab = document.querySelector(`.fm-tab[data-panel="${st.panel}"]`);
+      if (tab) tab.click();
+    }
+  } catch(e) {}
+})();
 
 /* ── 生徒切替：マウスホイール ── */
 (function(){
