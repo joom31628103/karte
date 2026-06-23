@@ -165,20 +165,30 @@ foreach ($tables as $tname => $sql) {
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    2. ALTER TABLE（後付カラム追加）
+   ※ MySQL 5.x は ADD COLUMN IF NOT EXISTS 非対応のため
+     INFORMATION_SCHEMA で存在確認してから追加
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function addColumnIfMissing(mysqli $conn, string $table, string $col, string $definition): string {
+    $db = DB_NAME;
+    $r  = $conn->query("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='$db' AND TABLE_NAME='$table' AND COLUMN_NAME='$col' LIMIT 1");
+    if ($r && $r->num_rows > 0) return 'already exists';
+    $conn->query("ALTER TABLE `$table` ADD COLUMN `$col` $definition");
+    return $conn->error ?: 'added';
+}
+
 $alters = [
-    "ALTER TABLE students ADD COLUMN IF NOT EXISTS gakno VARCHAR(20) DEFAULT NULL",
-    "ALTER TABLE students ADD COLUMN IF NOT EXISTS memo_posi TEXT",
-    "ALTER TABLE students ADD COLUMN IF NOT EXISTS memo_nega TEXT",
-    "ALTER TABLE students ADD COLUMN IF NOT EXISTS memo_main TEXT",
-    "ALTER TABLE karte_records ADD COLUMN IF NOT EXISTS nendo INT DEFAULT NULL",
-    "ALTER TABLE karte_attendance ADD COLUMN IF NOT EXISTS nendo INT DEFAULT NULL",
-    "ALTER TABLE karte_interviews ADD COLUMN IF NOT EXISTS nendo INT DEFAULT NULL",
+    ['students',         'gakno',    'VARCHAR(20) DEFAULT NULL'],
+    ['students',         'memo_posi','TEXT'],
+    ['students',         'memo_nega','TEXT'],
+    ['students',         'memo_main','TEXT'],
+    ['karte_records',    'nendo',    'INT DEFAULT NULL'],
+    ['karte_attendance', 'nendo',    'INT DEFAULT NULL'],
+    ['karte_interviews', 'nendo',    'INT DEFAULT NULL'],
+    ['students',         'photo',    'VARCHAR(255) DEFAULT NULL'],
 ];
 $alterResults = [];
-foreach ($alters as $sql) {
-    $conn->query($sql); // 既存カラムでも IF NOT EXISTS でエラーにならない
-    $alterResults[] = $conn->error ?: 'ok';
+foreach ($alters as [$tbl, $col, $def]) {
+    $alterResults[] = "$tbl.$col: " . addColumnIfMissing($conn, $tbl, $col, $def);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
