@@ -1069,6 +1069,49 @@ document.querySelector('.fm-tab[data-panel="panel-map"]').addEventListener('clic
 // 初期ロード
 loadRecords();
 
+/* ── 生徒切替：マウスホイール ── */
+(function(){
+  const PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
+  const NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
+  let busy = false;
+
+  function go(id) {
+    if (!id || busy) return;
+    busy = true;
+    location.href = '/karte/karte_detail.php?id=' + id;
+  }
+
+  // マウスホイール（デスクトップ・Chromebook）
+  let wheelAcc = 0, wheelTimer = null;
+  document.addEventListener('wheel', e => {
+    // テキストエリア・スクロール可能要素の中はスキップ
+    if (e.target.closest('textarea,select,.fm-table-wrap,.fm-tabs,iframe')) return;
+    wheelAcc += e.deltaY;
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      if (Math.abs(wheelAcc) < 60) { wheelAcc = 0; return; }
+      go(wheelAcc > 0 ? NEXT : PREV);
+      wheelAcc = 0;
+    }, 120);
+  }, { passive: true });
+
+  // タッチスワイプ（iPhone・iPad）
+  let tx = 0, ty = 0;
+  document.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    // 横方向スワイプが縦より大きく、かつ50px以上
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      // 左スワイプ→次、右スワイプ→前
+      go(dx < 0 ? NEXT : PREV);
+    }
+  }, { passive: true });
+})();
+
 /* ── 写真アップロード ── */
 async function uploadPhoto(input) {
   const file = input.files[0];
