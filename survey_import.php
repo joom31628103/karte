@@ -8,11 +8,33 @@ $classRes = $conn->query("SELECT DISTINCT class_name FROM students WHERE class_n
 $classes = [];
 while ($r = $classRes->fetch_assoc()) $classes[] = $r['class_name'];
 
-$studentsRes = $conn->query("SELECT s.student_id, s.name, s.seat_number, s.class_name, g.name AS gak_name, g.gakno, sn.gakunen, sn.class_no, sn.bango FROM students s LEFT JOIN gakuseki g ON s.gakno=g.gakno LEFT JOIN student_nendo sn ON sn.gakno=g.gakno ORDER BY s.class_name, CAST(s.seat_number AS UNSIGNED), s.student_id");
+// gakno カラムが students に存在するか確認（ALTER TABLE 未実行環境対応）
+$hasGakno = false;
+$colCheck = $conn->query("SHOW COLUMNS FROM students LIKE 'gakno'");
+if ($colCheck && $colCheck->num_rows > 0) $hasGakno = true;
+
+if ($hasGakno) {
+    $studentsRes = $conn->query(
+        "SELECT s.student_id, s.name, s.seat_number, s.class_name,
+                COALESCE(g.name, s.name) AS display_name,
+                sn.class_no, sn.bango
+         FROM students s
+         LEFT JOIN gakuseki g ON s.gakno = g.gakno
+         LEFT JOIN student_nendo sn ON sn.gakno = g.gakno
+             AND sn.nendo = (SELECT MAX(nendo) FROM student_nendo sn2 WHERE sn2.gakno = g.gakno)
+         ORDER BY s.class_name, CAST(s.seat_number AS UNSIGNED), s.student_id"
+    );
+} else {
+    $studentsRes = $conn->query(
+        "SELECT student_id, name, seat_number, class_name,
+                name AS display_name, NULL AS class_no, NULL AS bango
+         FROM students
+         ORDER BY class_name, CAST(seat_number AS UNSIGNED), student_id"
+    );
+}
 $allStudents = [];
-while ($r = $studentsRes->fetch_assoc()) {
-    $r['display_name'] = $r['gak_name'] ?: $r['name'];
-    $allStudents[] = $r;
+if ($studentsRes) {
+    while ($r = $studentsRes->fetch_assoc()) $allStudents[] = $r;
 }
 $conn->close();
 ?>
