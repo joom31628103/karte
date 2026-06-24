@@ -143,6 +143,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'notes'      => $s['notes']       ?? '',
                 'class_name' => $s['class_name']  ?? '',
                 'seat_number'=> $s['seat_number'] ?? '',
+                'name'       => $s['name']        ?? '',
+                'furigana'   => $s['furigana']    ?? '',
+                'birthday'   => $s['birthday']    ?? '',
+                'gender'     => $s['gender']      ?? '',
+                'phone'      => $s['phone']       ?? '',
+                'parent_name'=> $s['parent_name'] ?? '',
+                'address'    => $s['address']     ?? '',
+                'b_notes'    => $s['notes']       ?? '',
+                // 学籍台帳フィールド
+                'gak_hogosya' => $gak['hogosya']  ?? '',
+                'gak_hogokana'=> $gak['hogokana'] ?? '',
+                'gak_zokugara'=> $gak['zokugara'] ?? '',
+                'gak_tel1'   => $gak['tel1']      ?? '',
+                'gak_tel2'   => $gak['tel2']      ?? '',
+                'gak_yuubin' => $gak['yuubin']    ?? '',
+                'gak_jyusyo' => $gak['jyusyo']    ?? '',
+                'nendo_list' => $nendo_list,
             ]]);
 
         case 'list_history':

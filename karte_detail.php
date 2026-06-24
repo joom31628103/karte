@@ -571,24 +571,25 @@ if ($prevId): ?>
 
   <!-- 家庭環境 -->
   <div class="fm-panel" id="panel-family">
-    <?php if($gak): ?>
-    <div class="fm-info-section">保護者・家庭情報（学籍台帳より）</div>
-    <div class="fm-info-grid">
-      <div class="fm-info-group"><label>保護者名</label><input class="fm-info-input" value="<?= htmlspecialchars($gak['hogosya']??'') ?>" readonly></div>
-      <div class="fm-info-group"><label>ふりがな</label><input class="fm-info-input" value="<?= htmlspecialchars($gak['hogokana']??'') ?>" readonly></div>
-      <div class="fm-info-group"><label>続柄</label><input class="fm-info-input" value="<?= htmlspecialchars($gak['zokugara']??'') ?>" readonly></div>
-      <div class="fm-info-group"><label>電話1</label><input class="fm-info-input" value="<?= htmlspecialchars($gak['tel1']??'') ?>" readonly></div>
-      <div class="fm-info-group"><label>電話2</label><input class="fm-info-input" value="<?= htmlspecialchars($gak['tel2']??'') ?>" readonly></div>
-      <div class="fm-info-group full"><label>住所</label><input class="fm-info-input" value="<?= htmlspecialchars(($gak['yuubin']?'〒'.$gak['yuubin'].' ':'').$gak['jyusyo']) ?>" readonly></div>
+    <div id="familyGakGrid" <?= $gak ? '' : 'style="display:none"' ?>>
+      <div class="fm-info-section">保護者・家庭情報（学籍台帳より）</div>
+      <div class="fm-info-grid">
+        <div class="fm-info-group"><label>保護者名</label><input class="fm-info-input" id="fam-hogosya" value="<?= htmlspecialchars($gak['hogosya']??'') ?>" readonly></div>
+        <div class="fm-info-group"><label>ふりがな</label><input class="fm-info-input" id="fam-hogokana" value="<?= htmlspecialchars($gak['hogokana']??'') ?>" readonly></div>
+        <div class="fm-info-group"><label>続柄</label><input class="fm-info-input" id="fam-zokugara" value="<?= htmlspecialchars($gak['zokugara']??'') ?>" readonly></div>
+        <div class="fm-info-group"><label>電話1</label><input class="fm-info-input" id="fam-tel1" value="<?= htmlspecialchars($gak['tel1']??'') ?>" readonly></div>
+        <div class="fm-info-group"><label>電話2</label><input class="fm-info-input" id="fam-tel2" value="<?= htmlspecialchars($gak['tel2']??'') ?>" readonly></div>
+        <div class="fm-info-group full"><label>住所</label><input class="fm-info-input" id="fam-addr" value="<?= htmlspecialchars(($gak['yuubin']?'〒'.$gak['yuubin'].' ':'').$gak['jyusyo']) ?>" readonly></div>
+      </div>
+      <div style="margin-top:10px;font-size:.72rem;color:#5a6080;background:#e8ecff;padding:7px 10px;border-radius:4px;border:1px solid #aab0cc;">
+        ※ 学籍台帳にリンクされています。変更は <a href="/karte/gakuseki.php" style="color:#3b4f8a">学籍管理</a> から行ってください。
+      </div>
     </div>
-    <div style="margin-top:10px;font-size:.72rem;color:#5a6080;background:#e8ecff;padding:7px 10px;border-radius:4px;border:1px solid #aab0cc;">
-      ※ 学籍台帳にリンクされています。変更は <a href="/karte/gakuseki.php" style="color:#3b4f8a">学籍管理</a> から行ってください。
+    <div id="familyNoGak" <?= $gak ? 'style="display:none"' : '' ?>>
+      <div style="background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:14px;font-size:.84rem;color:#713f12;margin-bottom:14px;">
+        学籍台帳が未連携です。「基本情報」タブから学籍番号をリンクすると、保護者・家庭情報が自動表示されます。
+      </div>
     </div>
-    <?php else: ?>
-    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:6px;padding:14px;font-size:.84rem;color:#713f12;margin-bottom:14px;">
-      学籍台帳が未連携です。「基本情報」タブから学籍番号をリンクすると、保護者・家庭情報が自動表示されます。
-    </div>
-    <?php endif; ?>
     <div class="fm-info-section">家庭状況メモ（担任記入）</div>
     <textarea class="fm-info-textarea" id="family-notes" rows="6" placeholder="家庭状況・保護者との関係・支援状況など"><?= htmlspecialchars($s['notes']??'') ?></textarea>
     <div class="fm-save-row">
@@ -621,21 +622,13 @@ if ($prevId): ?>
   <!-- 基本情報 -->
   <div class="fm-panel" id="panel-basic">
     <!-- 学籍リンク -->
-    <?php if($gak): ?>
-    <div class="gak-ref-box">
-      <h4>📚 学籍台帳リンク済み — 学籍番号: <span style="color:#3b4f8a"><?= htmlspecialchars($gakno) ?></span>
-        <?php if($latestNendo): ?>
-          <span style="font-size:.75rem;color:#6d8fd0;font-weight:400">
-            （最新: <?= htmlspecialchars($latestNendo['nendo']) ?>年度 <?= $latestNendo['gakunen'] ?>年<?= htmlspecialchars($latestNendo['class_no']??'') ?><?= $latestNendo['bango'] ? ' '.$latestNendo['bango'].'番' : '' ?>）
-          </span>
-        <?php endif; ?>
-      </h4>
-      <?php if($nendo_list): ?>
+    <div id="gakRefBox" class="gak-ref-box" <?= $gak ? '' : 'style="display:none"' ?>>
+      <h4>📚 学籍台帳リンク済み — 学籍番号: <span id="gaknoSpan" style="color:#3b4f8a"><?= htmlspecialchars($gakno) ?></span></h4>
       <div style="margin-bottom:10px;">
         <div style="font-size:.72rem;font-weight:700;color:#3b4f8a;margin-bottom:5px;">年度別クラス情報</div>
         <table class="nendo-table">
           <thead><tr><th>年度</th><th>学年</th><th>組</th><th>番号</th><th>担任</th><th>進級状態</th></tr></thead>
-          <tbody>
+          <tbody id="nendoTbody">
             <?php foreach($nendo_list as $n): ?>
             <tr>
               <td style="font-weight:700;color:#3b4f8a"><?= htmlspecialchars($n['nendo']) ?>年度</td>
@@ -649,7 +642,6 @@ if ($prevId): ?>
           </tbody>
         </table>
       </div>
-      <?php endif; ?>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
         <span style="font-size:.75rem;color:#5a6080">学籍番号を変更:</span>
         <input type="text" class="gak-link-input" id="gaknoInput" value="<?= htmlspecialchars($gakno) ?>" placeholder="学籍番号">
@@ -657,15 +649,13 @@ if ($prevId): ?>
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;background:linear-gradient(180deg,#aab0cc 0%,#8890b0 100%);border-color:#6a7090;" id="btnUnlinkGakno">リンク解除</button>
       </div>
     </div>
-    <?php else: ?>
-    <div class="gak-link-box">
+    <div id="gakLinkBox" class="gak-link-box" <?= $gak ? 'style="display:none"' : '' ?>>
       <strong>学籍台帳と未連携</strong> — 学籍番号を入力してリンクするか、<a href="/karte/gakuseki.php" style="color:#92400e">学籍管理</a>で登録してください。
       <div class="gak-link-form">
         <input type="text" class="gak-link-input" id="gaknoInput2" placeholder="学籍番号を入力">
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;" id="btnLinkGakno2">リンク</button>
       </div>
     </div>
-    <?php endif; ?>
 
     <div class="fm-info-section">カルテ内情報（編集可）</div>
     <div class="fm-info-grid">
@@ -1415,6 +1405,73 @@ async function loadHistory(sid=SID) {
     if (totEl)   totEl.textContent=total;
 
     updatePrefetch();
+
+    // 家庭環境タブ更新
+    const setVal = (id, v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+    const setText = (id, v) => { const el=document.getElementById(id); if(el) el.textContent=v||''; };
+    setVal('family-notes', d.notes);
+    // 家庭環境：学籍台帳フィールド
+    const familyGrid = document.getElementById('familyGakGrid');
+    const familyNoGak = document.getElementById('familyNoGak');
+    if (d.gakno) {
+      if (familyNoGak) familyNoGak.style.display = 'none';
+      if (familyGrid) {
+        familyGrid.style.display = '';
+        setVal('fam-hogosya',  d.gak_hogosya);
+        setVal('fam-hogokana', d.gak_hogokana);
+        setVal('fam-zokugara', d.gak_zokugara);
+        setVal('fam-tel1',     d.gak_tel1);
+        setVal('fam-tel2',     d.gak_tel2);
+        setVal('fam-addr',     (d.gak_yuubin ? '〒'+d.gak_yuubin+' ' : '') + d.gak_jyusyo);
+      }
+    } else {
+      if (familyGrid)  familyGrid.style.display  = 'none';
+      if (familyNoGak) familyNoGak.style.display = '';
+    }
+
+    // 基本情報タブ更新
+    setVal('b-sid',    d.student_id);
+    setVal('b-class',  d.class_name);
+    setVal('b-name',   d.name);
+    setVal('b-furi',   d.furigana);
+    setVal('b-seat',   d.seat_number);
+    setVal('b-gender', d.gender);
+    setVal('b-bday',   d.birthday);
+    setVal('b-phone',  d.phone);
+    setVal('b-parent', d.parent_name);
+    setVal('b-addr',   d.address);
+    const bNotes = document.getElementById('b-notes');
+    if (bNotes) bNotes.value = d.b_notes || '';
+    // 基本情報：学籍リンク表示
+    const gakRefBox  = document.getElementById('gakRefBox');
+    const gakLinkBox = document.getElementById('gakLinkBox');
+    if (d.gakno) {
+      if (gakLinkBox) gakLinkBox.style.display = 'none';
+      if (gakRefBox)  {
+        gakRefBox.style.display = '';
+        const gaknoSpan = document.getElementById('gaknoSpan');
+        if (gaknoSpan) gaknoSpan.textContent = d.gakno;
+        setVal('gaknoInput', d.gakno);
+        // 年度テーブル更新
+        const nendoTbody = document.getElementById('nendoTbody');
+        if (nendoTbody && d.nendo_list) {
+          nendoTbody.innerHTML = d.nendo_list.map(n =>
+            `<tr>
+              <td style="font-weight:700;color:#3b4f8a">${h(n.nendo)}年度</td>
+              <td>${n.gakunen ? h(n.gakunen)+'年' : '—'}</td>
+              <td>${h(n.class_no||'—')}</td>
+              <td>${n.bango ? h(n.bango)+'番' : '—'}</td>
+              <td>${h(n.tanninmei||'—')}</td>
+              <td>${h(n.sinkyu||'—')}</td>
+            </tr>`).join('');
+        }
+      }
+    } else {
+      if (gakRefBox)  gakRefBox.style.display  = 'none';
+      if (gakLinkBox) gakLinkBox.style.display = '';
+      const gaknoInput2 = document.getElementById('gaknoInput2');
+      if (gaknoInput2) gaknoInput2.value = '';
+    }
 
     // 地図住所を更新
     window._currentMapAddr = d.dispJyusyo || '';
