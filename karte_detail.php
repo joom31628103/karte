@@ -71,7 +71,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-arrow{width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background .15s;}
 .fm-arrow:hover{background:rgba(255,255,255,.25);}
 .fm-arrow.disabled{opacity:.3;pointer-events:none;}
-.fm-topbar-student{width:220px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f0ff;font-size:.88rem;font-weight:700;letter-spacing:.03em;}
+.fm-topbar-student{display:flex;gap:6px;flex-shrink:0;align-items:center;}
+.fm-topbar-student .tb-class{width:100px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c4d4ff;font-size:.78rem;font-weight:500;}
+.fm-topbar-student .tb-name{width:120px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f0ff;font-size:.88rem;font-weight:700;}
 
 /* ── FileMaker風レコードナビゲーター ── */
 .fm-rec-nav{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;user-select:none;}
@@ -377,12 +379,12 @@ if ($prevId): ?>
     </div>
   </div>
   <div class="fm-topbar-student">
-    <?= htmlspecialchars(implode('', array_filter([
+    <div class="tb-class"><?= htmlspecialchars(implode('', array_filter([
       $dispGakunen ? $dispGakunen.'年' : '',
       $dispClass   ?: '',
-      $dispBango   ? $dispBango.'番　' : ($dispClass ? '　' : ''),
-      $dispName    ?: '—',
-    ]))) ?>
+      $dispBango   ? $dispBango.'番'   : '',
+    ])) ?: '—') ?></div>
+    <div class="tb-name"><?= htmlspecialchars($dispName ?: '—') ?></div>
   </div>
   <div class="fm-topbar-right">
     <button class="fm-btn-top fm-header-toggle" id="headerToggleBtn" onclick="toggleStudentHeader()" title="生徒情報を折りたたむ/展開する">
@@ -1350,8 +1352,11 @@ async function loadHistory(sid=SID) {
     // トップバー生徒名
     const tb = document.querySelector('.fm-topbar-student');
     if (tb) {
-      const cls = (d.dispGakunen ? d.dispGakunen+'年' : '') + (d.dispClass||'') + (d.dispBango ? d.dispBango+'番　' : (d.dispClass ? '　' : ''));
-      tb.textContent = cls + (d.dispName || '—');
+      const cls = [(d.dispGakunen ? d.dispGakunen+'年' : ''), (d.dispClass||''), (d.dispBango ? d.dispBango+'番' : '')].join('') || '—';
+      const clsEl  = tb.querySelector('.tb-class');
+      const nameEl = tb.querySelector('.tb-name');
+      if (clsEl)  clsEl.textContent  = cls;
+      if (nameEl) nameEl.textContent = d.dispName || '—';
     }
 
     // 印刷リンク
