@@ -716,30 +716,25 @@ if ($prevId): ?>
                 $mapAddr = $s['address'];
             }
           ?>
-          <?php if($mapAddr): ?>
-            <?php if($gak && $gak['yuubin']): ?>
-            <div style="margin-bottom:6px;">
-              <div class="map-addr-label">郵便番号</div>
-              <div class="map-addr-line">〒<?= htmlspecialchars($gak['yuubin']) ?></div>
-            </div>
-            <?php endif; ?>
+          <div id="mapAddrSection" style="<?= $mapAddr ? '' : 'display:none' ?>">
             <div style="margin-bottom:10px;">
               <div class="map-addr-label">住所</div>
-              <div class="map-addr-line" id="displayAddr"><?= htmlspecialchars($gak ? $gak['jyusyo'] : $s['address']) ?></div>
+              <div class="map-addr-line" id="displayAddr"><?= htmlspecialchars($mapAddr) ?></div>
             </div>
-            <a href="https://www.google.com/maps/search/<?= urlencode($mapAddr) ?>" target="_blank" class="map-btn map-btn-google" style="margin-bottom:6px;">
+            <a id="mapGoogleLink" href="https://www.google.com/maps/search/<?= urlencode($mapAddr) ?>" target="_blank" class="map-btn map-btn-google" style="margin-bottom:6px;">
               🔗 Google マップで開く
             </a>
             <button class="map-btn map-btn-primary" id="btnShowMap" onclick="showMap(document.getElementById('displayAddr').textContent)">
               🗺 地図を表示
             </button>
-          <?php else: ?>
+          </div>
+          <div id="mapNoAddr" style="<?= $mapAddr ? 'display:none' : '' ?>">
             <div class="map-no-addr">
               <div style="font-size:1.5rem">📭</div>
               <div>住所が登録されていません</div>
               <div style="font-size:.76rem;color:#aab0cc">基本情報タブまたは学籍管理から住所を登録してください</div>
             </div>
-          <?php endif; ?>
+          </div>
         </div>
 
         <!-- 住所検索 -->
@@ -753,31 +748,28 @@ if ($prevId): ?>
         <!-- 生徒情報サマリー -->
         <div class="map-addr-card">
           <h4>👤 生徒情報</h4>
-          <div style="font-size:.82rem;line-height:1.8;color:#1a2240;">
+          <div id="mapStudentSummary" style="font-size:.82rem;line-height:1.8;color:#1a2240;">
             <div><strong><?= htmlspecialchars($dispName) ?></strong></div>
             <?php if($dispFuri): ?><div style="color:#5a6080;font-size:.76rem"><?= htmlspecialchars($dispFuri) ?></div><?php endif; ?>
             <?php if($dispGakunen): ?><div><?= htmlspecialchars($dispGakunen) ?>年<?= htmlspecialchars($dispClass) ?> <?= htmlspecialchars($dispBango) ?>番</div><?php endif; ?>
             <?php if($dispTel): ?><div>📞 <?= htmlspecialchars($dispTel) ?></div><?php endif; ?>
-            <?php if($dispHogosya): ?><div>👨‍👩‍👦 <?= htmlspecialchars($dispHogosya) ?><?= $gak && $gak['zokugara'] ? '（'.$gak['zokugara'].'）' : '' ?></div><?php endif; ?>
+            <?php if($dispHogosya): ?><div>👨‍👩‍👦 <?= htmlspecialchars($dispHogosya) ?></div><?php endif; ?>
           </div>
         </div>
       </div>
 
       <!-- 地図フレーム -->
       <div class="map-frame-wrap" id="mapFrameWrap">
-        <?php if($mapAddr): ?>
-        <div class="map-loading" id="mapLoading">
+        <div class="map-loading" id="mapLoading" style="<?= $mapAddr ? '' : 'display:none' ?>">
           <div style="font-size:2rem">🗺</div>
           <div>「地図を表示」をクリックしてください</div>
         </div>
         <iframe id="mapFrame" src="" style="display:none;width:100%;height:100%;min-height:480px;border:none;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <?php else: ?>
-        <div class="map-no-addr" style="height:480px;">
+        <div id="mapFrameNoAddr" class="map-no-addr" style="height:480px;<?= $mapAddr ? 'display:none' : '' ?>">
           <div style="font-size:3rem">🗺</div>
           <div style="font-size:1rem;font-weight:700;color:#5a6080">住所が未登録です</div>
           <div style="font-size:.82rem">基本情報または学籍管理から住所を登録してください</div>
         </div>
-        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -1213,9 +1205,10 @@ function showMap(addr) {
   });
 }
 
-// 地図タブを開いたとき自動で住所を表示
+// 地図タブを開いたとき自動で住所を表示（生徒切替後も最新住所を使う）
+window._currentMapAddr = <?= json_encode($mapAddr) ?>;
 document.querySelector('.fm-tab[data-panel="panel-map"]').addEventListener('click', () => {
-  const addr = <?= json_encode($mapAddr) ?>;
+  const addr = window._currentMapAddr;
   if (addr) {
     setTimeout(() => showMap(addr), 200);
   }
@@ -1422,6 +1415,38 @@ async function loadHistory(sid=SID) {
     if (totEl)   totEl.textContent=total;
 
     updatePrefetch();
+
+    // 地図住所を更新
+    window._currentMapAddr = d.dispJyusyo || '';
+    const addr = window._currentMapAddr;
+    const displayAddr    = document.getElementById('displayAddr');
+    const mapSearchInput = document.getElementById('mapSearchInput');
+    const mapAddrSection = document.getElementById('mapAddrSection');
+    const mapNoAddr      = document.getElementById('mapNoAddr');
+    const mapFrame       = document.getElementById('mapFrame');
+    const mapLoading     = document.getElementById('mapLoading');
+    const mapFrameNoAddr = document.getElementById('mapFrameNoAddr');
+    const mapGoogleLink  = document.getElementById('mapGoogleLink');
+    if (displayAddr)    displayAddr.textContent = addr;
+    if (mapSearchInput) mapSearchInput.value    = addr;
+    if (mapAddrSection) mapAddrSection.style.display = addr ? '' : 'none';
+    if (mapNoAddr)      mapNoAddr.style.display      = addr ? 'none' : '';
+    if (mapGoogleLink && addr) mapGoogleLink.href = 'https://www.google.com/maps/search/'+encodeURIComponent(addr);
+    // 地図フレームをリセット
+    if (mapFrame)        { mapFrame.style.display='none'; mapFrame.src=''; }
+    if (mapLoading)      mapLoading.style.display      = addr ? '' : 'none';
+    if (mapFrameNoAddr)  mapFrameNoAddr.style.display  = addr ? 'none' : '';
+    // 生徒情報サマリー更新
+    const mapSummary = document.getElementById('mapStudentSummary');
+    if (mapSummary) {
+      const h = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      let html = `<div><strong>${h(d.dispName)}</strong></div>`;
+      if (d.dispFuri)    html += `<div style="color:#5a6080;font-size:.76rem">${h(d.dispFuri)}</div>`;
+      if (d.dispGakunen) html += `<div>${h(d.dispGakunen)}年${h(d.dispClass)} ${h(d.dispBango)}番</div>`;
+      if (d.dispTel)     html += `<div>📞 ${h(d.dispTel)}</div>`;
+      if (d.dispHogosya) html += `<div>👨‍👩‍👦 ${h(d.dispHogosya)}</div>`;
+      mapSummary.innerHTML = html;
+    }
   }
 
   function applyPhoto(dispPhoto) {
