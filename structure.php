@@ -186,10 +186,14 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         </div>
         <dl class="kv">
           <dt>URLパラメータ</dt><dd>?id={student_id}</dd>
-          <dt>タブ一覧</dt><dd>基本情報 / カルテ記録 / 出欠 / 面談 / メモ / 学籍台帳 / 📄家庭調査票 / 📜履歴</dd>
+          <dt>タブ一覧</dt><dd>指導記録 / 出欠・勤怠 / 面談記録 / メモ・所見 / 家庭環境 / 📄家庭調査票 / 基本情報 / 🗺地図 / 📜履歴</dd>
           <dt>前後切替</dt><dd>◀▶ボタン + マウスホイール + 横スワイプ（タッチ）</dd>
+          <dt>生徒切替方式</dt><dd>AJAX（フルリロードなし）。ALL_IDSをJSに埋め込み、prev/next・スライダーをクライアント側で計算。切替時は全タブ内容をJS更新</dd>
+          <dt>キャッシュ戦略</dt><dd>studentCache（生徒ヘッダー）+ tabCache（タブJSON）をPromiseキャッシュ。前後3件をrequestIdleCallbackで先読み</dd>
+          <dt>タブ連動更新</dt><dd>go()関数が全タブを生徒切替に連動。地図=住所リセット・調査票=loadSurvey()・家庭環境/基本情報=フォーム値書換</dd>
+          <dt>トップバー</dt><dd>クラス枠(100px固定)と氏名枠(120px固定)を別ボックスで表示。生徒切替で位置がずれない</dd>
           <dt>データ優先順位</dt><dd>gakuseki > students（名前・住所・電話等）</dd>
-          <dt>写真表示</dt><dd>gak['photo'] ?? s['photo']（gakuseki優先）</dd>
+          <dt>写真表示</dt><dd>requestAnimationFrameで遅延適用（ヘッダー更新後に非同期）</dd>
           <dt>履歴タブ</dt><dd>activity_log テーブルから取得。操作種別ごとにアイコン色分け（追加=緑/編集=青/削除=赤/メモ=紫/基本情報=黄）。日付セパレータ付き時系列表示</dd>
           <dt>最終閲覧記憶</dt><dd>saveLastState() → localStorage['karte_last_state']（student_id, panel, tab_label, ts）。再ロード時に同一生徒なら前回タブを自動復元</dd>
           <dt>モバイル対応</dt><dd>≤480px ハンバーガーメニュー、タブ横スクロール</dd>
@@ -698,13 +702,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
     <div class="flow-item">
       <div class="flow-title"><span>↔</span> 生徒切替（karte_detail.php）</div>
       <div class="flow-nodes">
-        <div class="fn"><span class="fn-icon">🖱</span><span class="fn-label">◀▶ボタン</span><span class="fn-sub">or ホイール</span></div>
+        <div class="fn"><span class="fn-icon">🖱</span><span class="fn-label">◀▶ / ホイール</span><span class="fn-sub">スライダー / スワイプ</span></div>
         <div class="fn-arrow">→</div>
-        <div class="fn"><span class="fn-icon">👆</span><span class="fn-label">横スワイプ</span><span class="fn-sub">タッチデバイス</span></div>
+        <div class="fn hi"><span class="fn-icon">📋</span><span class="fn-label">ALL_IDS[n]</span><span class="fn-sub">JSに埋め込み済み全ID列</span></div>
         <div class="fn-arrow">→</div>
-        <div class="fn hi"><span class="fn-icon">🔗</span><span class="fn-label">location.href</span><span class="fn-sub">?id={prev/nextId}</span></div>
+        <div class="fn"><span class="fn-icon">⚡</span><span class="fn-label">go(id)</span><span class="fn-sub">studentCache hit→即時</span></div>
         <div class="fn-arrow">→</div>
-        <div class="fn"><span class="fn-icon">📋</span><span class="fn-label">次の生徒表示</span><span class="fn-sub">class/seat順</span></div>
+        <div class="fn"><span class="fn-icon">🔄</span><span class="fn-label">updateHeader()</span><span class="fn-sub">全タブDOM更新</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">🔮</span><span class="fn-label">prefetchAdjacent()</span><span class="fn-sub">前後3件先読み</span></div>
       </div>
     </div>
 
