@@ -97,8 +97,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 
 
 /* ── 生徒情報ヘッダー ── */
-.fm-student-header{background:#f0f2f8;border-bottom:2px solid #aab0cc;padding:10px 14px;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s,opacity .3s;}
-.fm-student-header.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;opacity:0;border-bottom-width:0;}
+.fm-student-header{background:#f0f2f8;border-bottom:2px solid #aab0cc;padding:10px 14px;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s;}
+.fm-student-header.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;border-bottom-width:0;}
 .fm-header-row1{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
 .fm-header-fields{flex:1;min-width:0;}
 .fm-field-row{display:flex;gap:0;align-items:stretch;margin-bottom:5px;flex-wrap:wrap;}
@@ -1487,7 +1487,6 @@ function initStudentHeader() {
     hdr.style.maxHeight = '0';
     hdr.style.paddingTop = '0';
     hdr.style.paddingBottom = '0';
-    hdr.style.opacity = '0';
     hdr.style.borderBottomWidth = '0';
     hdr.classList.add('collapsed');
     // 次フレームでトランジションを戻す
@@ -1506,7 +1505,6 @@ function toggleStudentHeader() {
     // 展開：initStudentHeaderで設定したインラインスタイルを全てリセットしてからアニメ
     hdr.style.paddingTop = '';
     hdr.style.paddingBottom = '';
-    hdr.style.opacity = '';
     hdr.style.borderBottomWidth = '';
     hdr.classList.remove('collapsed');
     hdr.style.maxHeight = '2000px';
