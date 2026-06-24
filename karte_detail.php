@@ -24,9 +24,11 @@ reset($nendo_list);
 $prevNext = $conn->query("SELECT student_id FROM students ORDER BY class_name, seat_number, student_id");
 $idList = [];
 while ($r=$prevNext->fetch_assoc()) $idList[]=$r['student_id'];
-$pos     = array_search($sid, $idList);
-$prevId  = $pos > 0 ? $idList[$pos-1] : null;
-$nextId  = $pos < count($idList)-1 ? $idList[$pos+1] : null;
+$pos      = array_search($sid, $idList);
+$prevId   = $pos > 0 ? $idList[$pos-1] : null;
+$nextId   = $pos < count($idList)-1 ? $idList[$pos+1] : null;
+$recCurrent = (int)$pos + 1;   // 1始まり
+$recTotal   = count($idList);
 
 $conn->close();
 
@@ -70,30 +72,42 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-arrow:hover{background:rgba(255,255,255,.25);}
 .fm-arrow.disabled{opacity:.3;pointer-events:none;}
 .fm-topbar-student{color:#c4d4ff;font-size:.88rem;font-weight:700;letter-spacing:.03em;}
+
+/* ── FileMaker風レコードナビゲーター ── */
+.fm-rec-nav{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;user-select:none;}
+.fm-rec-arrows{display:flex;gap:2px;}
+.fm-rec-arr{width:24px;height:24px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#e8ecff;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:background .12s;line-height:1;padding:0;}
+.fm-rec-arr:hover{background:rgba(255,255,255,.22);}
+.fm-rec-arr.disabled{opacity:.3;pointer-events:none;}
+.fm-rec-slider-wrap{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:80px;}
+.fm-rec-slider{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.2);outline:none;cursor:pointer;}
+.fm-rec-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#6ee7b7;border:2px solid #fff;cursor:pointer;transition:transform .1s;}
+.fm-rec-slider::-webkit-slider-thumb:hover{transform:scale(1.3);}
+.fm-rec-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#6ee7b7;border:2px solid #fff;cursor:pointer;}
+.fm-rec-label{font-size:.62rem;color:#8898cc;letter-spacing:.04em;white-space:nowrap;}
+.fm-rec-input-wrap{display:flex;align-items:center;gap:4px;}
+.fm-rec-num{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:4px;color:#e8ecff;font-size:.8rem;font-weight:700;width:36px;text-align:center;padding:2px 4px;cursor:pointer;font-family:inherit;}
+.fm-rec-num:focus{outline:none;background:rgba(255,255,255,.22);border-color:#6ee7b7;}
+.fm-rec-sep{color:#6677aa;font-size:.75rem;}
+.fm-rec-total{color:#9ab0e0;font-size:.78rem;font-weight:600;white-space:nowrap;}
 .fm-topbar-right{display:flex;gap:6px;align-items:center;}
 .fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;}
 .fm-btn-top:hover{background:rgba(255,255,255,.25);}
 .fm-btn-top.active{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.6);}
 
-/* ── ナビゲーションボタン行 ── */
-.fm-navbar{background:#3b4f8a;padding:4px 10px;display:flex;gap:4px;align-items:center;border-bottom:2px solid #263570;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;}
-.fm-navbar::-webkit-scrollbar{display:none;}
-.fm-navbar::after{content:'';position:sticky;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to left,#3b4f8a,transparent);pointer-events:none;flex-shrink:0;}
-.fm-navbtn{padding:0 13px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#dce4ff;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;}
-.fm-navbtn:hover,.fm-navbtn.active{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);color:#fff;}
-.fm-navbtn.active{border-color:#8ba4ff;}
 
 /* ── 生徒情報ヘッダー ── */
-.fm-student-header{background:#f0f2f8;border-bottom:2px solid #aab0cc;padding:10px 14px;}
+.fm-student-header{background:#f0f2f8;border-bottom:2px solid #aab0cc;padding:10px 14px;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s,opacity .3s;}
+.fm-student-header.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;opacity:0;border-bottom-width:0;}
 .fm-header-row1{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
 .fm-header-fields{flex:1;min-width:0;}
 .fm-field-row{display:flex;gap:0;align-items:stretch;margin-bottom:5px;flex-wrap:wrap;}
 .fm-field{display:flex;flex-direction:column;flex:1;min-width:80px;}
 .fm-field-label{font-size:.68rem;color:#5a6080;font-weight:700;padding:2px 5px;background:#dde0ee;border:1px solid #aab0cc;border-bottom:none;text-align:center;letter-spacing:.03em;}
-.fm-field-value{padding:4px 8px;background:#fff;border:1px solid #aab0cc;font-size:.85rem;font-weight:600;color:#1a2240;min-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fm-field-value{padding:0 8px;background:#fff;border:1px solid #aab0cc;font-size:.85rem;font-weight:600;color:#1a2240;height:30px;line-height:30px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .fm-field-value.wide{white-space:normal;}
 .fm-field-value.placeholder{color:#9aa0c0;font-weight:400;}
-.fm-photo{width:80px;height:96px;background:#e4e7f0;border:2px solid #aab0cc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9aa0c0;font-size:.75rem;text-align:center;flex-shrink:0;overflow:hidden;transition:border-color .2s;}
+.fm-photo{width:130px;height:160px;background:#e4e7f0;border:2px solid #aab0cc;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9aa0c0;font-size:.75rem;text-align:center;flex-shrink:0;overflow:hidden;transition:border-color .2s;}
 .fm-photo:hover{border-color:#546099;}
 .fm-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .photo-wrap{position:relative;flex-shrink:0;}
@@ -252,9 +266,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .hist-day-sep{font-size:.72rem;font-weight:700;color:#3b4f8a;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;border-bottom:2px solid #aab0cc;margin-bottom:4px;}
 
 /* ── タッチスクロール ── */
-.fm-navbar,.fm-tabs,.fm-table-wrap,.fm-panel-wrap{-webkit-overflow-scrolling:touch;}
-.fm-navbar::-webkit-scrollbar,.fm-tabs::-webkit-scrollbar{height:3px;}
-.fm-navbar::-webkit-scrollbar-thumb,.fm-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px;}
+.fm-tabs,.fm-table-wrap,.fm-panel-wrap{-webkit-overflow-scrolling:touch;}
+.fm-tabs::-webkit-scrollbar{height:3px;}
+.fm-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px;}
 
 /* ── iPad（〜1024px） ── */
 @media(max-width:1024px){
@@ -263,8 +277,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 
 /* ── iPad縦 / 大型スマホ（〜768px） ── */
 @media(max-width:768px){
-  .fm-navbar{overflow-x:auto;flex-wrap:nowrap;}
-  .fm-navbtn{font-size:.74rem;padding:0 10px;min-height:44px;}
+
   .fm-tab{min-height:44px;padding:0 12px;font-size:.78rem;}
   .map-layout{grid-template-columns:1fr;}
   .map-frame-wrap{min-height:280px;}
@@ -297,13 +310,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-topbar-right{display:none;}
   .mobile-menu-btn{display:block;}
   .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
-  .fm-navbar{padding:4px 6px;gap:3px;}
-  .fm-navbtn{font-size:.72rem;padding:0 8px;min-height:44px;}
+
   .fm-student-header{padding:8px;}
   .fm-field{min-width:90px;}
   .fm-field-label{font-size:.64rem;}
   .fm-field-value{font-size:.78rem;}
-  .fm-photo{width:60px;height:72px;}
+  .fm-photo{width:90px;height:112px;}
   .fm-tabs{padding:5px 6px 0;gap:1px;}
   .fm-tab{padding:0 10px;font-size:.75rem;min-height:44px;}
   .fm-panel{padding:10px;}
@@ -325,18 +337,35 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 <div class="fm-topbar">
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="fm-topbar-title"><span class="dot"></span>生徒情報</div>
-    <div class="fm-nav-arrows">
-      <?php if($prevId): ?>
-        <a href="/karte/karte_detail.php?id=<?= urlencode($prevId) ?>" class="fm-arrow" title="前の生徒">◀</a>
-      <?php else: ?>
-        <span class="fm-arrow disabled">◀</span>
-      <?php endif; ?>
-      <a href="/karte/home.php" class="fm-arrow" title="一覧へ">⌂</a>
-      <?php if($nextId): ?>
-        <a href="/karte/karte_detail.php?id=<?= urlencode($nextId) ?>" class="fm-arrow" title="次の生徒">▶</a>
-      <?php else: ?>
-        <span class="fm-arrow disabled">▶</span>
-      <?php endif; ?>
+    <!-- FileMaker風レコードナビゲーター -->
+    <div class="fm-rec-nav">
+      <!-- 前後矢印 -->
+      <div class="fm-rec-arrows">
+        <?php if($prevId): ?>
+          <a href="/karte/karte_detail.php?id=<?= urlencode($prevId) ?>" class="fm-rec-arr fm-arrow-prev" title="前の生徒">&#9664;</a>
+        <?php else: ?>
+          <span class="fm-rec-arr disabled">&#9664;</span>
+        <?php endif; ?>
+        <?php if($nextId): ?>
+          <a href="/karte/karte_detail.php?id=<?= urlencode($nextId) ?>" class="fm-rec-arr fm-arrow-next" title="次の生徒">&#9654;</a>
+        <?php else: ?>
+          <span class="fm-rec-arr disabled">&#9654;</span>
+        <?php endif; ?>
+      </div>
+      <!-- スライダー -->
+      <div class="fm-rec-slider-wrap">
+        <input type="range" class="fm-rec-slider" id="recSlider"
+               min="1" max="<?= $recTotal ?>" value="<?= $recCurrent ?>"
+               title="スライドしてレコード移動">
+        <span class="fm-rec-label">レコード</span>
+      </div>
+      <!-- 番号入力 / 分数 -->
+      <div class="fm-rec-input-wrap">
+        <input type="text" class="fm-rec-num" id="recNumInput"
+               value="<?= $recCurrent ?>" title="番号を入力してEnter">
+        <span class="fm-rec-sep">/</span>
+        <span class="fm-rec-total"><?= $recTotal ?></span>
+      </div>
     </div>
   </div>
   <div class="fm-topbar-student">
@@ -347,6 +376,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
     <strong><?= htmlspecialchars($dispName) ?></strong>
   </div>
   <div class="fm-topbar-right">
+    <button class="fm-btn-top fm-header-toggle" id="headerToggleBtn" onclick="toggleStudentHeader()" title="生徒情報を折りたたむ/展開する">
+      <span id="headerToggleIcon">▲</span> <span id="headerToggleLabel">情報を隠す</span>
+    </button>
     <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank" class="fm-btn-top">🖨 個人カード</a>
     <a href="/karte/gakuseki.php" class="fm-btn-top">📚 学籍管理</a>
     <a href="/karte/home.php" class="fm-btn-top">← 一覧</a>
@@ -365,21 +397,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
-<!-- ── ナビゲーションボタン行 ── -->
-<div class="fm-navbar">
-  <button class="fm-navbtn active" onclick="switchNav(this,'panel-records')">📝 指導記録</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-att')">📅 出欠・勤怠</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-interview')">💬 面談記録</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-memo')">📋 メモ・所見</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-family')">🏠 家庭環境</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-survey')">📄 家庭調査票</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-basic')">👤 基本情報</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-map')">🗺 地図</button>
-  <button class="fm-navbtn" onclick="switchNav(this,'panel-history')">📜 履歴</button>
-</div>
 
 <!-- ── 生徒情報ヘッダー ── -->
-<div class="fm-student-header">
+<div class="fm-student-header" id="studentHeader">
   <div class="fm-header-row1">
     <div class="fm-header-fields" style="flex:1">
       <!-- 行1: 年度・学年・組・番号・学籍状態 -->
@@ -417,7 +437,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
         </div>
         <div class="fm-field" style="max-width:180px">
           <div class="fm-field-label">氏名</div>
-          <div class="fm-field-value" style="font-size:1rem;font-weight:900;color:#1a2240"><?= htmlspecialchars($dispName ?: '—') ?></div>
+          <div class="fm-field-value" style="font-weight:900;color:#1a2240;"><?= htmlspecialchars($dispName ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:160px">
           <div class="fm-field-label">電話（保護者）</div>
@@ -863,6 +883,19 @@ function saveLastState(panelId) {
   } catch(e) {}
 }
 
+// URLのtabパラメータを更新して前後リンクにも引き継ぐ
+function updateTabInUrl(panelId) {
+  const url = new URL(location.href);
+  url.searchParams.set('tab', panelId);
+  history.replaceState(null, '', url.toString());
+  // 前後ナビリンクにもtabを付与
+  document.querySelectorAll('.fm-arrow-prev,.fm-arrow-next').forEach(a => {
+    const u = new URL(a.href);
+    u.searchParams.set('tab', panelId);
+    a.href = u.toString();
+  });
+}
+
 // タブ切り替え
 document.querySelectorAll('.fm-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -872,6 +905,7 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
     const panel = document.getElementById(tab.dataset.panel);
     if (panel) panel.classList.add('active');
     saveLastState(tab.dataset.panel);
+    updateTabInUrl(tab.dataset.panel);
     if (tab.dataset.panel === 'panel-records') loadRecords();
     else if (tab.dataset.panel === 'panel-att') loadAtt();
     else if (tab.dataset.panel === 'panel-interview') loadInt();
@@ -879,13 +913,18 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
   });
 });
 
-// ナビボタンからタブ切り替え
-function switchNav(btn, panelId) {
-  document.querySelectorAll('.fm-navbtn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const tab = document.querySelector(`.fm-tab[data-panel="${panelId}"]`);
-  if (tab) tab.click();
-}
+// ページ読み込み時：URLのtabパラメータで初期タブを決定
+(function initTab() {
+  const params = new URLSearchParams(location.search);
+  const tabId  = params.get('tab');
+  if (tabId) {
+    const tab = document.querySelector(`.fm-tab[data-panel="${tabId}"]`);
+    if (tab) { tab.click(); return; }
+  }
+  // デフォルト：指導記録を読み込む
+  loadRecords();
+})();
+
 
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('show'); }));
@@ -1222,20 +1261,7 @@ async function loadHistory() {
   });
 }
 
-// 初期ロード
-loadRecords();
-
-/* ── ページ読み込み時: 状態を保存 + 前回タブを復元 ── */
-(function(){
-  saveLastState('panel-records');
-  try {
-    const st = JSON.parse(localStorage.getItem('karte_last_state') || 'null');
-    if (st && st.student_id === SID && st.panel && st.panel !== 'panel-records') {
-      const tab = document.querySelector(`.fm-tab[data-panel="${st.panel}"]`);
-      if (tab) tab.click();
-    }
-  } catch(e) {}
-})();
+// 初期タブはinitTab()が担当するので、ここでのloadRecords()は不要
 
 /* ── 生徒切替：マウスホイール ── */
 (function(){
@@ -1246,7 +1272,9 @@ loadRecords();
   function go(id) {
     if (!id || busy) return;
     busy = true;
-    location.href = '/karte/karte_detail.php?id=' + id;
+    const activeTab = document.querySelector('.fm-tab.active');
+    const tab = activeTab ? activeTab.dataset.panel : '';
+    location.href = '/karte/karte_detail.php?id=' + id + (tab ? '&tab=' + encodeURIComponent(tab) : '');
   }
 
   // マウスホイール（デスクトップ・Chromebook）
@@ -1254,6 +1282,8 @@ loadRecords();
   document.addEventListener('wheel', e => {
     // テキストエリア・スクロール可能要素の中はスキップ
     if (e.target.closest('textarea,select,.fm-table-wrap,.fm-tabs,iframe')) return;
+    // ページスクロールを常に抑止（上下揺れ防止）
+    e.preventDefault();
     wheelAcc += e.deltaY;
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
@@ -1261,7 +1291,7 @@ loadRecords();
       go(wheelAcc > 0 ? NEXT : PREV);
       wheelAcc = 0;
     }, 120);
-  }, { passive: true });
+  }, { passive: false });
 
   // タッチスワイプ（iPhone・iPad）
   let tx = 0, ty = 0;
@@ -1408,6 +1438,106 @@ async function deletePhoto(e) {
     alert('削除エラー: ' + (data.error || '不明'));
   }
 }
+
+// ── レコードナビゲーター ──
+(function(){
+  const idList = <?= json_encode(array_values($idList)) ?>;
+  const current = <?= $recCurrent ?>;   // 1始まり
+  const total   = idList.length;
+  const slider  = document.getElementById('recSlider');
+  const numInp  = document.getElementById('recNumInput');
+  const currentTab = () => { const u=new URL(location.href); return u.searchParams.get('tab')||''; };
+
+  function goTo(n) {
+    n = Math.max(1, Math.min(total, n));
+    const id = idList[n-1];
+    if (!id) return;
+    const tab = currentTab();
+    location.href = '/karte/karte_detail.php?id=' + encodeURIComponent(id) + (tab ? '&tab='+encodeURIComponent(tab) : '');
+  }
+
+  // スライダー操作
+  if (slider) {
+    slider.addEventListener('input', () => {
+      numInp.value = slider.value;
+    });
+    slider.addEventListener('change', () => goTo(+slider.value));
+  }
+
+  // 番号入力
+  if (numInp) {
+    numInp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); goTo(+numInp.value); }
+    });
+    numInp.addEventListener('focus', () => numInp.select());
+    numInp.addEventListener('blur', () => { numInp.value = current; slider && (slider.value=current); });
+  }
+
+})();
+
+// ── 生徒情報ヘッダー 折りたたみ ──
+const HEADER_KEY = 'karteHeaderCollapsed';
+function initStudentHeader() {
+  const hdr = document.getElementById('studentHeader');
+  if (!hdr) return;
+  const collapsed = localStorage.getItem(HEADER_KEY) === '1';
+  if (collapsed) {
+    // アニメなしで即座に折りたたむ（チラつき防止）
+    hdr.style.transition = 'none';
+    hdr.style.maxHeight = '0';
+    hdr.style.paddingTop = '0';
+    hdr.style.paddingBottom = '0';
+    hdr.style.opacity = '0';
+    hdr.style.borderBottomWidth = '0';
+    hdr.classList.add('collapsed');
+    // 次フレームでトランジションを戻す
+    requestAnimationFrame(() => hdr.style.transition = '');
+    updateHeaderBtn(true);
+  } else {
+    hdr.style.maxHeight = hdr.scrollHeight + 'px';
+    updateHeaderBtn(false);
+  }
+}
+function toggleStudentHeader() {
+  const hdr = document.getElementById('studentHeader');
+  if (!hdr) return;
+  const isCollapsed = hdr.classList.contains('collapsed');
+  if (isCollapsed) {
+    // 展開：collapsed状態ではscrollHeight=0になるため大きな値を直接指定
+    hdr.classList.remove('collapsed');
+    hdr.style.maxHeight = '2000px';
+    localStorage.setItem(HEADER_KEY, '0');
+    updateHeaderBtn(false);
+  } else {
+    // 折りたたみ：現在の高さをセットしてからcollapsedを付与
+    hdr.style.maxHeight = hdr.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      hdr.classList.add('collapsed');
+    });
+    localStorage.setItem(HEADER_KEY, '1');
+    updateHeaderBtn(true);
+  }
+}
+function updateHeaderBtn(collapsed) {
+  const icon  = document.getElementById('headerToggleIcon');
+  const label = document.getElementById('headerToggleLabel');
+  const btn   = document.getElementById('headerToggleBtn');
+  if (!icon || !label) return;
+  if (collapsed) {
+    icon.textContent  = '▼';
+    label.textContent = '情報を表示';
+    btn.style.background = 'rgba(110,231,183,.2)';
+    btn.style.borderColor = 'rgba(110,231,183,.5)';
+    btn.style.color = '#6ee7b7';
+  } else {
+    icon.textContent  = '▲';
+    label.textContent = '情報を隠す';
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+}
+document.addEventListener('DOMContentLoaded', initStudentHeader);
 </script>
 </body>
 </html>
