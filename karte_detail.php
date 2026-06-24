@@ -939,12 +939,10 @@ document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('cli
 
 /* ── 指導記録 ── */
 let editingRecId = null;
-async function loadRecords() {
-  const res = await fetch(`/karte/api/karte.php?action=list_records&student_id=${SID}`);
-  const data = await res.json();
+function renderRecords(data) {
   const tbody = document.getElementById('tbody-records');
   const empty = document.getElementById('empty-records');
-  if (!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  if (!data.rows||!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
   tbody.innerHTML = data.rows.map(r => `
     <tr>
@@ -959,6 +957,10 @@ async function loadRecords() {
       </td>
     </tr>
   `).join('');
+}
+async function loadRecords(sid=SID) {
+  const res = await fetch(`/karte/api/karte.php?action=list_records&student_id=${sid}`);
+  renderRecords(await res.json());
 }
 
 function openRecordModal(id, date, type, content, teacher, next) {
@@ -1024,12 +1026,10 @@ document.getElementById('btnSaveAtt').onclick = async () => {
   else alert(data.error||'エラー');
 };
 
-async function loadAtt() {
-  const res = await fetch(`/karte/api/karte.php?action=list_attendance&student_id=${SID}`);
-  const data = await res.json();
+function renderAtt(data) {
   const tbody = document.getElementById('tbody-att');
   const empty = document.getElementById('empty-att');
-  if (!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  if (!data.rows||!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
   tbody.innerHTML = data.rows.map(r => `
     <tr>
@@ -1041,6 +1041,10 @@ async function loadAtt() {
       <td><button class="btn-sm btn-del-sm" onclick="delAtt(${r.id})">削除</button></td>
     </tr>
   `).join('');
+}
+async function loadAtt(sid=SID) {
+  const res = await fetch(`/karte/api/karte.php?action=list_attendance&student_id=${sid}`);
+  renderAtt(await res.json());
 }
 
 async function delAtt(id) {
@@ -1077,12 +1081,10 @@ document.getElementById('btnSaveInt').onclick = async () => {
   else alert(data.error||'エラー');
 };
 
-async function loadInt() {
-  const res = await fetch(`/karte/api/karte.php?action=list_interviews&student_id=${SID}`);
-  const data = await res.json();
+function renderInt(data) {
   const tbody = document.getElementById('tbody-int');
   const empty = document.getElementById('empty-int');
-  if (!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  if (!data.rows||!data.rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
   empty.style.display='none';
   tbody.innerHTML = data.rows.map(r => `
     <tr>
@@ -1094,6 +1096,10 @@ async function loadInt() {
       <td><button class="btn-sm btn-del-sm" onclick="delInt(${r.id})">削除</button></td>
     </tr>
   `).join('');
+}
+async function loadInt(sid=SID) {
+  const res = await fetch(`/karte/api/karte.php?action=list_interviews&student_id=${sid}`);
+  renderInt(await res.json());
 }
 
 async function delInt(id) {
@@ -1228,17 +1234,14 @@ const HIST_EMOJI = {
   'メモ・所見を更新':'📋','基本情報を更新':'👤'
 };
 
-async function loadHistory() {
-  const list    = document.getElementById('hist-list');
-  const empty   = document.getElementById('empty-hist');
+function renderHistory(data) {
+  const list  = document.getElementById('hist-list');
+  const empty = document.getElementById('empty-hist');
   const loading = document.getElementById('hist-loading');
   list.innerHTML = '';
-  empty.style.display = 'none';
-  loading.style.display = '';
-  const res  = await fetch(`/karte/api/karte.php?action=list_history&student_id=${SID}`);
-  const data = await res.json();
-  loading.style.display = 'none';
+  if (loading) loading.style.display = 'none';
   if (!data.rows || !data.rows.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
   let lastDay = '';
   data.rows.forEach(r => {
     const dt   = new Date(r.created_at);
@@ -1246,10 +1249,8 @@ async function loadHistory() {
     const time = dt.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     if (day !== lastDay) {
       const sep = document.createElement('div');
-      sep.className = 'hist-day-sep';
-      sep.textContent = day;
-      list.appendChild(sep);
-      lastDay = day;
+      sep.className = 'hist-day-sep'; sep.textContent = day;
+      list.appendChild(sep); lastDay = day;
     }
     const cls  = HIST_ICONS[r.action_type] || 'add';
     const emj  = HIST_EMOJI[r.action_type] || '📌';
@@ -1267,6 +1268,12 @@ async function loadHistory() {
       </div>`;
     list.appendChild(item);
   });
+}
+async function loadHistory(sid=SID) {
+  const loading = document.getElementById('hist-loading');
+  if (loading) { document.getElementById('hist-list').innerHTML=''; loading.style.display=''; }
+  const res  = await fetch(`/karte/api/karte.php?action=list_history&student_id=${sid}`);
+  renderHistory(await res.json());
 }
 
 // 初期タブはinitTab()が担当するので、ここでのloadRecords()は不要
@@ -1344,26 +1351,6 @@ async function loadHistory() {
     rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
     if (rows[4]) rows[4].style.color = d.dispStatus==='退学'?'#dc2626':d.dispStatus==='卒業'?'#1d4ed8':'';
 
-    // 写真
-    const photoBox = document.getElementById('photoBox');
-    const inp      = document.getElementById('photoInput');
-    let   photoImg = document.getElementById('photoImg');
-    const ph       = document.getElementById('photoPlaceholder');
-    const delBtn   = document.getElementById('photoDelBtn');
-    if (d.dispPhoto) {
-      if (!photoImg) {
-        photoImg=document.createElement('img'); photoImg.id='photoImg'; photoImg.alt='生徒写真';
-        if (inp) photoBox.insertBefore(photoImg,inp); else photoBox.appendChild(photoImg);
-      }
-      photoImg.src=d.dispPhoto; photoImg.style.display='';
-      if (ph) ph.style.display='none';
-      if (delBtn) delBtn.style.display='';
-    } else {
-      if (photoImg) photoImg.style.display='none';
-      if (ph) ph.style.display='';
-      if (delBtn) delBtn.style.display='none';
-    }
-
     // 前後矢印
     const arrowWrap = document.querySelector('.fm-rec-arrows');
     if (arrowWrap) arrowWrap.innerHTML =
@@ -1388,35 +1375,76 @@ async function loadHistory() {
     updatePrefetch();
   }
 
+  function applyPhoto(dispPhoto) {
+    const photoBox = document.getElementById('photoBox');
+    const inp      = document.getElementById('photoInput');
+    let   photoImg = document.getElementById('photoImg');
+    const ph       = document.getElementById('photoPlaceholder');
+    const delBtn   = document.getElementById('photoDelBtn');
+    if (dispPhoto) {
+      if (!photoImg) {
+        photoImg=document.createElement('img'); photoImg.id='photoImg'; photoImg.alt='生徒写真';
+        if (inp) photoBox.insertBefore(photoImg,inp); else photoBox.appendChild(photoImg);
+      }
+      photoImg.src=dispPhoto; photoImg.style.display='';
+      if (ph) ph.style.display='none';
+      if (delBtn) delBtn.style.display='';
+    } else {
+      if (photoImg) photoImg.style.display='none';
+      if (ph) ph.style.display='';
+      if (delBtn) delBtn.style.display='none';
+    }
+  }
+
   async function go(id) {
     if (!id || busy) return;
     busy = true;
+    const realId = decodeURIComponent(id);
+    const tab    = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
     try {
-      const d = await fetchStudent(id);
+      // ヘッダーデータ（キャッシュ済みなら即時）とタブデータを並列取得
+      const tabAction =
+        (tab===''||tab==='panel-records') ? 'list_records'
+        : tab==='panel-att'       ? 'list_attendance'
+        : tab==='panel-interview' ? 'list_interviews'
+        : tab==='panel-history'   ? 'list_history'
+        : null;
 
-      window.SID = d.student_id;
+      // ヘッダーデータ（キャッシュ済みなら即時）とタブデータを並列取得
+      const [studentData, tabJson] = await Promise.all([
+        fetchStudent(id),
+        tabAction
+          ? fetch(`/karte/api/karte.php?action=${tabAction}&student_id=${realId}`).then(r=>r.json()).catch(()=>null)
+          : Promise.resolve(null)
+      ]);
 
-      const tab    = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
-      const newUrl = '/karte/karte_detail.php?id='+encodeURIComponent(d.student_id)+(tab?'&tab='+encodeURIComponent(tab):'');
-      history.pushState({sid:d.student_id}, '', newUrl);
+      // SID・URL更新
+      window.SID = studentData.student_id;
+      const newUrl = '/karte/karte_detail.php?id='+encodeURIComponent(studentData.student_id)+(tab?'&tab='+encodeURIComponent(tab):'');
+      history.pushState({sid:studentData.student_id}, '', newUrl);
 
-      updateHeader(d);
+      // ヘッダー更新（写真は除く）
+      updateHeader(studentData);
+
+      // タブデータをDOMに反映（既に取得済み）
+      if (tabJson) {
+        if      (tab===''||tab==='panel-records') { renderRecords(tabJson); }
+        else if (tab==='panel-att')               { renderAtt(tabJson); }
+        else if (tab==='panel-interview')         { renderInt(tabJson); }
+        else if (tab==='panel-history')           { renderHistory(tabJson); }
+      } else if (tab==='panel-memo') {
+        loadMemos();
+      }
+
+      // 写真は最後に非同期適用
+      requestAnimationFrame(() => applyPhoto(studentData.dispPhoto));
 
       // 新しい前後を先読み
       fetchStudent(PREV); fetchStudent(NEXT);
 
-      // 現在タブのデータをリロード
-      if      (tab==='panel-records'  || tab==='') loadRecords();
-      else if (tab==='panel-att')                  loadAttendance();
-      else if (tab==='panel-interview')            loadInterviews();
-      else if (tab==='panel-memo')                 loadMemos();
-      else if (tab==='panel-history')              loadHistory();
-
       saveLastState(tab||'panel-records');
     } catch(e) {
-      // フォールバック
-      const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
-      location.href='/karte/karte_detail.php?id='+encodeURIComponent(decodeURIComponent(id))+(tab?'&tab='+encodeURIComponent(tab):'');
+      location.href='/karte/karte_detail.php?id='+encodeURIComponent(realId)+(tab?'&tab='+encodeURIComponent(tab):'');
     } finally {
       busy = false;
     }
