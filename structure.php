@@ -189,7 +189,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <dt>タブ一覧</dt><dd>指導記録 / 出欠・勤怠 / 面談記録 / メモ・所見 / 家庭環境 / 📄家庭調査票 / 基本情報 / 🗺地図 / 📜履歴</dd>
           <dt>前後切替</dt><dd>◀▶ボタン + マウスホイール + 横スワイプ（タッチ）</dd>
           <dt>生徒切替方式</dt><dd>AJAX（フルリロードなし）。ALL_IDSをJSに埋め込み、prev/next・スライダーをクライアント側で計算。切替時は全タブ内容をJS更新</dd>
-          <dt>キャッシュ戦略</dt><dd>studentCache（生徒ヘッダー）+ tabCache（タブJSON）をPromiseキャッシュ。前後3件をrequestIdleCallbackで先読み</dd>
+          <dt>スライダー</dt><dd>recSlider(input[type=range]) + recNumInput(番号入力)。goTo(n)がALL_IDS[n-1]を参照しgo()でAJAX遷移。updateHeader()でvalue/maxを更新</dd>
+          <dt>キャッシュ戦略</dt><dd>studentCache（生徒ヘッダー）+ tabCache（タブJSON）をPromiseキャッシュ。adjacentIds(pos,3)で前後各3件をrequestIdleCallbackで先読み</dd>
           <dt>タブ連動更新</dt><dd>go()関数が全タブを生徒切替に連動。地図=住所リセット・調査票=loadSurvey()・家庭環境/基本情報=フォーム値書換</dd>
           <dt>トップバー</dt><dd>クラス枠(100px固定)と氏名枠(120px固定)を別ボックスで表示。生徒切替で位置がずれない</dd>
           <dt>データ優先順位</dt><dd>gakuseki > students（名前・住所・電話等）</dd>
@@ -804,6 +805,37 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
     </div>
 
     <div class="flow-item">
+      <div class="flow-title"><span>🎚</span> スライダー・番号入力による生徒ジャンプ</div>
+      <div class="flow-nodes">
+        <div class="fn"><span class="fn-icon">🎚</span><span class="fn-label">recSlider</span><span class="fn-sub">input[type=range]</span></div>
+        <div class="fn-arrow">→ change</div>
+        <div class="fn"><span class="fn-icon">🔢</span><span class="fn-label">goTo(n)</span><span class="fn-sub">ALL_IDS[n-1]</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">⚡</span><span class="fn-label">go(id)</span><span class="fn-sub">AJAXで即時遷移</span></div>
+      </div>
+      <div class="flow-nodes" style="margin-top:6px;">
+        <div class="fn"><span class="fn-icon">🔢</span><span class="fn-label">recNumInput</span><span class="fn-sub">番号入力ボックス</span></div>
+        <div class="fn-arrow">→ Enter</div>
+        <div class="fn"><span class="fn-icon">🔢</span><span class="fn-label">goTo(n)</span><span class="fn-sub">範囲クランプ後</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">⚡</span><span class="fn-label">go(id)</span><span class="fn-sub">キャッシュ活用</span></div>
+      </div>
+    </div>
+
+    <div class="flow-item">
+      <div class="flow-title"><span>🔮</span> キャッシュ先読み戦略</div>
+      <div class="flow-nodes">
+        <div class="fn"><span class="fn-icon">🔮</span><span class="fn-label">prefetchAdjacent()</span><span class="fn-sub">requestIdleCallback</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">📐</span><span class="fn-label">adjacentIds(pos,3)</span><span class="fn-sub">前後各3件のID列</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">👤</span><span class="fn-label">fetchStudent(id)</span><span class="fn-sub">studentCache[sid]</span></div>
+        <div class="fn-arrow">+</div>
+        <div class="fn hi"><span class="fn-icon">📑</span><span class="fn-label">prefetchTab(id,tab)</span><span class="fn-sub">tabCache[sid:action]</span></div>
+      </div>
+    </div>
+
+    <div class="flow-item">
       <div class="flow-title"><span>📸</span> 顔写真一括取込（Gemini Vision）</div>
       <div class="flow-nodes">
         <div class="fn"><span class="fn-icon">🖼</span><span class="fn-label">B4集合写真</span><span class="fn-sub">D&amp;Dまたは選択</span></div>
@@ -848,9 +880,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         <div class="fn-arrow">→</div>
         <div class="fn"><span class="fn-icon">🐙</span><span class="fn-label">git push origin master</span><span class="fn-sub">github.com/joom31628103/karte</span></div>
         <div class="fn-arrow">→</div>
-        <div class="fn hi"><span class="fn-icon">🌸</span><span class="fn-label">deploy.php → pull（更新）</span><span class="fn-sub">git reset --hard origin/master</span></div>
+        <div class="fn hi"><span class="fn-icon">🌸</span><span class="fn-label">SSH git pull</span><span class="fn-sub">opened@opened.sakura.ne.jp</span></div>
         <div class="fn-arrow">→</div>
-        <div class="fn"><span class="fn-icon">✅</span><span class="fn-label">30秒後 ログ確認</span><span class="fn-sub">opened.sakura.ne.jp</span></div>
+        <div class="fn"><span class="fn-icon">✅</span><span class="fn-label">即時反映</span><span class="fn-sub">~/www/karte</span></div>
       </div>
     </div>
 
