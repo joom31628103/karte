@@ -1271,64 +1271,180 @@ async function loadHistory() {
 
 // 初期タブはinitTab()が担当するので、ここでのloadRecords()は不要
 
-/* ── 生徒切替：マウスホイール ── */
+/* ── 生徒切替：AJAX SPA方式 ── */
 (function(){
-  const PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
-  const NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
+  let PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
+  let NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
   let busy = false;
-  function go(id) {
-    if (!id || busy) return;
-    busy = true;
-    const activeTab = document.querySelector('.fm-tab.active');
-    const tab = activeTab ? activeTab.dataset.panel : '';
-    const url = '/karte/karte_detail.php?id=' + id + (tab ? '&tab=' + encodeURIComponent(tab) : '');
-    location.href = url;
+
+  function h(s) {
+    return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // タブ切り替え時にプリフェッチURLも更新
-  document.querySelectorAll('.fm-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.panel || '';
-      ['pf-prev','pf-next'].forEach(pfId => {
-        const el = document.getElementById(pfId);
-        if (!el) return;
-        const base = el.href.split('&tab=')[0];
-        el.href = base + (tab ? '&tab=' + encodeURIComponent(tab) : '');
-      });
+  function updatePrefetch() {
+    const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+    ['pf-prev','pf-next'].forEach((pfId, i) => {
+      const id = i===0 ? PREV : NEXT;
+      let el = document.getElementById(pfId);
+      if (id) {
+        if (!el) { el=document.createElement('link'); el.rel='prefetch'; el.id=pfId; document.head.appendChild(el); }
+        el.href='/karte/karte_detail.php?id='+id+(tab?'&tab='+encodeURIComponent(tab):'');
+      } else if (el) el.remove();
     });
+  }
+
+  function updateHeader(d) {
+    // トップバー生徒名
+    const tb = document.querySelector('.fm-topbar-student');
+    if (tb) tb.innerHTML =
+      (d.dispNendo   ? h(d.dispNendo)+'年度 ':'') +
+      (d.dispGakunen ? h(d.dispGakunen)+'年 ' :'') +
+      (d.dispClass   ? h(d.dispClass)+' '     :'') +
+      (d.dispBango   ? h(d.dispBango)+'番 '   :'') +
+      '<strong>'+h(d.dispName)+'</strong>';
+
+    // 印刷リンク
+    document.querySelectorAll('a[href*="karte_card.php"]').forEach(a =>
+      a.href='/karte/karte_card.php?id='+encodeURIComponent(d.student_id));
+
+    // ヘッダーフィールド値（DOM順に対応）
+    const rows = document.querySelectorAll('#studentHeader .fm-field-value');
+    const vals = [
+      d.dispNendo    || '—',
+      d.dispGakunen  ? d.dispGakunen+'年' : '—',
+      d.dispClass    || '—',
+      d.dispBango    || '—',
+      d.dispStatus   || '—',
+      d.dispTannin   || '—',
+      d.dispFuri     || '—',
+      d.dispName     || '—',
+      d.dispTel      || '—',
+      d.dispHogosya  || '—',
+      d.dispBday     || '—',
+      d.dispSeibetu  || '—',
+      d.dispJyusyo   || '—',
+    ];
+    rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
+    if (rows[4]) rows[4].style.color = d.dispStatus==='退学'?'#dc2626':d.dispStatus==='卒業'?'#1d4ed8':'';
+
+    // 写真
+    const photoBox = document.getElementById('photoBox');
+    const inp      = document.getElementById('photoInput');
+    let   photoImg = document.getElementById('photoImg');
+    const ph       = document.getElementById('photoPlaceholder');
+    const delBtn   = document.getElementById('photoDelBtn');
+    if (d.dispPhoto) {
+      if (!photoImg) {
+        photoImg=document.createElement('img'); photoImg.id='photoImg'; photoImg.alt='生徒写真';
+        if (inp) photoBox.insertBefore(photoImg,inp); else photoBox.appendChild(photoImg);
+      }
+      photoImg.src=d.dispPhoto; photoImg.style.display='';
+      if (ph) ph.style.display='none';
+      if (delBtn) delBtn.style.display='';
+    } else {
+      if (photoImg) photoImg.style.display='none';
+      if (ph) ph.style.display='';
+      if (delBtn) delBtn.style.display='none';
+    }
+
+    // 前後矢印
+    const arrowWrap = document.querySelector('.fm-rec-arrows');
+    if (arrowWrap) arrowWrap.innerHTML =
+      (d.prev_id
+        ? '<a href="/karte/karte_detail.php?id='+encodeURIComponent(d.prev_id)+'" class="fm-rec-arr fm-arrow-prev" title="前の生徒">&#9664;</a>'
+        : '<span class="fm-rec-arr disabled">&#9664;</span>') +
+      (d.next_id
+        ? '<a href="/karte/karte_detail.php?id='+encodeURIComponent(d.next_id)+'" class="fm-rec-arr fm-arrow-next" title="次の生徒">&#9654;</a>'
+        : '<span class="fm-rec-arr disabled">&#9654;</span>');
+
+    // スライダー・番号
+    const slider  = document.getElementById('recSlider');
+    const numInp  = document.getElementById('recNumInput');
+    const totEl   = document.querySelector('.fm-rec-total');
+    if (slider)  { slider.value=d.pos; slider.max=d.total; }
+    if (numInp)  numInp.value=d.pos;
+    if (totEl)   totEl.textContent=d.total;
+
+    // PREV/NEXT 更新
+    PREV = d.prev_id ? encodeURIComponent(d.prev_id) : null;
+    NEXT = d.next_id ? encodeURIComponent(d.next_id) : null;
+    updatePrefetch();
+  }
+
+  async function go(id) {
+    if (!id || busy) return;
+    busy = true;
+    try {
+      const res  = await fetch('/karte/api/karte.php?action=get_student&student_id='+encodeURIComponent(decodeURIComponent(id)));
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error||'error');
+      const d = json.data;
+
+      window.SID = d.student_id;
+
+      const tab    = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+      const newUrl = '/karte/karte_detail.php?id='+encodeURIComponent(d.student_id)+(tab?'&tab='+encodeURIComponent(tab):'');
+      history.pushState({sid:d.student_id}, '', newUrl);
+
+      updateHeader(d);
+
+      // 現在タブのデータをリロード
+      if      (tab==='panel-records'  || tab==='') loadRecords();
+      else if (tab==='panel-att')                  loadAttendance();
+      else if (tab==='panel-interview')            loadInterviews();
+      else if (tab==='panel-memo')                 loadMemos();
+      else if (tab==='panel-history')              loadHistory();
+
+      saveLastState(tab||'panel-records');
+    } catch(e) {
+      // フォールバック
+      const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+      location.href='/karte/karte_detail.php?id='+encodeURIComponent(decodeURIComponent(id))+(tab?'&tab='+encodeURIComponent(tab):'');
+    } finally {
+      busy = false;
+    }
+  }
+
+  // ブラウザ戻る/進む
+  window.addEventListener('popstate', e => {
+    if (e.state?.sid) go(encodeURIComponent(e.state.sid));
+    else location.reload();
+  });
+
+  // タブ切替時にプリフェッチ更新
+  document.querySelectorAll('.fm-tab').forEach(btn =>
+    btn.addEventListener('click', updatePrefetch));
+
+  // 矢印クリックもAJAX化
+  document.addEventListener('click', e => {
+    const a = e.target.closest('.fm-arrow-prev,.fm-arrow-next');
+    if (!a) return;
+    e.preventDefault();
+    const id = new URL(a.href).searchParams.get('id');
+    if (id) go(encodeURIComponent(id));
   });
 
   // マウスホイール（デスクトップ・Chromebook）
   let wheelAcc = 0, wheelTimer = null;
   document.addEventListener('wheel', e => {
-    // テキストエリア・スクロール可能要素の中はスキップ
     if (e.target.closest('textarea,select,.fm-table-wrap,.fm-tabs,iframe')) return;
-    // ページスクロールを常に抑止（上下揺れ防止）
     e.preventDefault();
     wheelAcc += e.deltaY;
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
-      if (Math.abs(wheelAcc) < 60) { wheelAcc = 0; return; }
+      if (Math.abs(wheelAcc) < 60) { wheelAcc=0; return; }
       go(wheelAcc > 0 ? NEXT : PREV);
       wheelAcc = 0;
     }, 60);
   }, { passive: false });
 
   // タッチスワイプ（iPhone・iPad）
-  let tx = 0, ty = 0;
-  document.addEventListener('touchstart', e => {
-    tx = e.touches[0].clientX;
-    ty = e.touches[0].clientY;
-  }, { passive: true });
+  let tx=0, ty=0;
+  document.addEventListener('touchstart', e => { tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
   document.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - tx;
-    const dy = e.changedTouches[0].clientY - ty;
-    // 横方向スワイプが縦より大きく、かつ50px以上
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      // 左スワイプ→次、右スワイプ→前
-      go(dx < 0 ? NEXT : PREV);
-    }
-  }, { passive: true });
+    const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) go(dx<0?NEXT:PREV);
+  }, {passive:true});
 })();
 
 /* ── 家庭調査票 ── */

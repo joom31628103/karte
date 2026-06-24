@@ -1,11 +1,19 @@
 <?php
 require_once '../config.php';
+require_once '../lib/backup.php';
 requireLogin();
 sendSecurityHeaders();
 header('Content-Type: application/json; charset=utf-8');
 
 $conn   = getDB();
 $action = $_REQUEST['action'] ?? '';
+
+// バックアップ付きjout: 成功レスポンスを返す前に対象生徒のJSONを更新
+function jout_backup(mysqli $conn, array $data, string $sid = ''): never {
+    if ($sid) karteBackupStudent($conn, $sid);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 function jout(array $data): never { echo json_encode($data, JSON_UNESCAPED_UNICODE); exit; }
 function err(string $msg): never  { http_response_code(400); jout(['success'=>false,'error'=>$msg]); }
@@ -92,18 +100,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         case 'get_memos':
             $sid = $_GET['student_id'] ?? '';
-            $r   = ps($conn, "SELECT memo_posi,memo_nega,memo_main FROM students WHERE student_id=?", 's', [$sid]);
+            // memo_* カラムが未作成の場合も空で返す
+            $cols = $conn->query("SHOW COLUMNS FROM students LIKE 'memo_posi'")->num_rows > 0
+                ? "memo_posi,memo_nega,memo_main" : "'' AS memo_posi,'' AS memo_nega,'' AS memo_main";
+            $r   = ps($conn, "SELECT {$cols} FROM students WHERE student_id=?", 's', [$sid]);
             $row = $r->fetch_assoc();
             jout(['success'=>true,'posi'=>$row['memo_posi']??'','nega'=>$row['memo_nega']??'','main'=>$row['memo_main']??'']);
+
+        case 'get_student':
+            $sid = $_GET['student_id'] ?? '';
+            if (!$sid) err('student_id が必要です');
+            $s = $conn->query("SELECT * FROM students WHERE student_id='".$conn->real_escape_string($sid)."'")->fetch_assoc();
+            if (!$s) err('生徒が見つかりません');
+            $gakno = $s['gakno'] ?? '';
+            $gak = null; $nendo_list = [];
+            if ($gakno) {
+                $gak = $conn->query("SELECT * FROM gakuseki WHERE gakno='".$conn->real_escape_string($gakno)."'")->fetch_assoc();
+                $nr  = $conn->query("SELECT sn.*, t.display_name AS tanninmei FROM student_nendo sn LEFT JOIN teachers t ON sn.teacher_id=t.id WHERE sn.gakno='".$conn->real_escape_string($gakno)."' ORDER BY sn.nendo");
+                while ($row=$nr->fetch_assoc()) $nendo_list[]=$row;
+            }
+            $ln = end($nendo_list) ?: null;
+            $r2 = $conn->query("SELECT student_id FROM students ORDER BY class_name, seat_number, student_id");
+            $ids = []; while ($row=$r2->fetch_assoc()) $ids[]=$row['student_id'];
+            $pos = array_search($sid, $ids);
+            jout(['success'=>true,'data'=>[
+                'student_id' => $sid,
+                'gakno'      => $gakno,
+                'prev_id'    => $pos > 0 ? $ids[$pos-1] : null,
+                'next_id'    => $pos < count($ids)-1 ? $ids[$pos+1] : null,
+                'pos'        => (int)$pos + 1,
+                'total'      => count($ids),
+                'dispName'   => $gak['name']      ?? $s['name']        ?? '',
+                'dispFuri'   => $gak['furigana']  ?? $s['furigana']    ?? '',
+                'dispBday'   => $gak['birthday']  ?? $s['birthday']    ?? '',
+                'dispTel'    => $gak['tel1']      ?? $s['phone']       ?? '',
+                'dispJyusyo' => $gak ? trim(($gak['yuubin'] ? ' 〒'.$gak['yuubin'].' ' : '').$gak['jyusyo']) : ($s['address'] ?? ''),
+                'dispHogosya'=> $gak['hogosya']   ?? $s['parent_name'] ?? '',
+                'dispSeibetu'=> $gak['seibetu']   ?? $s['gender']      ?? '',
+                'dispGakunen'=> $ln['gakunen']    ?? '',
+                'dispClass'  => $ln['class_no']   ?? $s['class_name']  ?? '',
+                'dispBango'  => $ln['bango']      ?? $s['seat_number'] ?? '',
+                'dispNendo'  => $ln['nendo']      ?? '',
+                'dispTannin' => $ln['tanninmei']  ?? '',
+                'dispStatus' => $gak['gakuseki_status'] ?? '',
+                'dispPhoto'  => $gak['photo']     ?? $s['photo']       ?? '',
+                'memo_posi'  => $s['memo_posi']   ?? '',
+                'memo_nega'  => $s['memo_nega']   ?? '',
+                'memo_main'  => $s['memo_main']   ?? '',
+                'notes'      => $s['notes']       ?? '',
+                'class_name' => $s['class_name']  ?? '',
+                'seat_number'=> $s['seat_number'] ?? '',
+            ]]);
 
         case 'list_history':
             $sid = $_GET['student_id'] ?? '';
             if (!$sid) err('student_id が必要です');
-            $result = @$conn->query(
-                "SELECT * FROM activity_log WHERE student_id='".$conn->real_escape_string($sid)."' ORDER BY created_at DESC LIMIT 300"
-            );
+            // activity_log テーブルが未作成の場合は空配列を返す
+            $tableExists = $conn->query("SHOW TABLES LIKE 'activity_log'")->num_rows > 0;
             $rows = [];
-            if ($result) while ($row = $result->fetch_assoc()) $rows[] = $row;
+            if ($tableExists) {
+                $result = $conn->query(
+                    "SELECT * FROM activity_log WHERE student_id='".$conn->real_escape_string($sid)."' ORDER BY created_at DESC LIMIT 300"
+                );
+                if ($result) while ($row = $result->fetch_assoc()) $rows[] = $row;
+            }
             jout(['success'=>true,'rows'=>$rows]);
 
         default: err('不明なアクション');
@@ -128,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($conn->errno === 1062) err('その学籍番号は既に登録されています');
                 err('登録エラー');
             }
-            jout(['success'=>true,'id'=>$stmt->insert_id]);
+            jout_backup($conn, ['success'=>true,'id'=>$stmt->insert_id], $sid);
 
         case 'save_basic':
             $sid  = trim($_POST['student_id'] ?? '');
@@ -146,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sssississss', $name,$furi,$cls,$seat,$gender,$bday,$phone,$parent,$address,$notes,$sid);
             $stmt->execute();
             if ($name) logActivity($conn, $sid, '基本情報を更新', $name ? "氏名: $name クラス: $cls" : '家庭状況メモを更新');
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $sid);
 
         case 'add_record':
             $sid     = trim($_POST['student_id'] ?? '');
@@ -160,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssssss', $sid,$date,$type,$content,$teacher,$next);
             $stmt->execute();
             logActivity($conn, $sid, '指導記録を追加', "[$type] $date — $content");
-            jout(['success'=>true,'id'=>$stmt->insert_id]);
+            jout_backup($conn, ['success'=>true,'id'=>$stmt->insert_id], $sid);
 
         case 'update_record':
             $id      = (int)($_POST['id'] ?? 0);
@@ -170,7 +230,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $teacher = trim($_POST['teacher'] ?? '');
             $next    = trim($_POST['next_action'] ?? '');
             if (!$id) err('IDが不正です');
-            // 変更前のstudent_idを取得
             $prevR = ps($conn, "SELECT student_id FROM karte_records WHERE id=?", 'i', [$id]);
             $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             $recSid = $prevRow['student_id'] ?? '';
@@ -178,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sssssi', $date,$type,$content,$teacher,$next,$id);
             $stmt->execute();
             logActivity($conn, $recSid, '指導記録を編集', "[$type] $date — $content");
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $recSid);
 
         case 'delete_record':
             $id = (int)($_POST['id'] ?? 0);
@@ -187,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_records WHERE id=?", 'i', [$id]);
             if ($prevRow) logActivity($conn, $prevRow['student_id'], '指導記録を削除', "[{$prevRow['record_type']}] {$prevRow['record_date']}");
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $prevRow['student_id'] ?? '');
 
         case 'add_attendance':
             $sid     = trim($_POST['student_id'] ?? '');
@@ -200,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssssss', $sid,$date,$type,$reason,$contact,$notes);
             $stmt->execute();
             logActivity($conn, $sid, '出欠記録を追加', "[$type] $date" . ($reason ? " 理由: $reason" : ''));
-            jout(['success'=>true,'id'=>$stmt->insert_id]);
+            jout_backup($conn, ['success'=>true,'id'=>$stmt->insert_id], $sid);
 
         case 'delete_attendance':
             $id = (int)($_POST['id'] ?? 0);
@@ -209,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_attendance WHERE id=?", 'i', [$id]);
             if ($prevRow) logActivity($conn, $prevRow['student_id'], '出欠記録を削除', "[{$prevRow['att_type']}] {$prevRow['att_date']}");
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $prevRow['student_id'] ?? '');
 
         case 'add_interview':
             $sid     = trim($_POST['student_id'] ?? '');
@@ -223,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssssss', $sid,$date,$type,$parti,$content,$next);
             $stmt->execute();
             logActivity($conn, $sid, '面談記録を追加', "[$type] $date" . ($parti ? " 参加: $parti" : '') . " — $content");
-            jout(['success'=>true,'id'=>$stmt->insert_id]);
+            jout_backup($conn, ['success'=>true,'id'=>$stmt->insert_id], $sid);
 
         case 'delete_interview':
             $id = (int)($_POST['id'] ?? 0);
@@ -232,13 +291,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prevRow = $prevR ? $prevR->fetch_assoc() : null;
             ps($conn, "DELETE FROM karte_interviews WHERE id=?", 'i', [$id]);
             if ($prevRow) logActivity($conn, $prevRow['student_id'], '面談記録を削除', "[{$prevRow['interview_type']}] {$prevRow['interview_date']}");
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $prevRow['student_id'] ?? '');
 
         case 'save_gakno':
             $sid   = trim($_POST['student_id'] ?? '');
             $gakno = trim($_POST['gakno'] ?? '') ?: null;
-
-            // 紐づけ時：students.photo を gakuseki.photo へ移行（gakuseki に写真がない場合のみ）
             if ($gakno) {
                 $rs = ps($conn, "SELECT photo FROM students WHERE student_id=?", 's', [$sid]);
                 $rg = ps($conn, "SELECT photo FROM gakuseki WHERE gakno=?", 's', [$gakno]);
@@ -249,11 +306,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ps($conn, "UPDATE students SET photo=NULL WHERE student_id=?", 's', [$sid]);
                 }
             }
-
             $stmt  = $conn->prepare("UPDATE students SET gakno=? WHERE student_id=?");
             $stmt->bind_param('ss', $gakno, $sid);
             $stmt->execute();
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $sid);
 
         case 'save_memos':
             $sid  = trim($_POST['student_id'] ?? '');
@@ -264,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssss', $posi,$nega,$main,$sid);
             $stmt->execute();
             logActivity($conn, $sid, 'メモ・所見を更新', ($posi ? "ポジ: $posi " : '') . ($nega ? "ネガ: $nega" : ''));
-            jout(['success'=>true]);
+            jout_backup($conn, ['success'=>true], $sid);
 
         default: err('不明なアクション');
     }
