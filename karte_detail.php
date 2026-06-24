@@ -1503,7 +1503,11 @@ function toggleStudentHeader() {
   if (!hdr) return;
   const isCollapsed = hdr.classList.contains('collapsed');
   if (isCollapsed) {
-    // 展開：collapsed状態ではscrollHeight=0になるため大きな値を直接指定
+    // 展開：initStudentHeaderで設定したインラインスタイルを全てリセットしてからアニメ
+    hdr.style.paddingTop = '';
+    hdr.style.paddingBottom = '';
+    hdr.style.opacity = '';
+    hdr.style.borderBottomWidth = '';
     hdr.classList.remove('collapsed');
     hdr.style.maxHeight = '2000px';
     localStorage.setItem(HEADER_KEY, '0');
