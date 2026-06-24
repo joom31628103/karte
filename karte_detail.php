@@ -330,8 +330,22 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .modal-2col{gap:8px;}
 }
 </style>
+<?php
+// 前後ページをプリフェッチ（ブラウザがバックグラウンドで先読み）
+$pfTab = htmlspecialchars($_GET['tab'] ?? '');
+if ($prevId): ?>
+<link rel="prefetch" id="pf-prev" href="/karte/karte_detail.php?id=<?= urlencode($prevId) ?><?= $pfTab ? '&tab='.urlencode($pfTab) : '' ?>">
+<?php endif; if ($nextId): ?>
+<link rel="prefetch" id="pf-next" href="/karte/karte_detail.php?id=<?= urlencode($nextId) ?><?= $pfTab ? '&tab='.urlencode($pfTab) : '' ?>">
+<?php endif; ?>
+<!-- ページ遷移フェードアウト -->
+<style>
+#nav-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999;transition:opacity .12s ease;}
+#nav-flash.out{opacity:.35;}
+</style>
 </head>
 <body>
+<div id="nav-flash"></div>
 
 <!-- ── トップバー ── -->
 <div class="fm-topbar">
@@ -1268,14 +1282,31 @@ async function loadHistory() {
   const PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
   const NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
   let busy = false;
+  const flash = document.getElementById('nav-flash');
 
   function go(id) {
     if (!id || busy) return;
     busy = true;
     const activeTab = document.querySelector('.fm-tab.active');
     const tab = activeTab ? activeTab.dataset.panel : '';
-    location.href = '/karte/karte_detail.php?id=' + id + (tab ? '&tab=' + encodeURIComponent(tab) : '');
+    const url = '/karte/karte_detail.php?id=' + id + (tab ? '&tab=' + encodeURIComponent(tab) : '');
+    // フラッシュで即時フィードバック → ブラウザキャッシュから高速表示
+    if (flash) flash.classList.add('out');
+    setTimeout(() => { location.href = url; }, 80);
   }
+
+  // タブ切り替え時にプリフェッチURLも更新
+  document.querySelectorAll('.fm-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.panel || '';
+      ['pf-prev','pf-next'].forEach(pfId => {
+        const el = document.getElementById(pfId);
+        if (!el) return;
+        const base = el.href.split('&tab=')[0];
+        el.href = base + (tab ? '&tab=' + encodeURIComponent(tab) : '');
+      });
+    });
+  });
 
   // マウスホイール（デスクトップ・Chromebook）
   let wheelAcc = 0, wheelTimer = null;
@@ -1290,7 +1321,7 @@ async function loadHistory() {
       if (Math.abs(wheelAcc) < 60) { wheelAcc = 0; return; }
       go(wheelAcc > 0 ? NEXT : PREV);
       wheelAcc = 0;
-    }, 120);
+    }, 60);
   }, { passive: false });
 
   // タッチスワイプ（iPhone・iPad）
