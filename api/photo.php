@@ -1,5 +1,6 @@
 <?php
 require_once '../config.php';
+require_once '../lib/backup.php';
 requireLogin();
 sendSecurityHeaders();
 header('Content-Type: application/json; charset=utf-8');
@@ -81,6 +82,16 @@ if ($action === 'upload') {
     $stmt->execute();
     $stmt->close();
 
+    // バックアップ更新（gaknoからstudent_idを逆引き）
+    if ($gakno) {
+        $r = $conn->prepare('SELECT student_id FROM students WHERE gakno=?');
+        $r->bind_param('s', $gakno); $r->execute();
+        $brow = $r->get_result()->fetch_assoc(); $r->close();
+        if ($brow) karteBackupStudent($conn, $brow['student_id']);
+    } else {
+        karteBackupStudent($conn, $sid);
+    }
+
     jout(['success'=>true, 'url'=>$webPath]);
 }
 
@@ -112,6 +123,17 @@ if ($action === 'delete') {
     }
     $stmt->execute();
     $stmt->close();
+
+    // バックアップ更新
+    if ($gakno) {
+        $r = $conn->prepare('SELECT student_id FROM students WHERE gakno=?');
+        $r->bind_param('s', $gakno); $r->execute();
+        $brow = $r->get_result()->fetch_assoc(); $r->close();
+        if ($brow) karteBackupStudent($conn, $brow['student_id']);
+    } else {
+        karteBackupStudent($conn, $sid);
+    }
+
     jout(['success'=>true]);
 }
 

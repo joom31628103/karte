@@ -108,6 +108,31 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
     </div>
     <img class="preview-img" id="previewImg" alt="プレビュー">
 
+    <!-- 画像縮小設定 -->
+    <div id="resizePanel" style="display:none;margin-top:12px;background:#eef0fb;border:1px solid #aab0cc;border-radius:6px;padding:12px 16px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:.78rem;font-weight:700;color:#3b4f8a;white-space:nowrap;">🗜 画像を縮小して送信</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:#3b4f8a;">
+          <input type="checkbox" id="chkResize" checked> 縮小する
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:#3b4f8a;">
+          最大幅
+          <select id="selMaxW" style="padding:3px 6px;border:1px solid #aab0cc;border-radius:4px;font-size:.78rem;">
+            <option value="3000">3000px（高品質）</option>
+            <option value="2000" selected>2000px（推奨）</option>
+            <option value="1500">1500px（軽量）</option>
+            <option value="1200">1200px（最軽量）</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:#3b4f8a;">
+          画質
+          <input type="range" id="rngQuality" min="50" max="95" value="85" style="width:80px;">
+          <span id="lblQuality">85%</span>
+        </label>
+        <span id="lblFileSize" style="font-size:.75rem;color:#6a7090;"></span>
+      </div>
+    </div>
+
     <div style="margin-top:14px;text-align:center;">
       <button class="btn-primary" id="btnAnalyze" disabled>🤖 Gemini で解析する</button>
     </div>
@@ -117,7 +142,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
   <!-- ローディング -->
   <div class="loading-box" id="loadingBox">
     <div class="spinner"></div>
-    <div class="loading-text" id="loadingText">Gemini AI で解析中…（30秒〜1分かかる場合があります）</div>
+    <div class="loading-text" id="loadingText">Gemini AI で解析中…</div>
+    <div id="loadingTimer" style="font-size:.8rem;color:#6a7090;margin-top:6px;">経過: 0秒</div>
+    <button id="btnCancel" onclick="cancelAnalyze()" style="margin-top:14px;padding:6px 18px;background:#dc2626;border:none;border-radius:6px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;">✕ キャンセル</button>
   </div>
 
   <!-- Step 2: 確認・修正 -->
@@ -149,6 +176,37 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 const CSRF = '<?= generateCsrfToken() ?>';
 let allStudents = [];
 let analysisResults = [];
+let selectedFile = null;
+let savedTempId  = sessionStorage.getItem('photo_import_temp_id') || null;
+let abortCtrl    = null;
+let timerInterval = null;
+
+function startTimer() {
+  let sec = 0;
+  const el = document.getElementById('loadingTimer');
+  timerInterval = setInterval(() => {
+    sec++;
+    const m = Math.floor(sec/60), s = sec%60;
+    el.textContent = `経過: ${m>0?m+'分':''}${s}秒`;
+    if (sec === 60) document.getElementById('loadingText').textContent = 'Gemini AI で解析中… しばらくお待ちください';
+    if (sec === 120) document.getElementById('loadingText').textContent = 'Gemini AI で解析中… もうしばらくお待ちください（混雑中の可能性）';
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById('loadingTimer').textContent = '';
+  document.getElementById('loadingText').textContent = 'Gemini AI で解析中…';
+}
+
+function cancelAnalyze() {
+  if (abortCtrl) abortCtrl.abort();
+  stopTimer();
+  document.getElementById('loadingBox').style.display = 'none';
+  document.getElementById('stepUpload').style.display = '';
+  showError('uploadError', 'キャンセルしました。再度「Geminiで解析する」を押してください。');
+}
 
 const sheetInput  = document.getElementById('sheetInput');
 const dropZone    = document.getElementById('dropZone');
@@ -158,6 +216,20 @@ const loadingBox  = document.getElementById('loadingBox');
 const stepUpload  = document.getElementById('stepUpload');
 const stepConfirm = document.getElementById('stepConfirm');
 const stepDone    = document.getElementById('stepDone');
+
+// ページロード時：一時保存済み画像を復元
+if (savedTempId) {
+  previewImg.src = '/karte/api/photo_import.php?action=get_temp_preview&temp_id=' + encodeURIComponent(savedTempId);
+  previewImg.style.display = 'block';
+  previewImg.onerror = () => {
+    // 一時ファイルが消えていたらクリア
+    sessionStorage.removeItem('photo_import_temp_id');
+    savedTempId = null;
+    previewImg.style.display = 'none';
+    btnAnalyze.disabled = true;
+  };
+  btnAnalyze.disabled = false;
+}
 
 // ドロップゾーン
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
@@ -173,8 +245,42 @@ sheetInput.addEventListener('change', () => {
   if (sheetInput.files[0]) handleFile(sheetInput.files[0]);
 });
 
-function handleFile(file) {
+// 画像をCanvasで縮小してBlobを返す
+function resizeImage(file, maxW, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality / 100);
+    };
+    img.src = url;
+  });
+}
+
+function formatSize(bytes) {
+  if (bytes >= 1024*1024) return (bytes/1024/1024).toFixed(1) + ' MB';
+  return Math.round(bytes/1024) + ' KB';
+}
+
+const resizePanel  = document.getElementById('resizePanel');
+const chkResize    = document.getElementById('chkResize');
+const selMaxW      = document.getElementById('selMaxW');
+const rngQuality   = document.getElementById('rngQuality');
+const lblQuality   = document.getElementById('lblQuality');
+const lblFileSize  = document.getElementById('lblFileSize');
+
+rngQuality.addEventListener('input', () => { lblQuality.textContent = rngQuality.value + '%'; });
+
+async function handleFile(file) {
   if (file.size > 20 * 1024 * 1024) { showError('uploadError','20MB以下のファイルを選択してください'); return; }
+
+  // プレビュー表示（オリジナル）
   const reader = new FileReader();
   reader.onload = e => {
     previewImg.src = e.target.result;
@@ -183,33 +289,70 @@ function handleFile(file) {
   reader.readAsDataURL(file);
   btnAnalyze.disabled = false;
   hideError('uploadError');
+
+  // 縮小パネル表示
+  resizePanel.style.display = '';
+  lblFileSize.textContent = '元のサイズ: ' + formatSize(file.size);
+
+  // selectedFile は解析時に縮小処理して確定
+  selectedFile = file;
+  savedTempId  = null;
+  sessionStorage.removeItem('photo_import_temp_id');
+}
+
+// 縮小＋一時保存して解析用ファイルを返す
+async function prepareFile() {
+  let file = selectedFile;
+  if (!file) return null;
+  if (chkResize.checked) {
+    const maxW    = parseInt(selMaxW.value);
+    const quality = parseInt(rngQuality.value);
+    const resized = await resizeImage(file, maxW, quality);
+    lblFileSize.textContent = `元: ${formatSize(file.size)} → 縮小後: ${formatSize(resized.size)}`;
+    file = new File([resized], 'sheet.jpg', {type:'image/jpeg'});
+  }
+  return file;
 }
 
 btnAnalyze.addEventListener('click', async () => {
-  const file = sheetInput.files[0];
-  if (!file) { showError('uploadError','画像を選択してください'); return; }
+  if (!selectedFile && !savedTempId) { showError('uploadError','画像を選択してください'); return; }
 
   stepUpload.style.display = 'none';
   loadingBox.style.display = 'block';
+  startTimer();
 
+  abortCtrl = new AbortController();
   const fd = new FormData();
   fd.append('action', 'analyze');
   fd.append('csrf_token', CSRF);
-  fd.append('sheet', file);
+
+  if (selectedFile) {
+    const file = await prepareFile();
+    fd.append('sheet', file);
+  } else {
+    fd.append('temp_id', savedTempId);
+  }
   const apiKey = document.getElementById('apiKeyInput').value.trim();
   if (apiKey) fd.append('api_key_override', apiKey);
 
   try {
-    const res  = await fetch('/karte/api/photo_import.php', {method:'POST', body:fd});
-    const data = await res.json();
+    const res  = await fetch('/karte/api/photo_import.php', {method:'POST', body:fd, signal: abortCtrl.signal});
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(_) {
+      throw new Error('サーバーの応答が不正です（タイムアウトの可能性）。もう一度お試しください。');
+    }
+    stopTimer();
     loadingBox.style.display = 'none';
     if (!data.success) { stepUpload.style.display = ''; showError('uploadError', data.error); return; }
-    allStudents   = data.students || [];
+    allStudents     = data.students || [];
     analysisResults = data.results || [];
     renderResults();
     stepConfirm.style.display = '';
   } catch(e) {
+    stopTimer();
     loadingBox.style.display = 'none';
+    if (e.name === 'AbortError') return; // キャンセル時は何もしない
     stepUpload.style.display = '';
     showError('uploadError', 'エラー: ' + e.message);
   }
@@ -298,9 +441,22 @@ document.getElementById('btnSave').addEventListener('click', async () => {
 });
 
 function resetAll() {
+  // 一時ファイルをサーバーから削除
+  if (savedTempId) {
+    const fd = new FormData();
+    fd.append('action', 'clear_temp');
+    fd.append('csrf_token', CSRF);
+    fd.append('temp_id', savedTempId);
+    fetch('/karte/api/photo_import.php', {method:'POST', body:fd}).catch(()=>{});
+    sessionStorage.removeItem('photo_import_temp_id');
+    savedTempId = null;
+  }
+  selectedFile = null;
   sheetInput.value = '';
   previewImg.style.display = 'none';
   previewImg.src = '';
+  resizePanel.style.display = 'none';
+  lblFileSize.textContent = '';
   btnAnalyze.disabled = true;
   stepUpload.style.display = '';
   stepConfirm.style.display = 'none';
