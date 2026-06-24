@@ -1276,6 +1276,23 @@ async function loadHistory() {
   let PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
   let NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
   let busy = false;
+  const cache = {};   // student_id → Promise<data>
+
+  function fetchStudent(id) {
+    if (!id) return;
+    const sid = decodeURIComponent(id);
+    if (!cache[sid]) {
+      cache[sid] = fetch('/karte/api/karte.php?action=get_student&student_id='+encodeURIComponent(sid))
+        .then(r => r.json())
+        .then(j => { if (!j.success) throw new Error(j.error); return j.data; });
+    }
+    return cache[sid];
+  }
+
+  // ページ読み込み後すぐに前後を先読み
+  requestIdleCallback
+    ? requestIdleCallback(() => { fetchStudent(PREV); fetchStudent(NEXT); })
+    : setTimeout(() => { fetchStudent(PREV); fetchStudent(NEXT); }, 200);
 
   function h(s) {
     return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1375,10 +1392,7 @@ async function loadHistory() {
     if (!id || busy) return;
     busy = true;
     try {
-      const res  = await fetch('/karte/api/karte.php?action=get_student&student_id='+encodeURIComponent(decodeURIComponent(id)));
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error||'error');
-      const d = json.data;
+      const d = await fetchStudent(id);
 
       window.SID = d.student_id;
 
@@ -1387,6 +1401,9 @@ async function loadHistory() {
       history.pushState({sid:d.student_id}, '', newUrl);
 
       updateHeader(d);
+
+      // 新しい前後を先読み
+      fetchStudent(PREV); fetchStudent(NEXT);
 
       // 現在タブのデータをリロード
       if      (tab==='panel-records'  || tab==='') loadRecords();
