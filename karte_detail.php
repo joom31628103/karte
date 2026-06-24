@@ -338,14 +338,8 @@ if ($prevId): ?>
 <?php endif; if ($nextId): ?>
 <link rel="prefetch" id="pf-next" href="/karte/karte_detail.php?id=<?= urlencode($nextId) ?><?= $pfTab ? '&tab='.urlencode($pfTab) : '' ?>">
 <?php endif; ?>
-<!-- ページ遷移フェードアウト -->
-<style>
-#nav-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9999;transition:opacity .12s ease;}
-#nav-flash.out{opacity:.35;}
-</style>
 </head>
 <body>
-<div id="nav-flash"></div>
 
 <!-- ── トップバー ── -->
 <div class="fm-topbar">
@@ -1282,17 +1276,13 @@ async function loadHistory() {
   const PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
   const NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
   let busy = false;
-  const flash = document.getElementById('nav-flash');
-
   function go(id) {
     if (!id || busy) return;
     busy = true;
     const activeTab = document.querySelector('.fm-tab.active');
     const tab = activeTab ? activeTab.dataset.panel : '';
     const url = '/karte/karte_detail.php?id=' + id + (tab ? '&tab=' + encodeURIComponent(tab) : '');
-    // フラッシュで即時フィードバック → ブラウザキャッシュから高速表示
-    if (flash) flash.classList.add('out');
-    setTimeout(() => { location.href = url; }, 80);
+    location.href = url;
   }
 
   // タブ切り替え時にプリフェッチURLも更新
