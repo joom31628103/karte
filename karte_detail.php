@@ -990,7 +990,7 @@ document.getElementById('btnSaveRec').onclick = async () => {
   fd.append('next_action', document.getElementById('rec-next').value);
   const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
   const data = await res.json();
-  if (data.success) { closeModal('recModal'); loadRecords(); }
+  if (data.success) { closeModal('recModal'); window._invalidateTabCache?.(SID); loadRecords(); }
   else alert(data.error||'エラー');
 };
 
@@ -1022,7 +1022,7 @@ document.getElementById('btnSaveAtt').onclick = async () => {
   fd.append('notes',    document.getElementById('att-notes').value);
   const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
   const data = await res.json();
-  if (data.success) { closeModal('attModal'); loadAtt(); }
+  if (data.success) { closeModal('attModal'); window._invalidateTabCache?.(SID); loadAtt(); }
   else alert(data.error||'エラー');
 };
 
@@ -1077,7 +1077,7 @@ document.getElementById('btnSaveInt').onclick = async () => {
   fd.append('next_action',    document.getElementById('int-next').value);
   const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
   const data = await res.json();
-  if (data.success) { closeModal('intModal'); loadInt(); }
+  if (data.success) { closeModal('intModal'); window._invalidateTabCache?.(SID); loadInt(); }
   else alert(data.error||'エラー');
 };
 
@@ -1283,23 +1283,53 @@ async function loadHistory(sid=SID) {
   let PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
   let NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
   let busy = false;
-  const cache = {};   // student_id → Promise<data>
+  const studentCache = {};  // sid → Promise<studentData>
+  const tabCache     = {};  // `${sid}:${action}` → Promise<tabJson>
+
+  function tabAction(tab) {
+    return (tab===''||tab==='panel-records') ? 'list_records'
+         : tab==='panel-att'       ? 'list_attendance'
+         : tab==='panel-interview' ? 'list_interviews'
+         : tab==='panel-history'   ? 'list_history'
+         : null;
+  }
 
   function fetchStudent(id) {
+    if (!id) return Promise.resolve(null);
+    const sid = decodeURIComponent(id);
+    if (!studentCache[sid])
+      studentCache[sid] = fetch('/karte/api/karte.php?action=get_student&student_id='+encodeURIComponent(sid))
+        .then(r=>r.json()).then(j=>{ if(!j.success) throw new Error(j.error); return j.data; });
+    return studentCache[sid];
+  }
+
+  function prefetchTab(id, tab) {
     if (!id) return;
     const sid = decodeURIComponent(id);
-    if (!cache[sid]) {
-      cache[sid] = fetch('/karte/api/karte.php?action=get_student&student_id='+encodeURIComponent(sid))
-        .then(r => r.json())
-        .then(j => { if (!j.success) throw new Error(j.error); return j.data; });
-    }
-    return cache[sid];
+    const act = tabAction(tab);
+    if (!act) return;
+    const key = `${sid}:${act}`;
+    if (!tabCache[key])
+      tabCache[key] = fetch(`/karte/api/karte.php?action=${act}&student_id=${encodeURIComponent(sid)}`)
+        .then(r=>r.json()).catch(()=>null);
+    return tabCache[key];
+  }
+
+  function invalidateTabCache(sid) {
+    // データ更新後はタブキャッシュを破棄
+    Object.keys(tabCache).forEach(k=>{ if(k.startsWith(sid+':')) delete tabCache[k]; });
+  }
+  window._invalidateTabCache = invalidateTabCache;
+
+  function prefetchAdjacent() {
+    const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+    [PREV, NEXT].forEach(id => { fetchStudent(id); prefetchTab(id, tab); });
   }
 
   // ページ読み込み後すぐに前後を先読み
   requestIdleCallback
-    ? requestIdleCallback(() => { fetchStudent(PREV); fetchStudent(NEXT); })
-    : setTimeout(() => { fetchStudent(PREV); fetchStudent(NEXT); }, 200);
+    ? requestIdleCallback(prefetchAdjacent)
+    : setTimeout(prefetchAdjacent, 200);
 
   function h(s) {
     return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1373,6 +1403,8 @@ async function loadHistory(sid=SID) {
     PREV = d.prev_id ? encodeURIComponent(d.prev_id) : null;
     NEXT = d.next_id ? encodeURIComponent(d.next_id) : null;
     updatePrefetch();
+    // タブ先読みも更新（updateHeaderが呼ばれるたびに実行）
+    // ※ prefetchAdjacent は go() の最後で呼ぶので不要
   }
 
   function applyPhoto(dispPhoto) {
@@ -1396,57 +1428,56 @@ async function loadHistory(sid=SID) {
     }
   }
 
+  function applyTabJson(tab, json) {
+    if (!json) return;
+    if      (tab===''||tab==='panel-records') renderRecords(json);
+    else if (tab==='panel-att')               renderAtt(json);
+    else if (tab==='panel-interview')         renderInt(json);
+    else if (tab==='panel-history')           renderHistory(json);
+  }
+
   async function go(id) {
     if (!id || busy) return;
     busy = true;
     const realId = decodeURIComponent(id);
     const tab    = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+    const act    = tabAction(tab);
+    const cacheKey = act ? `${realId}:${act}` : null;
     try {
-      // ヘッダーデータ（キャッシュ済みなら即時）とタブデータを並列取得
-      const tabAction =
-        (tab===''||tab==='panel-records') ? 'list_records'
-        : tab==='panel-att'       ? 'list_attendance'
-        : tab==='panel-interview' ? 'list_interviews'
-        : tab==='panel-history'   ? 'list_history'
-        : null;
-
-      // ヘッダーデータ（キャッシュ済みなら即時）とタブデータを並列取得
-      const [studentData, tabJson] = await Promise.all([
-        fetchStudent(id),
-        tabAction
-          ? fetch(`/karte/api/karte.php?action=${tabAction}&student_id=${realId}`).then(r=>r.json()).catch(()=>null)
-          : Promise.resolve(null)
-      ]);
-
-      // SID・URL更新
+      // ① ヘッダーデータ（キャッシュ済みなら即時）を取得して即座にDOM更新
+      const studentData = await fetchStudent(id);
       window.SID = studentData.student_id;
-      const newUrl = '/karte/karte_detail.php?id='+encodeURIComponent(studentData.student_id)+(tab?'&tab='+encodeURIComponent(tab):'');
-      history.pushState({sid:studentData.student_id}, '', newUrl);
-
-      // ヘッダー更新（写真は除く）
+      history.pushState({sid:studentData.student_id}, '',
+        '/karte/karte_detail.php?id='+encodeURIComponent(studentData.student_id)+(tab?'&tab='+encodeURIComponent(tab):''));
       updateHeader(studentData);
+      requestAnimationFrame(() => applyPhoto(studentData.dispPhoto));
+      saveLastState(tab||'panel-records');
+      busy = false;  // ヘッダー更新完了時点でロック解除（連続操作可能に）
 
-      // タブデータをDOMに反映（既に取得済み）
-      if (tabJson) {
-        if      (tab===''||tab==='panel-records') { renderRecords(tabJson); }
-        else if (tab==='panel-att')               { renderAtt(tabJson); }
-        else if (tab==='panel-interview')         { renderInt(tabJson); }
-        else if (tab==='panel-history')           { renderHistory(tabJson); }
+      // ② タブデータはキャッシュがあれば即、なければ非同期で後反映
+      if (act) {
+        const cached = tabCache[cacheKey];
+        if (cached) {
+          applyTabJson(tab, await cached);
+        } else {
+          if (tab==='panel-memo') { loadMemos(); }
+          else {
+            const json = await fetch(`/karte/api/karte.php?action=${act}&student_id=${realId}`)
+              .then(r=>r.json()).catch(()=>null);
+            // まだ同じ生徒を表示中の場合のみ反映
+            if (window.SID === realId) applyTabJson(tab, json);
+          }
+        }
       } else if (tab==='panel-memo') {
         loadMemos();
       }
 
-      // 写真は最後に非同期適用
-      requestAnimationFrame(() => applyPhoto(studentData.dispPhoto));
+      // ③ 新しい前後を先読み（ヘッダー＋タブデータ両方）
+      prefetchAdjacent();
 
-      // 新しい前後を先読み
-      fetchStudent(PREV); fetchStudent(NEXT);
-
-      saveLastState(tab||'panel-records');
     } catch(e) {
-      location.href='/karte/karte_detail.php?id='+encodeURIComponent(realId)+(tab?'&tab='+encodeURIComponent(tab):'');
-    } finally {
       busy = false;
+      location.href='/karte/karte_detail.php?id='+encodeURIComponent(realId)+(tab?'&tab='+encodeURIComponent(tab):'');
     }
   }
 
