@@ -193,6 +193,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <dt>キャッシュ戦略</dt><dd>studentCache（生徒ヘッダー）+ tabCache（タブJSON）をPromiseキャッシュ。adjacentIds(pos,3)で前後各3件をrequestIdleCallbackで先読み</dd>
           <dt>タブ連動更新</dt><dd>go()関数が全タブを生徒切替に連動。地図=住所リセット・調査票=loadSurvey()・家庭環境/基本情報=フォーム値書換</dd>
           <dt>トップバー</dt><dd>クラス枠(100px固定)と氏名枠(120px固定)を別ボックスで表示。生徒切替で位置がずれない</dd>
+          <dt>情報を隠す</dt><dd>「情報を隠す」ボタン(fm-header-toggle)でfm-student-headerをmax-height CSSアニメで折りたたみ。状態をlocalStorage['karteHeaderCollapsed']に保存し次回アクセス時に復元。展開時はinlineスタイルをリセットしてからcollapsedクラスを除去</dd>
           <dt>データ優先順位</dt><dd>gakuseki > students（名前・住所・電話等）</dd>
           <dt>写真表示</dt><dd>requestAnimationFrameで遅延適用（ヘッダー更新後に非同期）</dd>
           <dt>履歴タブ</dt><dd>activity_log テーブルから取得。操作種別ごとにアイコン色分け（追加=緑/編集=青/削除=赤/メモ=紫/基本情報=黄）。日付セパレータ付き時系列表示</dd>
@@ -898,6 +899,24 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         <div class="fn"><span class="fn-icon">📡</span><span class="fn-label">list_history API</span><span class="fn-sub">GET action=list_history</span></div>
         <div class="fn-arrow">→</div>
         <div class="fn hi"><span class="fn-icon">📜</span><span class="fn-label">時系列表示</span><span class="fn-sub">日付セパレータ+アイコン</span></div>
+      </div>
+    </div>
+
+    <div class="flow-item">
+      <div class="flow-title"><span>🙈</span> 情報を隠す / 展開（生徒ヘッダー折りたたみ）</div>
+      <div class="flow-nodes">
+        <div class="fn"><span class="fn-icon">👆</span><span class="fn-label">「情報を隠す」ボタン</span><span class="fn-sub">fm-header-toggle</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">🎞</span><span class="fn-label">max-height CSSアニメ</span><span class="fn-sub">.collapsed → 0</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">💾</span><span class="fn-label">localStorage保存</span><span class="fn-sub">karteHeaderCollapsed</span></div>
+      </div>
+      <div class="flow-nodes" style="margin-top:6px;">
+        <div class="fn"><span class="fn-icon">🔄</span><span class="fn-label">DOMContentLoaded</span><span class="fn-sub">initStudentHeader()</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn"><span class="fn-icon">📦</span><span class="fn-label">localStorage読み込み</span><span class="fn-sub">'1'なら折りたたみ復元</span></div>
+        <div class="fn-arrow">→</div>
+        <div class="fn hi"><span class="fn-icon">✅</span><span class="fn-label">ボタンラベル同期</span><span class="fn-sub">updateHeaderBtn()</span></div>
       </div>
     </div>
 
