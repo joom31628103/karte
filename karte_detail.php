@@ -393,6 +393,7 @@ if ($prevId): ?>
     <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank" class="fm-btn-top">🖨 個人カード</a>
     <a href="/karte/gakuseki.php" class="fm-btn-top">📚 学籍管理</a>
     <a href="/karte/home.php" class="fm-btn-top">← 一覧</a>
+    <a href="/karte/account.php" class="fm-btn-top">⚙ アカウント</a>
     <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
   <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>

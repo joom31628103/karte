@@ -157,6 +157,7 @@ td:last-child{border-right:none;}
     <a href="/karte/survey_import.php" class="fm-btn-top">📋<span class="btn-label"> 調査票取込</span></a>
     <a href="/karte/structure.php" class="fm-btn-top">🗺<span class="btn-label"> 構造図</span></a>
     <a href="/karte/backup.php" class="fm-btn-top">💾<span class="btn-label"> バックアップ</span></a>
+    <a href="/karte/account.php" class="fm-btn-top">⚙<span class="btn-label"> アカウント</span></a>
     <a href="/karte/logout.php" class="fm-btn-top">🚪<span class="btn-label"> ログアウト</span></a>
   </div>
   <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
