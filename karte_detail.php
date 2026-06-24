@@ -1512,6 +1512,8 @@ async function loadHistory(sid=SID) {
         }
       } else if (tab==='panel-memo') {
         loadMemos();
+      } else if (tab==='panel-survey') {
+        loadSurvey(realId);
       }
 
       // ③ 新しい前後を先読み（ヘッダー＋タブデータ両方）
@@ -1566,13 +1568,29 @@ async function loadHistory(sid=SID) {
 })();
 
 /* ── 家庭調査票 ── */
-(async () => {
-  const params = new URLSearchParams();
-  <?php if ($gakno): ?>params.append('gakno','<?= htmlspecialchars($gakno) ?>');<?php else: ?>params.append('student_id',SID);<?php endif; ?>
-  const res = await fetch('/karte/api/survey.php?' + params);
+async function loadSurvey(sid) {
+  sid = sid || SID;
+  // 画像をリセット
+  document.getElementById('survey-img').style.display = 'none';
+  document.getElementById('survey-img').src = '';
+  document.getElementById('survey-placeholder').style.display = '';
+  if (document.getElementById('btnDelSurvey')) document.getElementById('btnDelSurvey').style.display = 'none';
+
+  // gaknoが取れていればgaknoで検索（より正確）
+  let params;
+  try {
+    const cached = studentCache[sid];
+    const d = cached ? await cached : null;
+    params = new URLSearchParams(d && d.gakno ? {gakno: d.gakno} : {student_id: sid});
+  } catch(e) {
+    params = new URLSearchParams({student_id: sid});
+  }
+
+  const res  = await fetch('/karte/api/survey.php?' + params);
   const data = await res.json();
   if (data.success && data.url) showSurveyImg(data.url);
-})();
+}
+loadSurvey();
 
 function showSurveyImg(url) {
   document.getElementById('survey-placeholder').style.display = 'none';
