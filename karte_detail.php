@@ -24,9 +24,9 @@ reset($nendo_list);
 $prevNext = $conn->query("SELECT student_id FROM students ORDER BY class_name, seat_number, student_id");
 $idList = [];
 while ($r=$prevNext->fetch_assoc()) $idList[]=$r['student_id'];
-$pos      = array_search($sid, $idList);
-$prevId   = $pos > 0 ? $idList[$pos-1] : null;
-$nextId   = $pos < count($idList)-1 ? $idList[$pos+1] : null;
+$pos        = array_search($sid, $idList);
+$prevId     = $pos > 0 ? $idList[$pos-1] : null;
+$nextId     = $pos < count($idList)-1 ? $idList[$pos+1] : null;
 $recCurrent = (int)$pos + 1;   // 1始まり
 $recTotal   = count($idList);
 
@@ -869,9 +869,10 @@ if ($prevId): ?>
 </div>
 
 <script>
-const CSRF = '<?= generateCsrfToken() ?>';
-const SID  = '<?= htmlspecialchars($sid) ?>';
-const today = new Date().toISOString().split('T')[0];
+const CSRF    = '<?= generateCsrfToken() ?>';
+let   SID     = '<?= htmlspecialchars($sid) ?>';
+const today   = new Date().toISOString().split('T')[0];
+const ALL_IDS = <?= json_encode(array_values($idList)) ?>;
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function esc2(s){return String(s||'').replace(/'/g,"\\'");}
@@ -1280,9 +1281,19 @@ async function loadHistory(sid=SID) {
 
 /* ── 生徒切替：AJAX SPA方式 ── */
 (function(){
-  let PREV = <?= $prevId ? "'".addslashes(urlencode($prevId))."'" : 'null' ?>;
-  let NEXT = <?= $nextId ? "'".addslashes(urlencode($nextId))."'" : 'null' ?>;
-  let busy = false;
+  let curPos = ALL_IDS.indexOf(SID);
+  let PREV   = curPos > 0                  ? encodeURIComponent(ALL_IDS[curPos-1]) : null;
+  let NEXT   = curPos < ALL_IDS.length-1  ? encodeURIComponent(ALL_IDS[curPos+1]) : null;
+  let busy   = false;
+
+  function adjacentIds(pos, n=3) {
+    const ids = [];
+    for (let i=1; i<=n; i++) {
+      if (pos-i >= 0)               ids.push(ALL_IDS[pos-i]);
+      if (pos+i < ALL_IDS.length)   ids.push(ALL_IDS[pos+i]);
+    }
+    return ids;
+  }
   const studentCache = {};  // sid → Promise<studentData>
   const tabCache     = {};  // `${sid}:${action}` → Promise<tabJson>
 
@@ -1323,7 +1334,11 @@ async function loadHistory(sid=SID) {
 
   function prefetchAdjacent() {
     const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
-    [PREV, NEXT].forEach(id => { fetchStudent(id); prefetchTab(id, tab); });
+    adjacentIds(curPos, 3).forEach(sid => {
+      const enc = encodeURIComponent(sid);
+      fetchStudent(enc);
+      prefetchTab(enc, tab);
+    });
   }
 
   // ページ読み込み後すぐに前後を先読み
@@ -1381,30 +1396,32 @@ async function loadHistory(sid=SID) {
     rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
     if (rows[4]) rows[4].style.color = d.dispStatus==='退学'?'#dc2626':d.dispStatus==='卒業'?'#1d4ed8':'';
 
+    // prev/next/pos/total をALL_IDSから計算
+    curPos = ALL_IDS.indexOf(d.student_id);
+    PREV   = curPos > 0               ? encodeURIComponent(ALL_IDS[curPos-1]) : null;
+    NEXT   = curPos < ALL_IDS.length-1? encodeURIComponent(ALL_IDS[curPos+1]) : null;
+    const pos   = curPos + 1;
+    const total = ALL_IDS.length;
+
     // 前後矢印
     const arrowWrap = document.querySelector('.fm-rec-arrows');
     if (arrowWrap) arrowWrap.innerHTML =
-      (d.prev_id
-        ? '<a href="/karte/karte_detail.php?id='+encodeURIComponent(d.prev_id)+'" class="fm-rec-arr fm-arrow-prev" title="前の生徒">&#9664;</a>'
+      (PREV
+        ? '<a href="/karte/karte_detail.php?id='+PREV+'" class="fm-rec-arr fm-arrow-prev" title="前の生徒">&#9664;</a>'
         : '<span class="fm-rec-arr disabled">&#9664;</span>') +
-      (d.next_id
-        ? '<a href="/karte/karte_detail.php?id='+encodeURIComponent(d.next_id)+'" class="fm-rec-arr fm-arrow-next" title="次の生徒">&#9654;</a>'
+      (NEXT
+        ? '<a href="/karte/karte_detail.php?id='+NEXT+'" class="fm-rec-arr fm-arrow-next" title="次の生徒">&#9654;</a>'
         : '<span class="fm-rec-arr disabled">&#9654;</span>');
 
     // スライダー・番号
-    const slider  = document.getElementById('recSlider');
-    const numInp  = document.getElementById('recNumInput');
-    const totEl   = document.querySelector('.fm-rec-total');
-    if (slider)  { slider.value=d.pos; slider.max=d.total; }
-    if (numInp)  numInp.value=d.pos;
-    if (totEl)   totEl.textContent=d.total;
+    const slider = document.getElementById('recSlider');
+    const numInp = document.getElementById('recNumInput');
+    const totEl  = document.querySelector('.fm-rec-total');
+    if (slider)  { slider.value=pos; slider.max=total; }
+    if (numInp)  numInp.value=pos;
+    if (totEl)   totEl.textContent=total;
 
-    // PREV/NEXT 更新
-    PREV = d.prev_id ? encodeURIComponent(d.prev_id) : null;
-    NEXT = d.next_id ? encodeURIComponent(d.next_id) : null;
     updatePrefetch();
-    // タブ先読みも更新（updateHeaderが呼ばれるたびに実行）
-    // ※ prefetchAdjacent は go() の最後で呼ぶので不要
   }
 
   function applyPhoto(dispPhoto) {
@@ -1654,19 +1671,15 @@ async function deletePhoto(e) {
 
 // ── レコードナビゲーター ──
 (function(){
-  const idList = <?= json_encode(array_values($idList)) ?>;
   const current = <?= $recCurrent ?>;   // 1始まり
-  const total   = idList.length;
   const slider  = document.getElementById('recSlider');
   const numInp  = document.getElementById('recNumInput');
-  const currentTab = () => { const u=new URL(location.href); return u.searchParams.get('tab')||''; };
 
   function goTo(n) {
-    n = Math.max(1, Math.min(total, n));
-    const id = idList[n-1];
+    n = Math.max(1, Math.min(ALL_IDS.length, n));
+    const id = ALL_IDS[n-1];
     if (!id) return;
-    const tab = currentTab();
-    location.href = '/karte/karte_detail.php?id=' + encodeURIComponent(id) + (tab ? '&tab='+encodeURIComponent(tab) : '');
+    go(encodeURIComponent(id));
   }
 
   // スライダー操作

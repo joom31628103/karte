@@ -120,16 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 while ($row=$nr->fetch_assoc()) $nendo_list[]=$row;
             }
             $ln = end($nendo_list) ?: null;
-            $r2 = $conn->query("SELECT student_id FROM students ORDER BY class_name, seat_number, student_id");
-            $ids = []; while ($row=$r2->fetch_assoc()) $ids[]=$row['student_id'];
-            $pos = array_search($sid, $ids);
             jout(['success'=>true,'data'=>[
                 'student_id' => $sid,
                 'gakno'      => $gakno,
-                'prev_id'    => $pos > 0 ? $ids[$pos-1] : null,
-                'next_id'    => $pos < count($ids)-1 ? $ids[$pos+1] : null,
-                'pos'        => (int)$pos + 1,
-                'total'      => count($ids),
                 'dispName'   => $gak['name']      ?? $s['name']        ?? '',
                 'dispFuri'   => $gak['furigana']  ?? $s['furigana']    ?? '',
                 'dispBday'   => $gak['birthday']  ?? $s['birthday']    ?? '',
