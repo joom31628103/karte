@@ -268,6 +268,56 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 
       <div class="file-card">
         <div class="file-header">
+          <div class="file-icon">💾</div>
+          <div>
+            <div class="file-name">backup.php <span class="file-badge b-php">PHP</span></div>
+            <div class="file-desc">カルテデータのバックアップ・復元管理画面</div>
+          </div>
+        </div>
+        <dl class="kv">
+          <dt>機能</dt><dd>全生徒一括バックアップ / 全件復元 / 生徒単体バックアップ / 世代履歴表示</dd>
+          <dt>保存先</dt><dd>data/students/{student_id}.json（最新世代）</dd>
+          <dt>世代管理</dt><dd>data/students/history/{student_id}/{timestamp}.json（最大20世代）</dd>
+          <dt>バックアップ内容</dt><dd>students行 + karte_records + attendance_records + interview_records + memos</dd>
+          <dt>ライブラリ</dt><dd>lib/backup.php（karteBackupStudent / karteBackupAll / karteRestoreStudent）</dd>
+          <dt>自動バックアップ</dt><dd>karteBackupStudent() は各種POST保存時に自動呼び出し</dd>
+        </dl>
+      </div>
+
+      <div class="file-card">
+        <div class="file-header">
+          <div class="file-icon">📊</div>
+          <div>
+            <div class="file-name">api/export_excel.php <span class="file-badge b-php">PHP</span></div>
+            <div class="file-desc">全データをExcel(SpreadsheetML)形式でダウンロード</div>
+          </div>
+        </div>
+        <dl class="kv">
+          <dt>出力形式</dt><dd>SpreadsheetML (.xls) — ZipArchive・PhpSpreadsheet不要</dd>
+          <dt>シート構成</dt><dd>生徒一覧 / 指導記録 / 出欠記録 / 面談記録</dd>
+          <dt>ライブラリ</dt><dd>lib/excel.php（KarteXlsxクラス）</dd>
+          <dt>認証</dt><dd>requireLogin() 必須</dd>
+        </dl>
+      </div>
+
+      <div class="file-card">
+        <div class="file-header">
+          <div class="file-icon">📥</div>
+          <div>
+            <div class="file-name">api/import_excel.php <span class="file-badge b-php">PHP</span></div>
+            <div class="file-desc">ExcelファイルからDBへインポート</div>
+          </div>
+        </div>
+        <dl class="kv">
+          <dt>入力形式</dt><dd>SpreadsheetML (.xls) — このシステムでエクスポートしたファイルのみ対応</dd>
+          <dt>解析方式</dt><dd>simplexml_load_file() でXMLパース、名前空間 urn:schemas-microsoft-com:office:spreadsheet</dd>
+          <dt>上限</dt><dd>20MB以下</dd>
+          <dt>認証</dt><dd>requireLogin() + CSRF検証</dd>
+        </dl>
+      </div>
+
+      <div class="file-card">
+        <div class="file-header">
           <div class="file-icon">🗺</div>
           <div>
             <div class="file-name">structure.php <span class="file-badge b-php">PHP</span></div>
@@ -385,6 +435,45 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
           <dt>命名規則</dt><dd>{session_id}_crop_{i}.jpg</dd>
           <dt>自動削除</dt><dd>api/photo_import.php の save アクション時に1時間超過ファイルを削除</dd>
           <dt>保護</dt><dd>.htaccess でPHP実行禁止、gitignore済み</dd>
+        </dl>
+      </div>
+      <div class="file-card">
+        <div class="file-header"><div class="file-icon">📁</div><div><div class="file-name">data/students/ <span class="file-badge b-dir">DIR</span></div><div class="file-desc">生徒カルテJSONバックアップ</div></div></div>
+        <dl class="kv">
+          <dt>最新バックアップ</dt><dd>data/students/{student_id}.json（保存のたびに上書き）</dd>
+          <dt>世代バックアップ</dt><dd>data/students/history/{student_id}/{timestamp}.json（最大20世代保持）</dd>
+          <dt>JSON内容</dt><dd>students / karte_records / attendance_records / interview_records / memos の全データ</dd>
+          <dt>gitignore</dt><dd>data/ はGit管理外（scpでSakuraに直接転送）</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">lib/ — ライブラリ</div>
+    <div class="file-grid">
+      <div class="file-card">
+        <div class="file-header"><div class="file-icon">📚</div><div><div class="file-name">lib/backup.php <span class="file-badge b-php">PHP</span></div><div class="file-desc">バックアップ・復元ライブラリ</div></div></div>
+        <dl class="kv">
+          <dt>主要関数</dt><dd>karteBackupStudent(conn, sid) / karteBackupAll(conn) / karteRestoreStudent(conn, sid)</dd>
+          <dt>定数</dt><dd>KARTE_BACKUP_DIR / KARTE_BACKUP_HIST / KARTE_BACKUP_VERSION=2 / KARTE_BACKUP_KEEP=20</dd>
+          <dt>エラー処理</dt><dd>例外をキャッチしてerror_log出力、呼び出し元の処理を止めない</dd>
+        </dl>
+      </div>
+      <div class="file-card">
+        <div class="file-header"><div class="file-icon">📊</div><div><div class="file-name">lib/excel.php <span class="file-badge b-php">PHP</span></div><div class="file-desc">Excel書き出しライブラリ</div></div></div>
+        <dl class="kv">
+          <dt>クラス</dt><dd>KarteXlsx — addSheet(name, rows) / download(filename)</dd>
+          <dt>形式</dt><dd>SpreadsheetML XML (.xls) — ZipArchive・外部ライブラリ不要</dd>
+          <dt>ヘッダー行</dt><dd>1行目を太字＋背景色スタイルで自動適用</dd>
+        </dl>
+      </div>
+      <div class="file-card">
+        <div class="file-header"><div class="file-icon">📄</div><div><div class="file-name">lib/pdfjs/ <span class="file-badge b-dir">DIR</span></div><div class="file-desc">PDF.js v4.4.168（ローカルホスト用）</div></div></div>
+        <dl class="kv">
+          <dt>用途</dt><dd>survey_import.php でPDFをCanvas描画するために使用</dd>
+          <dt>ファイル</dt><dd>pdf.min.js / pdf.min.mjs / pdf.worker.min.js / pdf.worker.min.mjs</dd>
+          <dt>備考</dt><dd>ローカル環境ではCDN不要。さくら本番はCDN経由も可</dd>
         </dl>
       </div>
     </div>
