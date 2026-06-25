@@ -688,7 +688,7 @@ if ($prevId): ?>
       <div class="fm-info-group"><label>ふりがな</label>
         <input class="fm-info-input" id="b-furi" value="<?= htmlspecialchars($dispFuri) ?>"></div>
       <div class="fm-info-group"><label>出席番号</label>
-        <input class="fm-info-input" id="b-seat" type="number" value="<?= htmlspecialchars($s['seat_number']??'') ?>"></div>
+        <input class="fm-info-input" id="b-seat" type="number" value="<?= htmlspecialchars($dispBango ?: ($s['seat_number']??'')) ?>"></div>
       <div class="fm-info-group"><label>性別</label>
         <input class="fm-info-input" id="b-gender" value="<?= htmlspecialchars($dispSeibetu) ?>" placeholder="男・女・その他"></div>
       <div class="fm-info-group"><label>生年月日</label>
@@ -1655,7 +1655,7 @@ async function loadHistory(sid=SID) {
     setVal('b-class',  d.class_name);
     setVal('b-name',   d.gak_name   || d.name);
     setVal('b-furi',   d.gak_furigana || d.furigana);
-    setVal('b-seat',   d.seat_number);
+    setVal('b-seat',   d.dispBango || d.seat_number);
     setVal('b-gender', d.gak_seibetu || d.gender);
     setVal('b-bday',   d.gak_birthday || d.birthday);
     setVal('b-phone',       d.gak_tel1 || d.phone);
