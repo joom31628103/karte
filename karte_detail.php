@@ -1864,6 +1864,9 @@ async function loadHistory(sid=SID) {
     const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
     if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) go(dx<0?NEXT:PREV);
   }, {passive:true});
+
+  // グローバルに公開（レコードナビゲーターから呼ぶため）
+  window._karteGo = go;
 })();
 
 /* ── 家庭調査票 ── */
@@ -2021,7 +2024,7 @@ async function deletePhoto(e) {
     n = Math.max(1, Math.min(ALL_IDS.length, n));
     const id = ALL_IDS[n-1];
     if (!id) return;
-    go(encodeURIComponent(id));
+    if (window._karteGo) window._karteGo(encodeURIComponent(id));
   }
 
   // スライダー操作
