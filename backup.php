@@ -268,28 +268,59 @@ tr:hover td{background:#eef1fb;}
 <!-- バックアップ・エクスポート -->
 <div class="card">
   <h2>📤 バックアップ・エクスポート</h2>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
-    <div style="text-align:center;min-width:160px;">
-      <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-        <input type="hidden" name="action" value="export_all">
-        <button type="submit" class="btn btn-primary">💾 全員バックアップ今すぐ実行</button>
-      </form>
-      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">全生徒のデータをサーバー内に保存。<br>世代履歴が自動作成されます。</div>
-    </div>
-    <div style="text-align:center;min-width:160px;">
-      <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-        <input type="hidden" name="action" value="download_zip">
-        <button type="submit" class="btn btn-green">⬇ ZIPでダウンロード</button>
-      </form>
-      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">バックアップをZIPにまとめてPC保存。<br>他の端末への移行・保管に使用します。</div>
-    </div>
-    <div style="text-align:center;min-width:160px;">
-      <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:inline-block;">📊 Excelダウンロード</a>
-      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">全生徒の指導記録・出欠・面談を<br>Excelファイルで書き出します。</div>
-    </div>
-  </div>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <colgroup><col style="width:33%"><col style="width:33%"><col style="width:34%"></colgroup>
+    <thead>
+      <tr>
+        <th style="background:#2c5282;color:#fff;padding:8px 12px;border:1px solid #1a3a6e;font-size:.82rem;text-align:center;">💾 全員バックアップ今すぐ実行</th>
+        <th style="background:#276749;color:#fff;padding:8px 12px;border:1px solid #1a4a32;font-size:.82rem;text-align:center;">⬇ ZIPでダウンロード</th>
+        <th style="background:#276749;color:#fff;padding:8px 12px;border:1px solid #1a4a32;font-size:.82rem;text-align:center;">📊 Excelダウンロード</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#f8f9fc;">
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
+            全生徒のデータを<strong>サーバー内に保存</strong>します。<br>
+            📄 形式: 生徒1人につき1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> ファイル<br>
+            📁 保存先: サーバーの <code style="background:#eef;padding:1px 4px;border-radius:3px;">data/students/</code><br>
+            🕐 世代履歴が自動作成されます
+          </div>
+          <div style="margin-top:10px;">
+            <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="hidden" name="action" value="export_all">
+              <button type="submit" class="btn btn-primary" style="width:100%;">💾 実行</button>
+            </form>
+          </div>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
+            サーバーのJSONファイルを<strong>まとめてPCに保存</strong>します。<br>
+            📦 形式: 全生徒分の .json を1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.zip</code> にまとめてダウンロード<br>
+            💡 端末の移行・障害復旧・外部保管に使用します
+          </div>
+          <div style="margin-top:10px;">
+            <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="hidden" name="action" value="download_zip">
+              <button type="submit" class="btn btn-green" style="width:100%;">⬇ ダウンロード</button>
+            </form>
+          </div>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
+            全生徒の指導記録・出欠・面談を<strong>表形式でPC保存</strong>します。<br>
+            📊 形式: <code style="background:#eef;padding:1px 4px;border-radius:3px;">.xls</code>（Excel）ファイル<br>
+            💡 他のカルテへの取り込みや、Excel上での閲覧・印刷に使用します
+          </div>
+          <div style="margin-top:10px;">
+            <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:block;text-align:center;">📊 ダウンロード</a>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <p class="path">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
 </div>
 
