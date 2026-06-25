@@ -99,7 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ok = $fail = 0;
                 $failIds = [];
 
-                if (str_ends_with($origName, '.zip') && class_exists('ZipArchive')) {
+                // マジックバイトでZIP判定（拡張子・ZipArchive可否より信頼性が高い）
+                $magic = file_get_contents($tmpPath, false, null, 0, 4);
+                $isZip = ($magic === "PK\x03\x04" || $magic === "PK\x05\x06");
+
+                if ($isZip && !class_exists('ZipArchive')) {
+                    $msg = 'このサーバーはZipArchiveに対応していません。JSONバンドル形式（.json）でダウンロードしたファイルをお使いください。'; $msgType = 'err';
+                } elseif ($isZip && class_exists('ZipArchive')) {
                     // ZIP形式: 各 *.json を KARTE_BACKUP_DIR に書き込んで復元
                     $zip = new ZipArchive();
                     if ($zip->open($tmpPath) !== true) {
@@ -126,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $msgType = $fail ? 'warn' : 'ok';
                         }
                     }
-                } else {
+                } elseif (!$isZip) {
                     // JSON bundle形式: { "sid": {...}, ... }
                     $content = file_get_contents($tmpPath);
                     $all = json_decode($content, true);
