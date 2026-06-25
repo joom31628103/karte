@@ -2104,7 +2104,7 @@ function initStudentHeader() {
     requestAnimationFrame(() => hdr.style.transition = '');
     updateHeaderBtn(true);
   } else {
-    hdr.style.maxHeight = hdr.scrollHeight + 'px';
+    hdr.style.maxHeight = '';
     updateHeaderBtn(false);
   }
 }
@@ -2113,12 +2113,13 @@ function toggleStudentHeader() {
   if (!hdr) return;
   const isCollapsed = hdr.classList.contains('collapsed');
   if (isCollapsed) {
-    // 展開：initStudentHeaderで設定したインラインスタイルを全てリセットしてからアニメ
+    // 展開：インラインスタイルを全てリセットしてアニメ、完了後maxHeightも解放
     hdr.style.paddingTop = '';
     hdr.style.paddingBottom = '';
     hdr.style.borderBottomWidth = '';
     hdr.classList.remove('collapsed');
     hdr.style.maxHeight = '2000px';
+    setTimeout(() => { hdr.style.maxHeight = ''; }, 380);
     localStorage.setItem(HEADER_KEY, '0');
     updateHeaderBtn(false);
   } else {
