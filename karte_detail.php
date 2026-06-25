@@ -629,8 +629,14 @@ if ($prevId): ?>
   <div class="fm-panel active" id="panel-basic">
     <!-- 学籍リンク -->
     <div id="gakRefBox" class="gak-ref-box" <?= $gak ? '' : 'style="display:none"' ?>>
-      <h4>📚 学籍台帳リンク済み — 学籍番号: <span id="gaknoSpan" style="color:#3b4f8a"><?= htmlspecialchars($gakno) ?></span></h4>
-      <div style="margin-bottom:10px;">
+      <h4 style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;" id="gakRefToggle">
+        <span>📚 学籍台帳リンク済み</span>
+        <span id="gaknoChip" style="background:#dde8ff;color:#2c4080;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid #b0c4f0;">
+          学籍番号: <span id="gaknoSpan"><?= htmlspecialchars($gakno) ?></span>
+        </span>
+        <span id="gakRefArrow" style="margin-left:auto;font-size:.8rem;color:#6677aa;transition:transform .2s;">▼</span>
+      </h4>
+      <div id="gakRefBody" style="margin-bottom:10px;">
         <div style="font-size:.72rem;font-weight:700;color:#3b4f8a;margin-bottom:5px;">年度別クラス情報</div>
         <table class="nendo-table">
           <thead><tr><th>年度</th><th>学年</th><th>組</th><th>番号</th><th>担任</th><th>進級状態</th></tr></thead>
@@ -654,6 +660,7 @@ if ($prevId): ?>
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;" id="btnLinkGakno">変更</button>
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;background:linear-gradient(180deg,#aab0cc 0%,#8890b0 100%);border-color:#6a7090;" id="btnUnlinkGakno">リンク解除</button>
       </div>
+      </div><!-- /#gakRefBody -->
     </div>
     <div id="gakLinkBox" class="gak-link-box" <?= $gak ? 'style="display:none"' : '' ?>>
       <strong>学籍台帳と未連携</strong> — 学籍番号を入力してリンクするか、<a href="/karte/gakuseki.php" style="color:#92400e">学籍管理</a>で登録してください。
@@ -2048,6 +2055,28 @@ async function deletePhoto(e) {
     });
   }
 
+})();
+
+// ── 学籍リンクセクション 折りたたみ ──
+(function(){
+  const STORAGE_KEY = 'karteGakRefCollapsed';
+  const toggle = document.getElementById('gakRefToggle');
+  const body   = document.getElementById('gakRefBody');
+  const arrow  = document.getElementById('gakRefArrow');
+  if (!toggle || !body) return;
+
+  function setCollapsed(collapsed) {
+    body.style.display  = collapsed ? 'none' : '';
+    if (arrow) arrow.style.transform = collapsed ? 'rotate(-90deg)' : '';
+    localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+  }
+
+  // 初期状態を復元
+  setCollapsed(localStorage.getItem(STORAGE_KEY) === '1');
+
+  toggle.addEventListener('click', () => {
+    setCollapsed(body.style.display !== 'none');
+  });
 })();
 
 // ── 生徒情報ヘッダー 折りたたみ ──
