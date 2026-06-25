@@ -316,10 +316,10 @@ tr:hover td{background:#eef1fb;}
 <div class="card">
   <h2>🗂️ JSON世代管理復元機能</h2>
 
-  <!-- ── ダウンロード系 ── -->
+  <!-- ── ダウンロード系（ZIP・JSON） ── -->
   <div class="func-group">
     <div class="func-group-label func-label-dl">⬇ ダウンロード・バックアップ</div>
-    <div class="func-grid func-grid-3">
+    <div class="func-grid func-grid-2">
 
       <div class="func-item">
         <div class="func-icon func-icon-green">📦</div>
@@ -350,23 +350,13 @@ tr:hover td{background:#eef1fb;}
         </form>
       </div>
 
-      <div class="func-item">
-        <div class="func-icon func-icon-green">📊</div>
-        <div class="func-title">Excelダウンロード</div>
-        <div class="func-desc">
-          指導記録・出欠・面談を <code>.xls</code> 形式でPC保存。<br>
-          閲覧・印刷・他のカルテへの取り込みに使用。
-        </div>
-        <a href="/karte/api/export_excel.php" class="func-btn func-btn-green" style="text-decoration:none;margin-top:auto;">📊 Excelダウンロード</a>
-      </div>
-
     </div>
   </div>
 
-  <!-- ── 復元・インポート系 ── -->
+  <!-- ── 復元系（ZIP・JSON） ── -->
   <div class="func-group" style="margin-top:14px;">
-    <div class="func-group-label func-label-restore">♻ 復元・インポート</div>
-    <div class="func-grid func-grid-3">
+    <div class="func-group-label func-label-restore">♻ 復元</div>
+    <div class="func-grid func-grid-2">
 
       <div class="func-item func-item-danger">
         <div class="func-icon func-icon-purple">📂</div>
@@ -404,26 +394,44 @@ tr:hover td{background:#eef1fb;}
         </form>
       </div>
 
-      <div class="func-item">
-        <div class="func-icon func-icon-green">📥</div>
-        <div class="func-title">Excelインポート</div>
-        <div class="func-desc">
-          <code>.xls</code> をアップロードして別のカルテのデータを取り込み。<br>
-          他校・他担任のカルテからの移行に。<br>
-          <span class="tag tag-green">✔ 重複データは自動スキップ</span>
-        </div>
-        <div class="import-box" id="importBox" style="margin-top:auto;">
-          <label class="func-btn func-btn-green" for="importFile" style="display:block;text-align:center;cursor:pointer;">📂 .xls を選択</label>
-          <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)" style="display:none;">
-          <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
-          <div id="importResult"></div>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <p class="path" style="margin-top:10px;">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
+</div>
+
+<!-- Excel連携機能 -->
+<div class="card">
+  <h2>📊 Excel連携機能</h2>
+  <div class="func-grid func-grid-2">
+
+    <div class="func-item">
+      <div class="func-icon func-icon-green">📊</div>
+      <div class="func-title">Excelダウンロード</div>
+      <div class="func-desc">
+        指導記録・出欠・面談を <code>.xls</code> 形式でPC保存。<br>
+        閲覧・印刷・他のカルテへの取り込みに使用。
+      </div>
+      <a href="/karte/api/export_excel.php" class="func-btn func-btn-green" style="text-decoration:none;margin-top:auto;">📊 Excelダウンロード</a>
+    </div>
+
+    <div class="func-item">
+      <div class="func-icon func-icon-green">📥</div>
+      <div class="func-title">Excelインポート</div>
+      <div class="func-desc">
+        <code>.xls</code> をアップロードして別のカルテのデータを取り込み。<br>
+        他校・他担任のカルテからの移行に。<br>
+        <span class="tag tag-green">✔ 重複データは自動スキップ</span>
+      </div>
+      <div class="import-box" id="importBox" style="margin-top:auto;">
+        <label class="func-btn func-btn-green" for="importFile" style="display:block;text-align:center;cursor:pointer;">📂 .xls を選択</label>
+        <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)" style="display:none;">
+        <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
+        <div id="importResult"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- 保護者連絡先CSV -->
