@@ -148,7 +148,7 @@ td:last-child{border-right:none;}
         <a href="/karte/photo_import.php">📸 写真取込</a>
         <a href="/karte/survey_import.php">📋 調査票取込</a>
         <a href="/karte/structure.php">🗺 構造図</a>
-        <a href="/karte/backup.php">💾 バックアップ</a>
+        <a href="/karte/backup.php">🗄️ ZIPバックアップ＆復元</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>

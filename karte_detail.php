@@ -416,7 +416,7 @@ if ($prevId): ?>
         <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/home.php">🏠 HOME</a>
-        <a href="/karte/backup.php">💾 バックアップ</a>
+        <a href="/karte/backup.php">🗄️ ZIPバックアップ＆復元</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>

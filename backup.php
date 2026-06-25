@@ -202,7 +202,7 @@ $csrf = generateCsrfToken();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>バックアップ管理 — カルテ</title>
+<title>ZIPバックアップ＆復元 — カルテ</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#cdd1dc;min-height:100vh;font-size:13px;}
@@ -291,7 +291,7 @@ tr:hover td{background:#eef1fb;}
 </head>
 <body>
 <div class="topbar">
-  <h1>💾 バックアップ &amp; バージョン管理</h1>
+  <h1>🗄️ ZIPバックアップ＆復元</h1>
   <a href="/karte/home.php">🏠 HOME</a>
 </div>
 
