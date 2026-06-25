@@ -438,6 +438,10 @@ if ($prevId): ?>
           <div class="fm-field-label">番号</div>
           <div class="fm-field-value"><?= htmlspecialchars($dispBango ?: '—') ?></div>
         </div>
+        <div class="fm-field">
+          <div class="fm-field-label">出身中学校</div>
+          <div class="fm-field-value" id="hdr-shusshin"><?= htmlspecialchars($dispShusshin ?: '—') ?></div>
+        </div>
       </div>
       <!-- 行2: 氏名・ふりがな・保護者名・保護者電話 -->
       <div class="fm-field-row">
@@ -1594,6 +1598,8 @@ async function loadHistory(sid=SID) {
       d.dispJyusyo   || '—',
     ];
     rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
+    const shEl = document.getElementById('hdr-shusshin');
+    if (shEl) shEl.textContent = d.dispShusshin || '—';
 
     // prev/next/pos/total をALL_IDSから計算
     curPos = ALL_IDS.indexOf(d.student_id);

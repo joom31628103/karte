@@ -135,7 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'dispBango'  => $ln['bango']      ?? $s['seat_number'] ?? '',
                 'dispNendo'  => $ln['nendo']      ?? '',
                 'dispTannin' => $ln['tanninmei']  ?? '',
-                'dispStatus' => $gak['gakuseki_status'] ?? '',
+                'dispStatus'  => $gak['gakuseki_status'] ?? '',
+                'dispShusshin'=> $gak['shusshin_chugaku'] ?? $s['school_from'] ?? '',
                 'dispPhoto'  => $gak['photo']     ?? $s['photo']       ?? '',
                 'memo_posi'  => $s['memo_posi']   ?? '',
                 'memo_nega'  => $s['memo_nega']   ?? '',
@@ -151,6 +152,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'parent_name'=> $s['parent_name'] ?? '',
                 'address'    => $s['address']     ?? '',
                 'b_notes'    => $s['notes']       ?? '',
+                'gak_name'   => $gak['name']      ?? '',
+                'gak_furigana'=> $gak['furigana'] ?? '',
+                'gak_birthday'=> $gak['birthday'] ?? '',
+                'gak_seibetu'=> $gak['seibetu']   ?? '',
                 // 学籍台帳フィールド
                 'gak_hogosya' => $gak['hogosya']  ?? '',
                 'gak_hogokana'=> $gak['hogokana'] ?? '',
@@ -212,10 +217,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $parent  = trim($_POST['parent_name'] ?? '');
             $address = trim($_POST['address'] ?? '');
             $notes   = trim($_POST['notes'] ?? '');
-            $stmt = $conn->prepare("UPDATE students SET name=?,furigana=?,class_name=?,seat_number=?,gender=?,birthday=?,phone=?,parent_name=?,address=?,notes=?,updated_at=NOW() WHERE student_id=?");
-            $stmt->bind_param('sssississss', $name,$furi,$cls,$seat,$gender,$bday,$phone,$parent,$address,$notes,$sid);
+            // 新フィールド
+            $school_from       = trim($_POST['school_from'] ?? '');
+            $student_phone     = trim($_POST['student_phone'] ?? '');
+            $parent1_name      = trim($_POST['parent1_name'] ?? '');
+            $parent1_furi      = trim($_POST['parent1_furi'] ?? '');
+            $parent1_phone     = trim($_POST['parent1_phone'] ?? '');
+            $parent1_phone_note= trim($_POST['parent1_phone_note'] ?? '');
+            $parent2_name      = trim($_POST['parent2_name'] ?? '');
+            $parent2_furi      = trim($_POST['parent2_furi'] ?? '');
+            $parent2_phone     = trim($_POST['parent2_phone'] ?? '');
+            $parent2_phone_note= trim($_POST['parent2_phone_note'] ?? '');
+            $p1_work_name      = trim($_POST['parent1_work_name'] ?? '');
+            $p1_work_phone     = trim($_POST['parent1_work_phone'] ?? '');
+            $p1_work_note      = trim($_POST['parent1_work_note'] ?? '');
+            $p2_work_name      = trim($_POST['parent2_work_name'] ?? '');
+            $p2_work_phone     = trim($_POST['parent2_work_phone'] ?? '');
+            $p2_work_note      = trim($_POST['parent2_work_note'] ?? '');
+            $primary_parent    = in_array($_POST['primary_parent']??'1',['1','2']) ? $_POST['primary_parent'] : '1';
+            // 未存在列を自動追加
+            $addCols = [
+                "school_from VARCHAR(100) DEFAULT NULL",
+                "student_phone VARCHAR(50) DEFAULT NULL",
+                "parent1_name VARCHAR(100) DEFAULT NULL",
+                "parent1_furi VARCHAR(100) DEFAULT NULL",
+                "parent1_phone VARCHAR(50) DEFAULT NULL",
+                "parent1_phone_note VARCHAR(200) DEFAULT NULL",
+                "parent2_name VARCHAR(100) DEFAULT NULL",
+                "parent2_furi VARCHAR(100) DEFAULT NULL",
+                "parent2_phone VARCHAR(50) DEFAULT NULL",
+                "parent2_phone_note VARCHAR(200) DEFAULT NULL",
+                "parent1_work_name VARCHAR(100) DEFAULT NULL",
+                "parent1_work_phone VARCHAR(50) DEFAULT NULL",
+                "parent1_work_note VARCHAR(200) DEFAULT NULL",
+                "parent2_work_name VARCHAR(100) DEFAULT NULL",
+                "parent2_work_phone VARCHAR(50) DEFAULT NULL",
+                "parent2_work_note VARCHAR(200) DEFAULT NULL",
+                "primary_parent CHAR(1) DEFAULT '1'",
+            ];
+            foreach ($addCols as $colDef) {
+                try { $conn->query("ALTER TABLE students ADD COLUMN $colDef"); } catch(Exception $e) {}
+            }
+            $stmt = $conn->prepare("UPDATE students SET name=?,furigana=?,class_name=?,seat_number=?,gender=?,birthday=?,phone=?,parent_name=?,address=?,notes=?,school_from=?,student_phone=?,parent1_name=?,parent1_furi=?,parent1_phone=?,parent1_phone_note=?,parent2_name=?,parent2_furi=?,parent2_phone=?,parent2_phone_note=?,parent1_work_name=?,parent1_work_phone=?,parent1_work_note=?,parent2_work_name=?,parent2_work_phone=?,parent2_work_note=?,primary_parent=?,updated_at=NOW() WHERE student_id=?");
+            $stmt->bind_param('sssississsssssssssssssssssss',
+                $name,$furi,$cls,$seat,$gender,$bday,$phone,$parent,$address,$notes,
+                $school_from,$student_phone,
+                $parent1_name,$parent1_furi,$parent1_phone,$parent1_phone_note,
+                $parent2_name,$parent2_furi,$parent2_phone,$parent2_phone_note,
+                $p1_work_name,$p1_work_phone,$p1_work_note,
+                $p2_work_name,$p2_work_phone,$p2_work_note,
+                $primary_parent,$sid);
             $stmt->execute();
-            if ($name) logActivity($conn, $sid, '基本情報を更新', $name ? "氏名: $name クラス: $cls" : '家庭状況メモを更新');
+            if ($name) logActivity($conn, $sid, '基本情報を更新', "氏名: $name クラス: $cls");
+            jout_backup($conn, ['success'=>true], $sid);
+
+        case 'sync_to_gakuseki':
+            $sid          = trim($_POST['student_id'] ?? '');
+            $name         = trim($_POST['name'] ?? '');
+            $furigana     = trim($_POST['furigana'] ?? '');
+            $seibetu      = trim($_POST['gender'] ?? '');
+            $birthday     = trim($_POST['birthday'] ?? '') ?: null;
+            $jyusyo       = trim($_POST['address'] ?? '');
+            $hogosya      = trim($_POST['parent_name'] ?? '');
+            $hogokana     = trim($_POST['parent_furi'] ?? '');
+            $tel1         = trim($_POST['tel1'] ?? '');
+            $tel2         = trim($_POST['tel2'] ?? '');
+            $shusshin     = trim($_POST['shusshin_chugaku'] ?? '');
+            if (!$sid) err('student_id は必須です');
+            $r = ps($conn, "SELECT gakno FROM students WHERE student_id=?", 's', [$sid]);
+            $row = $r->fetch_assoc();
+            if (!$row || !$row['gakno']) err('学籍台帳とリンクされていません');
+            $gakno = $row['gakno'];
+            try { $conn->query("ALTER TABLE gakuseki ADD COLUMN shusshin_chugaku VARCHAR(100) DEFAULT ''"); } catch(Exception $e) {}
+            $stmt = $conn->prepare("UPDATE gakuseki SET name=?,furigana=?,seibetu=?,birthday=?,jyusyo=?,hogosya=?,hogokana=?,tel1=?,tel2=?,shusshin_chugaku=?,updated_at=NOW() WHERE gakno=?");
+            $stmt->bind_param('sssssssssss', $name,$furigana,$seibetu,$birthday,$jyusyo,$hogosya,$hogokana,$tel1,$tel2,$shusshin,$gakno);
+            $stmt->execute();
+            logActivity($conn, $sid, '学籍台帳を上書き', "氏名: $name");
             jout_backup($conn, ['success'=>true], $sid);
 
         case 'add_record':
@@ -307,14 +384,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sid   = trim($_POST['student_id'] ?? '');
             $gakno = trim($_POST['gakno'] ?? '') ?: null;
             if ($gakno) {
-                $rs = ps($conn, "SELECT photo FROM students WHERE student_id=?", 's', [$sid]);
-                $rg = ps($conn, "SELECT photo FROM gakuseki WHERE gakno=?", 's', [$gakno]);
-                $studentPhoto = ($rs->fetch_assoc())['photo'] ?? null;
-                $gakPhoto     = ($rg->fetch_assoc())['photo'] ?? null;
-                if ($studentPhoto && !$gakPhoto) {
-                    ps($conn, "UPDATE gakuseki SET photo=? WHERE gakno=?", 'ss', [$studentPhoto, $gakno]);
-                    ps($conn, "UPDATE students SET photo=NULL WHERE student_id=?", 's', [$sid]);
+                // 完全一致で見つからない場合、後ろ4桁での部分一致を試みる
+                $exact = ps($conn, "SELECT gakno FROM gakuseki WHERE gakno=?", 's', [$gakno])->fetch_assoc();
+                if (!$exact && strlen($gakno) > 4) {
+                    $suffix = substr($gakno, -4);
+                    $found  = ps($conn, "SELECT gakno FROM gakuseki WHERE RIGHT(gakno,4)=?", 's', [$suffix])->fetch_assoc();
+                    if ($found) $gakno = $found['gakno'];
                 }
+                try {
+                    $rs = ps($conn, "SELECT photo FROM students WHERE student_id=?", 's', [$sid]);
+                    $rg = ps($conn, "SELECT photo FROM gakuseki WHERE gakno=?", 's', [$gakno]);
+                    $studentPhoto = ($rs->fetch_assoc())['photo'] ?? null;
+                    $gakPhoto     = ($rg->fetch_assoc())['photo'] ?? null;
+                    if ($studentPhoto && !$gakPhoto) {
+                        ps($conn, "UPDATE gakuseki SET photo=? WHERE gakno=?", 'ss', [$studentPhoto, $gakno]);
+                        ps($conn, "UPDATE students SET photo=NULL WHERE student_id=?", 's', [$sid]);
+                    }
+                } catch (Exception $e) { /* photoカラムが存在しない場合は無視 */ }
             }
             $stmt  = $conn->prepare("UPDATE students SET gakno=? WHERE student_id=?");
             $stmt->bind_param('ss', $gakno, $sid);
