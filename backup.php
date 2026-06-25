@@ -314,7 +314,7 @@ tr:hover td{background:#eef1fb;}
 
 <!-- バックアップ・エクスポート -->
 <div class="card">
-  <h2>📋 機能一覧</h2>
+  <h2>🗂️ JSON世代管理復元機能</h2>
 
   <!-- ── ダウンロード系 ── -->
   <div class="func-group">
