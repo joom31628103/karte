@@ -268,18 +268,27 @@ tr:hover td{background:#eef1fb;}
 <!-- バックアップ・エクスポート -->
 <div class="card">
   <h2>📤 バックアップ・エクスポート</h2>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
-      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-      <input type="hidden" name="action" value="export_all">
-      <button type="submit" class="btn btn-primary">💾 全員バックアップ今すぐ実行</button>
-    </form>
-    <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
-      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-      <input type="hidden" name="action" value="download_zip">
-      <button type="submit" class="btn btn-green">⬇ ZIPでダウンロード</button>
-    </form>
-    <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;">📊 Excelダウンロード</a>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="text-align:center;min-width:160px;">
+      <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+        <input type="hidden" name="action" value="export_all">
+        <button type="submit" class="btn btn-primary">💾 全員バックアップ今すぐ実行</button>
+      </form>
+      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">全生徒のデータをサーバー内に保存。<br>世代履歴が自動作成されます。</div>
+    </div>
+    <div style="text-align:center;min-width:160px;">
+      <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+        <input type="hidden" name="action" value="download_zip">
+        <button type="submit" class="btn btn-green">⬇ ZIPでダウンロード</button>
+      </form>
+      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">バックアップをZIPにまとめてPC保存。<br>他の端末への移行・保管に使用します。</div>
+    </div>
+    <div style="text-align:center;min-width:160px;">
+      <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:inline-block;">📊 Excelダウンロード</a>
+      <div style="font-size:.72rem;color:#6677aa;margin-top:5px;">全生徒の指導記録・出欠・面談を<br>Excelファイルで書き出します。</div>
+    </div>
   </div>
   <p class="path">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
 </div>
@@ -290,8 +299,8 @@ tr:hover td{background:#eef1fb;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
     <!-- ZIP復元 -->
     <div>
-      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:6px;">📦 ZIPバックアップから復元</div>
-      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">ダウンロードした .zip（または .json）でDB全体を復元。<br>既存データは上書きされます。</p>
+      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:4px;">📦 ZIPバックアップから復元</div>
+      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">「ZIPでダウンロード」で保存したファイルを使って全生徒のDBを復元します。端末の移行・障害復旧時に使用。<br><span style="color:#c53030;font-weight:700;">※ 既存データは上書きされます</span></p>
       <div class="import-box" id="zipRestoreBox">
         <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
@@ -310,8 +319,8 @@ tr:hover td{background:#eef1fb;}
     </div>
     <!-- Excelインポート -->
     <div>
-      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:6px;">📊 Excelインポート</div>
-      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">このシステムでダウンロードした .xls をアップロード。<br>重複データは追加されません。</p>
+      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:4px;">📊 Excelインポート</div>
+      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">「Excelダウンロード」で書き出したファイルを別のカルテに取り込みます。生徒・指導記録・出欠・面談を一括追加。<br><span style="color:#276749;font-weight:700;">※ 重複データは自動スキップ</span></p>
       <div class="import-box" id="importBox">
         <label class="import-label" for="importFile">📂 .xls を選択</label>
         <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)">
