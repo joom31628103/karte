@@ -144,6 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'notes'      => $s['notes']       ?? '',
                 'class_name' => $s['class_name']  ?? '',
                 'seat_number'=> $s['seat_number'] ?? '',
+                'school_from'=> $gak['shusshin_chugaku'] ?? $s['school_from'] ?? '',
+                'student_phone'=> $s['student_phone'] ?? '',
                 'name'       => $s['name']        ?? '',
                 'furigana'   => $s['furigana']    ?? '',
                 'birthday'   => $s['birthday']    ?? '',
