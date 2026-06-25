@@ -428,7 +428,7 @@ if ($prevId): ?>
         </div>
         <div class="fm-field" style="max-width:70px">
           <div class="fm-field-label">学年</div>
-          <div class="fm-field-value"><?= $dispGakunen ? htmlspecialchars($dispGakunen).'年' : '—' ?></div>
+          <div class="fm-field-value"><?= htmlspecialchars($dispGakunen ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:70px">
           <div class="fm-field-label">組</div>
@@ -1582,7 +1582,7 @@ async function loadHistory(sid=SID) {
     // DOM順: 年度(0) 学年(1) 組(2) 番号(3) 氏名(4) ふりがな(5) 保護者名(6) 電話(7) 生年月日(8) 性別(9) 住所(10)
     const vals = [
       d.dispNendo    || '—',
-      d.dispGakunen  ? d.dispGakunen+'年' : '—',
+      d.dispGakunen  || '—',
       d.dispClass    || '—',
       d.dispBango    || '—',
       d.dispName     || '—',
