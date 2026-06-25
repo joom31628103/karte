@@ -80,7 +80,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-arrow.disabled{opacity:.3;pointer-events:none;}
 .fm-topbar-student{display:flex;gap:6px;flex-shrink:0;align-items:center;}
 .fm-topbar-student .tb-class{min-width:80px;max-width:130px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c4d4ff;font-size:.78rem;font-weight:500;}
-.fm-topbar-student .tb-name{min-width:120px;max-width:180px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f0ff;font-size:.88rem;font-weight:700;}
+.fm-topbar-student .tb-name{min-width:120px;flex-shrink:0;border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:3px 12px;text-align:center;white-space:nowrap;color:#e8f0ff;font-size:.88rem;font-weight:700;}
 
 /* ── FileMaker風レコードナビゲーター ── */
 .fm-rec-nav{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;user-select:none;}
