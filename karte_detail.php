@@ -320,7 +320,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 @media(max-width:480px){
   body{font-size:12px;}
   .fm-topbar{padding:4px 8px;gap:4px;}
-  .fm-topbar-title{font-size:1rem;}
+  .fm-topbar-title{display:none;}
   .fm-topbar-student{display:none;}
   .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
 
