@@ -286,7 +286,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 
 /* ── iPad（〜1024px） ── */
 @media(max-width:1024px){
-  .fm-topbar-student{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .fm-topbar-student{max-width:300px;overflow:visible;}
 }
 
 /* ── iPad縦 / 大型スマホ（〜768px） ── */
