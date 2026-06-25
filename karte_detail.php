@@ -316,11 +316,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
+/* ── 小画面（〜640px） ── */
+@media(max-width:640px){
+  .fm-topbar-title{display:none;}
+}
+
 /* ── iPhone / 小型スマホ（〜480px） ── */
 @media(max-width:480px){
   body{font-size:12px;}
   .fm-topbar{padding:4px 8px;gap:4px;}
-  .fm-topbar-title{display:none;}
   .fm-topbar-student{display:none;}
   .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
 
