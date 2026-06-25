@@ -336,7 +336,8 @@ tr:hover td{background:#eef1fb;}
           <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
             サーバー内の最新 <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> ファイルでDBを上書き復元します。<br>
             💡 誤操作などで直前の状態に戻したいときに使用<br>
-            <span style="color:#c53030;font-weight:700;">⚠ 既存データは上書きされます</span>
+            <span style="color:#c53030;font-weight:700;">⚠ 既存データは上書きされます</span><br>
+            <span style="color:#5a6080;">個別に復元したい場合は、下の一覧表の各生徒の「復元」ボタンを押してください。</span>
           </div>
           <form method="post" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
