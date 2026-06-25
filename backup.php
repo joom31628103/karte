@@ -377,6 +377,45 @@ tr:hover td{background:#eef1fb;}
   <p class="path">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
 </div>
 
+<!-- 保護者連絡先CSV -->
+<div class="card">
+  <h2>📞 保護者連絡先・職場情報 CSV</h2>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+    <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+    <thead>
+      <tr>
+        <th style="background:#276749;color:#fff;padding:10px 12px;border:1px solid #1a4a32;font-size:.85rem;text-align:center;">⬇ CSVダウンロード</th>
+        <th style="background:#744210;color:#fff;padding:10px 12px;border:1px solid #4a2a0a;font-size:.85rem;text-align:center;">⬆ CSVインポート</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#f0f8f4;">
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            全生徒の<strong>保護者電話番号・勤務先情報</strong>をCSVで出力します。<br>
+            📋 形式: <code style="background:#eef;padding:1px 4px;border-radius:3px;">.csv</code>（Excel対応・BOM付きUTF-8）<br>
+            💡 Excelで編集して一括インポートに使用可
+          </div>
+          <a href="/karte/api/export_contacts_csv.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:block;text-align:center;">⬇ CSVダウンロード</a>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            CSVをアップロードして保護者・職場情報を<strong>一括更新</strong>します。<br>
+            🔑 <strong>学籍番号</strong>をキーに照合・上書きします<br>
+            💡 ダウンロードしたCSVをExcelで編集してそのまま使用可
+          </div>
+          <div class="import-box" style="padding:10px;">
+            <label class="import-label" for="csvFile" style="background:#744210;display:block;text-align:center;">📂 CSVを選択</label>
+            <input type="file" id="csvFile" accept=".csv" onchange="startCsvImport(this)">
+            <div style="margin-top:5px;font-size:.72rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
+            <div id="csvImportResult"></div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <!-- 生徒別一覧 -->
 <div class="card">
   <h2>生徒別バックアップ一覧（<?= count($backups) ?>名）</h2>
@@ -553,6 +592,42 @@ zipBox.addEventListener('drop', e => {
   const file = e.dataTransfer.files[0];
   if (file) doZipRestore(file);
 });
+
+// ── 保護者連絡先CSVインポート ──
+function startCsvImport(input) {
+  const file = input.files[0];
+  if (file) doCsvImport(file);
+}
+function doCsvImport(file) {
+  const result = document.getElementById('csvImportResult');
+  result.innerHTML = '<div style="color:#5a6080;font-size:.82rem;margin-top:8px;">⏳ インポート中…</div>';
+  const fd = new FormData();
+  fd.append('csrf_token', '<?= htmlspecialchars($csrf) ?>');
+  fd.append('csvfile', file);
+  fetch('/karte/api/import_contacts_csv.php', {method:'POST', body:fd})
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        result.innerHTML = `<div style="color:#276749;font-weight:700;font-size:.82rem;margin-top:8px;">✅ ${d.message}</div>`;
+      } else {
+        result.innerHTML = `<div style="color:#c53030;font-weight:700;font-size:.82rem;margin-top:8px;">❌ ${d.error}</div>`;
+      }
+    })
+    .catch(() => {
+      result.innerHTML = '<div style="color:#c53030;font-size:.82rem;margin-top:8px;">❌ 通信エラー</div>';
+    });
+}
+// ドラッグ＆ドロップ
+const csvBox = document.querySelector('#csvFile')?.closest('.import-box');
+if (csvBox) {
+  csvBox.addEventListener('dragover', e => { e.preventDefault(); csvBox.classList.add('drag'); });
+  csvBox.addEventListener('dragleave', () => csvBox.classList.remove('drag'));
+  csvBox.addEventListener('drop', e => {
+    e.preventDefault(); csvBox.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) doCsvImport(file);
+  });
+}
 </script>
 </body>
 </html>
