@@ -436,7 +436,7 @@ tr:hover td{background:#eef1fb;}
 
 <!-- 保護者連絡先CSV -->
 <div class="card">
-  <h2>📞 保護者連絡先・職場情報 CSV</h2>
+  <h2>📋 CSV保護者情報入出力</h2>
   <div class="func-grid func-grid-2">
 
     <div class="func-item">
