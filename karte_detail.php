@@ -633,10 +633,10 @@ if ($prevId): ?>
           <tbody id="nendoTbody">
             <?php foreach($nendo_list as $n): ?>
             <tr>
-              <td style="font-weight:700;color:#3b4f8a"><?= htmlspecialchars($n['nendo']) ?>年度</td>
-              <td><?= $n['gakunen'] ? htmlspecialchars($n['gakunen']).'年' : '—' ?></td>
+              <td style="font-weight:700;color:#3b4f8a"><?= htmlspecialchars($n['nendo']) ?></td>
+              <td><?= htmlspecialchars($n['gakunen']??'—') ?></td>
               <td><?= htmlspecialchars($n['class_no']??'—') ?></td>
-              <td><?= $n['bango'] ? htmlspecialchars($n['bango']).'番' : '—' ?></td>
+              <td><?= htmlspecialchars($n['bango']??'—') ?></td>
               <td><?= htmlspecialchars($n['tanninmei']??'—') ?></td>
               <td><?= htmlspecialchars($n['sinkyu']??'—') ?></td>
             </tr>
@@ -1694,10 +1694,10 @@ async function loadHistory(sid=SID) {
         if (nendoTbody && d.nendo_list) {
           nendoTbody.innerHTML = d.nendo_list.map(n =>
             `<tr>
-              <td style="font-weight:700;color:#3b4f8a">${h(n.nendo)}年度</td>
-              <td>${n.gakunen ? h(n.gakunen)+'年' : '—'}</td>
+              <td style="font-weight:700;color:#3b4f8a">${h(n.nendo||'—')}</td>
+              <td>${h(n.gakunen||'—')}</td>
               <td>${h(n.class_no||'—')}</td>
-              <td>${n.bango ? h(n.bango)+'番' : '—'}</td>
+              <td>${h(n.bango||'—')}</td>
               <td>${h(n.tanninmei||'—')}</td>
               <td>${h(n.sinkyu||'—')}</td>
             </tr>`).join('');
