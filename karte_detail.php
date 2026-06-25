@@ -321,7 +321,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-topbar-title{display:none;}
   .fm-tabs{flex-wrap:wrap;overflow-x:visible;padding-bottom:4px;border-bottom:3px solid #2c3e6b;}
   .fm-tabs::after{display:none;}
-  .fm-tab{flex:1 1 auto;min-width:calc(33.333% - 2px);justify-content:center;border-radius:5px 5px 0 0;margin-bottom:0;}
+  .fm-tab{flex:1 1 auto;min-width:var(--tab-min-w, calc(33.333% - 2px));justify-content:center;border-radius:5px 5px 0 0;margin-bottom:0;}
   .fm-tab.active{background:#f0f2f8;color:#1a2240;border-color:#aab0cc;border-bottom:3px solid #6a7bb5;margin-bottom:0;padding-bottom:6px;}
 }
 
@@ -992,6 +992,15 @@ function updateTabInUrl(panelId) {
     a.href = u.toString();
   });
 }
+
+// タブ数から最適な列数を計算してCSSカスタムプロパティに反映
+(function() {
+  const n = document.querySelectorAll('.fm-tab').length;
+  if (!n) return;
+  const cols = Math.ceil(Math.sqrt(n));
+  const pct  = (100 / cols).toFixed(4);
+  document.documentElement.style.setProperty('--tab-min-w', `calc(${pct}% - 2px)`);
+})();
 
 // タブ切り替え
 document.querySelectorAll('.fm-tab').forEach(tab => {
