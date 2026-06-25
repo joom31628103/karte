@@ -37,21 +37,28 @@ $ATT_TYPES    = ['欠席','遅刻','早退'];
 $INT_TYPES    = ['三者面談','個人面談','保護者面談','進路面談','その他'];
 
 // 表示用値の取得（学籍>students の優先順位）
-$dispName    = $gak['name']     ?? $s['name']         ?? '';
-$dispFuri    = $gak['furigana'] ?? $s['furigana']      ?? '';
-$dispBday    = $gak['birthday'] ?? $s['birthday']      ?? '';
-$dispTel     = $gak['tel1']     ?? $s['phone']         ?? '';
-$dispJyusyo  = ($gak ? trim(($gak['yuubin']?' 〒'.$gak['yuubin'].' ':'').$gak['jyusyo']) : $s['address']) ?? '';
-$dispHogosya = $gak['hogosya']  ?? $s['parent_name']   ?? '';
-$dispSeibetu = $gak['seibetu']  ?? $s['gender']        ?? '';
-$dispGakunen = $latestNendo['gakunen']  ?? '';
-$dispClass   = $latestNendo['class_no'] ?? $s['class_name'] ?? '';
-$dispBango   = $latestNendo['bango']    ?? $s['seat_number'] ?? '';
-$dispNendo   = $latestNendo['nendo']    ?? '';
-$dispTannin  = $latestNendo['tanninmei'] ?? '';
-$dispStatus  = $gak['gakuseki_status'] ?? '';
-$dispNyunendo = $gak['nyunendo'] ?? '';
-$dispPhoto   = $gak['photo'] ?? $s['photo'] ?? '';
+// ?? は null のみフォールバック、?: は空文字でもフォールバックするため両方使い分け
+$gv = fn($key) => ($gak[$key] ?? '');  // gakuseki の値（nullなら空文字）
+$sv = fn($key) => ($s[$key]   ?? '');  // students の値
+
+$dispName    = $gv('name')           ?: $sv('name');
+$dispFuri    = $gv('furigana')       ?: $sv('furigana');
+$dispBday    = $gv('birthday')       ?: $sv('birthday');
+$dispTel     = $gv('tel1')           ?: $sv('phone');
+$dispHogosya = $gv('hogosya')        ?: $sv('parent_name');
+$dispSeibetu = $gv('seibetu')        ?: $sv('gender');
+$dispShusshin = $gv('shusshin_chugaku') ?: $sv('school_from');
+$dispPhoto    = $gv('photo')         ?: $sv('photo');
+$dispJyusyo  = $gak ? (trim(($gak['yuubin'] ? ' 〒'.$gak['yuubin'].' ' : '').$gak['jyusyo']) ?: $sv('address')) : $sv('address');
+$dispGakunen  = $latestNendo['gakunen']   ?? '';
+$dispClass    = $latestNendo['class_no']  ?? $sv('class_name');
+$dispBango    = $latestNendo['bango']     ?? $sv('seat_number');
+$dispNendo    = $latestNendo['nendo']     ?? '';
+$dispTannin   = $latestNendo['tanninmei'] ?? '';
+$dispStatus   = $gv('gakuseki_status');
+$dispNyunendo = $gv('nyunendo');
+$dispHogokana = $gv('hogokana');
+$dispTel2     = $gv('tel2');
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -168,12 +175,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .empty-msg{padding:36px;text-align:center;color:#9aa0c0;font-size:.85rem;}
 
 /* ── 基本情報フォーム ── */
-.fm-info-section{font-size:.72rem;font-weight:700;color:#3b4f8a;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;padding-bottom:3px;border-bottom:2px solid #aab0cc;}
-.fm-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.fm-info-group{display:flex;flex-direction:column;gap:2px;}
+.fm-info-section{font-size:.72rem;font-weight:700;color:#3b4f8a;letter-spacing:.04em;margin:10px 0 4px;padding:4px 8px;background:#e8ecff;border-left:3px solid #3b4f8a;border-radius:0 3px 3px 0;display:flex;align-items:center;gap:10px;}
+.fm-info-section .pri-radio-label{font-size:.7rem;font-weight:600;color:#546099;display:flex;align-items:center;gap:4px;margin-left:auto;cursor:pointer;white-space:nowrap;}
+.fm-info-section .pri-radio-label input[type=radio]{accent-color:#3b4f8a;}
+.fm-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px 8px;margin-bottom:2px;}
+.fm-info-grid.col2{grid-template-columns:1fr 1fr;}
+.fm-info-grid.col3{grid-template-columns:1fr 1fr 1fr;}
+.fm-info-group{display:flex;flex-direction:column;gap:1px;}
 .fm-info-group.full{grid-column:1/-1;}
-.fm-info-group label{font-size:.68rem;font-weight:700;color:#5a6080;text-transform:uppercase;letter-spacing:.04em;}
-.fm-info-input{padding:6px 9px;border:1px solid #aab0cc;border-radius:3px;font-size:.85rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;}
+.fm-info-group.span2{grid-column:span 2;}
+.fm-info-group label{font-size:.63rem;font-weight:700;color:#5a6080;letter-spacing:.02em;}
+.fm-info-input{padding:3px 6px;border:1px solid #aab0cc;border-radius:3px;font-size:.8rem;font-family:inherit;color:#1a2240;background:#fff;outline:none;height:26px;box-sizing:border-box;}
 .fm-info-input:focus{border-color:#3b4f8a;background:#f5f7ff;}
 .fm-info-input[readonly]{background:#f0f2f8;color:#5a6080;}
 .fm-info-textarea{padding:6px 9px;border:1px solid #aab0cc;border-radius:3px;font-size:.85rem;font-family:inherit;color:#1a2240;background:#fff;resize:vertical;min-height:72px;outline:none;width:100%;}
@@ -285,6 +297,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .map-frame-wrap{min-height:280px;}
   .map-frame-wrap iframe{min-height:280px;}
   .fm-info-grid{grid-template-columns:1fr 1fr;}
+  .fm-info-grid.col3{grid-template-columns:1fr 1fr;}
   .modal-2col{grid-template-columns:1fr 1fr;}
   .posineg-grid{grid-template-columns:1fr 1fr;}
   /* タップしやすいボタン */
@@ -292,15 +305,16 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-save-btn{min-height:40px;}
 }
 
-/* ── モバイルドロワー（detail用） ── */
-.mobile-menu-btn{display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;font-size:1.1rem;cursor:pointer;line-height:1;}
-.mobile-drawer{display:none;position:fixed;top:0;right:0;bottom:0;width:220px;background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);z-index:300;padding:16px 12px;box-shadow:-4px 0 20px rgba(0,0,0,.4);flex-direction:column;gap:6px;}
-.mobile-drawer.open{display:flex;}
-.mobile-drawer a{display:block;padding:11px 14px;color:#e8ecff;text-decoration:none;font-size:.88rem;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);}
-.mobile-drawer a:hover{background:rgba(255,255,255,.2);}
-.mobile-drawer-close{font-size:1.2rem;color:#c4d4ff;background:none;border:none;cursor:pointer;align-self:flex-end;margin-bottom:4px;padding:4px;}
-.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;}
-.drawer-overlay.open{display:block;}
+/* ── ハンバーガーメニュー（detail用） ── */
+.kebab-menu{position:relative;}
+.kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
+.kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
+.kebab-btn:hover{background:rgba(255,255,255,.25);}
+.kebab-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.kebab-dropdown.open{display:block;}
+.kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
+.kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
+.kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
 /* ── iPhone / 小型スマホ（〜480px） ── */
 @media(max-width:480px){
@@ -308,9 +322,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-topbar{padding:4px 8px;gap:4px;}
   .fm-topbar-title{font-size:1rem;}
   .fm-topbar-student{display:none;}
-  /* モバイルではトップバー右のボタンを隠してハンバーガーに */
-  .fm-topbar-right{display:none;}
-  .mobile-menu-btn{display:block;}
   .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
 
   .fm-student-header{padding:8px;}
@@ -381,7 +392,7 @@ if ($prevId): ?>
   <div class="fm-topbar-student">
     <div class="tb-class"><?= htmlspecialchars(implode('', array_filter([
       $dispGakunen ? $dispGakunen.'年' : '',
-      $dispClass   ?: '',
+      $dispClass   ? $dispClass.'組'   : '',
       $dispBango   ? $dispBango.'番'   : '',
     ])) ?: '—') ?></div>
     <div class="tb-name"><?= htmlspecialchars($dispName ?: '—') ?></div>
@@ -390,23 +401,18 @@ if ($prevId): ?>
     <button class="fm-btn-top fm-header-toggle" id="headerToggleBtn" onclick="toggleStudentHeader()" title="生徒情報を折りたたむ/展開する">
       <span id="headerToggleIcon">▲</span> <span id="headerToggleLabel">情報を隠す</span>
     </button>
-    <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank" class="fm-btn-top">🖨 個人カード</a>
-    <a href="/karte/gakuseki.php" class="fm-btn-top">📚 学籍管理</a>
-    <a href="/karte/home.php" class="fm-btn-top">← 一覧</a>
-    <a href="/karte/account.php" class="fm-btn-top">⚙ アカウント</a>
-    <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
+    <div class="kebab-menu">
+      <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+      <div class="kebab-dropdown" id="kebabDropdown">
+        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
+        <a href="/karte/gakuseki.php">📚 学籍管理</a>
+        <a href="/karte/home.php">🏠 HOME</a>
+        <a href="/karte/backup.php">💾 バックアップ</a>
+        <a href="/karte/account.php">⚙ アカウント</a>
+        <a href="/karte/logout.php">🚪 ログアウト</a>
+      </div>
+    </div>
   </div>
-  <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
-</div>
-
-<!-- モバイルドロワー -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="mobile-drawer" id="mobileDrawer">
-  <button class="mobile-drawer-close" onclick="closeDrawer()">✕</button>
-  <a href="/karte/home.php">← 一覧に戻る</a>
-  <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード印刷</a>
-  <a href="/karte/gakuseki.php">📚 学籍管理</a>
-  <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
 
@@ -414,7 +420,7 @@ if ($prevId): ?>
 <div class="fm-student-header" id="studentHeader">
   <div class="fm-header-row1">
     <div class="fm-header-fields" style="flex:1">
-      <!-- 行1: 年度・学年・組・番号・学籍状態 -->
+      <!-- 行1: 年度・学年・組・番号 -->
       <div class="fm-field-row">
         <div class="fm-field" style="max-width:90px">
           <div class="fm-field-label">年度</div>
@@ -432,32 +438,24 @@ if ($prevId): ?>
           <div class="fm-field-label">番号</div>
           <div class="fm-field-value"><?= htmlspecialchars($dispBango ?: '—') ?></div>
         </div>
-        <div class="fm-field" style="max-width:80px">
-          <div class="fm-field-label">学籍状態</div>
-          <div class="fm-field-value" style="<?= $dispStatus==='退学'?'color:#dc2626':($dispStatus==='卒業'?'color:#1d4ed8':'') ?>"><?= htmlspecialchars($dispStatus ?: '—') ?></div>
-        </div>
-        <div class="fm-field">
-          <div class="fm-field-label">担任</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispTannin ?: '—') ?></div>
-        </div>
       </div>
-      <!-- 行2: ふりがな・氏名・電話 -->
+      <!-- 行2: 氏名・ふりがな・保護者名・保護者電話 -->
       <div class="fm-field-row">
         <div class="fm-field" style="max-width:200px">
-          <div class="fm-field-label">ふりがな</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispFuri ?: '—') ?></div>
-        </div>
-        <div class="fm-field" style="max-width:180px">
           <div class="fm-field-label">氏名</div>
-          <div class="fm-field-value" style="font-weight:900;color:#1a2240;"><?= htmlspecialchars($dispName ?: '—') ?></div>
+          <div class="fm-field-value" style="font-weight:900;color:#1a2240;" id="hdr-name"><?= htmlspecialchars($dispName ?: '—') ?></div>
         </div>
-        <div class="fm-field" style="max-width:160px">
-          <div class="fm-field-label">電話（保護者）</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispTel ?: '—') ?></div>
+        <div class="fm-field" style="max-width:200px">
+          <div class="fm-field-label">ふりがな</div>
+          <div class="fm-field-value" id="hdr-furi"><?= htmlspecialchars($dispFuri ?: '—') ?></div>
+        </div>
+        <div class="fm-field" style="max-width:220px">
+          <div class="fm-field-label">保護者名</div>
+          <div class="fm-field-value" id="hdr-parent"><?= htmlspecialchars($dispHogosya ?: '—') ?></div>
         </div>
         <div class="fm-field">
-          <div class="fm-field-label">保護者名</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispHogosya ?: '—') ?></div>
+          <div class="fm-field-label">電話（保護者）</div>
+          <div class="fm-field-value" id="hdr-tel"><?= htmlspecialchars($dispTel ?: '—') ?></div>
         </div>
       </div>
       <!-- 行3: 生年月日・性別・住所 -->
@@ -493,14 +491,14 @@ if ($prevId): ?>
 
 <!-- ── タブ ── -->
 <div class="fm-tabs" id="fmTabs">
-  <button class="fm-tab active" data-panel="panel-records">📝 指導記録</button>
-  <button class="fm-tab" data-panel="panel-att">📅 出欠・勤怠</button>
+  <button class="fm-tab active" data-panel="panel-basic">👤 基本情報</button>
+  <button class="fm-tab" data-panel="panel-survey">📄 家庭調査票</button>
+  <button class="fm-tab" data-panel="panel-family">🏠 家庭環境</button>
+  <button class="fm-tab" data-panel="panel-map">🗺 地図</button>
   <button class="fm-tab" data-panel="panel-interview">💬 面談記録</button>
   <button class="fm-tab" data-panel="panel-memo">📋 メモ・所見</button>
-  <button class="fm-tab" data-panel="panel-family">🏠 家庭環境</button>
-  <button class="fm-tab" data-panel="panel-survey">📄 家庭調査票</button>
-  <button class="fm-tab" data-panel="panel-basic">👤 基本情報</button>
-  <button class="fm-tab" data-panel="panel-map">🗺 地図</button>
+  <button class="fm-tab" data-panel="panel-records">📝 指導記録</button>
+  <button class="fm-tab" data-panel="panel-att">📅 出欠・勤怠</button>
   <button class="fm-tab" data-panel="panel-history">📜 履歴</button>
 </div>
 
@@ -508,7 +506,7 @@ if ($prevId): ?>
 <div class="fm-panel-wrap">
 
   <!-- 指導記録 -->
-  <div class="fm-panel active" id="panel-records">
+  <div class="fm-panel" id="panel-records">
     <div class="fm-panel-toolbar">
       <span class="fm-panel-title">担任メモ・指導記録</span>
       <button class="fm-add-btn" onclick="openRecordModal()">＋ 記録を追加</button>
@@ -624,7 +622,7 @@ if ($prevId): ?>
   </div>
 
   <!-- 基本情報 -->
-  <div class="fm-panel" id="panel-basic">
+  <div class="fm-panel active" id="panel-basic">
     <!-- 学籍リンク -->
     <div id="gakRefBox" class="gak-ref-box" <?= $gak ? '' : 'style="display:none"' ?>>
       <h4>📚 学籍台帳リンク済み — 学籍番号: <span id="gaknoSpan" style="color:#3b4f8a"><?= htmlspecialchars($gakno) ?></span></h4>
@@ -656,33 +654,117 @@ if ($prevId): ?>
     <div id="gakLinkBox" class="gak-link-box" <?= $gak ? 'style="display:none"' : '' ?>>
       <strong>学籍台帳と未連携</strong> — 学籍番号を入力してリンクするか、<a href="/karte/gakuseki.php" style="color:#92400e">学籍管理</a>で登録してください。
       <div class="gak-link-form">
-        <input type="text" class="gak-link-input" id="gaknoInput2" placeholder="学籍番号を入力">
+        <input type="text" class="gak-link-input" id="gaknoInput2"
+          value="<?= htmlspecialchars($gakno) ?>"
+          placeholder="学籍番号を入力（例: 20261101）"
+          maxlength="8">
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;" id="btnLinkGakno2">リンク</button>
       </div>
+      <div id="gaknoPreview" style="display:none;margin-top:6px;padding:6px 10px;background:#fff;border:1px solid #b0bcd8;border-radius:4px;font-size:.82rem;color:#2a3660;"></div>
     </div>
 
+    <?php if ($gak): ?>
+    <div class="fm-info-section">学籍台帳情報（参照）</div>
+    <div class="fm-info-grid">
+      <div class="fm-info-group"><label>学籍状態</label>
+        <input class="fm-info-input" value="<?= htmlspecialchars($dispStatus ?: '—') ?>" readonly
+          style="<?= $dispStatus==='退学'?'color:#dc2626;font-weight:700':($dispStatus==='卒業'?'color:#1d4ed8;font-weight:700':'') ?>"></div>
+      <div class="fm-info-group"><label>担任</label>
+        <input class="fm-info-input" value="<?= htmlspecialchars($dispTannin ?: '—') ?>" readonly></div>
+    </div>
+    <?php endif; ?>
     <div class="fm-info-section">カルテ内情報（編集可）</div>
     <div class="fm-info-grid">
       <div class="fm-info-group"><label>学籍番号（内部ID）</label>
         <input class="fm-info-input" id="b-sid" value="<?= htmlspecialchars($s['student_id']) ?>" readonly></div>
       <div class="fm-info-group"><label>クラス（手動）</label>
         <input class="fm-info-input" id="b-class" value="<?= htmlspecialchars($s['class_name']??'') ?>"></div>
-      <div class="fm-info-group"><label>氏名（手動）</label>
-        <input class="fm-info-input" id="b-name" value="<?= htmlspecialchars($s['name']??'') ?>"></div>
-      <div class="fm-info-group"><label>ふりがな（手動）</label>
-        <input class="fm-info-input" id="b-furi" value="<?= htmlspecialchars($s['furigana']??'') ?>"></div>
+      <div class="fm-info-group"><label>氏名</label>
+        <input class="fm-info-input" id="b-name" value="<?= htmlspecialchars($dispName) ?>"></div>
+      <div class="fm-info-group"><label>ふりがな</label>
+        <input class="fm-info-input" id="b-furi" value="<?= htmlspecialchars($dispFuri) ?>"></div>
       <div class="fm-info-group"><label>出席番号</label>
         <input class="fm-info-input" id="b-seat" type="number" value="<?= htmlspecialchars($s['seat_number']??'') ?>"></div>
       <div class="fm-info-group"><label>性別</label>
-        <input class="fm-info-input" id="b-gender" value="<?= htmlspecialchars($s['gender']??'') ?>" placeholder="男・女・その他"></div>
+        <input class="fm-info-input" id="b-gender" value="<?= htmlspecialchars($dispSeibetu) ?>" placeholder="男・女・その他"></div>
       <div class="fm-info-group"><label>生年月日</label>
-        <input class="fm-info-input" id="b-bday" type="date" value="<?= htmlspecialchars($s['birthday']??'') ?>"></div>
-      <div class="fm-info-group"><label>電話（手動）</label>
-        <input class="fm-info-input" id="b-phone" value="<?= htmlspecialchars($s['phone']??'') ?>"></div>
-      <div class="fm-info-group"><label>保護者名（手動）</label>
-        <input class="fm-info-input" id="b-parent" value="<?= htmlspecialchars($s['parent_name']??'') ?>"></div>
-      <div class="fm-info-group full"><label>住所（手動）</label>
-        <input class="fm-info-input" id="b-addr" value="<?= htmlspecialchars($s['address']??'') ?>"></div>
+        <input class="fm-info-input" id="b-bday" type="date" value="<?= htmlspecialchars($dispBday) ?>"></div>
+      <div class="fm-info-group"><label>生徒電話番号</label>
+        <input class="fm-info-input" id="b-student-phone" value="<?= htmlspecialchars($s['student_phone']??'') ?>"></div>
+      <div class="fm-info-group"><label>出身中学校</label>
+        <input class="fm-info-input" id="b-school-from" value="<?= htmlspecialchars($dispShusshin) ?>"></div>
+      <div class="fm-info-group"><label>保護者名（主保護者）</label>
+        <input class="fm-info-input" id="b-parent" value="<?= htmlspecialchars($dispHogosya) ?>"></div>
+      <div class="fm-info-group"><label>保護者ふりがな</label>
+        <input class="fm-info-input" id="b-parent-furi" value="<?= htmlspecialchars($dispHogokana) ?>"></div>
+      <div class="fm-info-group"><label>電話（保護者）</label>
+        <input class="fm-info-input" id="b-phone" value="<?= htmlspecialchars($dispTel) ?>"></div>
+      <div class="fm-info-group"><label>電話２</label>
+        <input class="fm-info-input" id="b-phone2" value="<?= htmlspecialchars($dispTel2) ?>"></div>
+      <div class="fm-info-group span2"><label>住所</label>
+        <input class="fm-info-input" id="b-addr" value="<?= htmlspecialchars($dispJyusyo) ?>"></div>
+    </div>
+
+    <!-- 保護者１ -->
+    <div class="fm-info-section">保護者１
+      <label class="pri-radio-label">
+        <input type="radio" name="pri_parent" value="1" id="pri-1" <?= ($s['primary_parent']??'1')==='1' ? 'checked' : '' ?> onchange="applyPriParent()">
+        主保護者として採用
+      </label>
+    </div>
+    <div class="fm-info-grid">
+      <div class="fm-info-group"><label>氏名</label>
+        <input class="fm-info-input" id="b-p1-name" value="<?= htmlspecialchars($s['parent1_name']??'') ?>" oninput="refreshPriParent()"></div>
+      <div class="fm-info-group"><label>ふりがな</label>
+        <input class="fm-info-input" id="b-p1-furi" value="<?= htmlspecialchars($s['parent1_furi']??'') ?>"></div>
+      <div class="fm-info-group"><label>電話番号</label>
+        <input class="fm-info-input" id="b-p1-phone" value="<?= htmlspecialchars($s['parent1_phone']??'') ?>" oninput="refreshPriParent()"></div>
+      <div class="fm-info-group"><label>電話備考</label>
+        <input class="fm-info-input" id="b-p1-phone-note" value="<?= htmlspecialchars($s['parent1_phone_note']??'') ?>"></div>
+    </div>
+
+    <!-- 保護者１勤務先 -->
+    <div class="fm-info-section" style="font-size:.66rem;margin-top:4px;">保護者１勤務先</div>
+    <div class="fm-info-grid col3">
+      <div class="fm-info-group"><label>勤務先名</label>
+        <input class="fm-info-input" id="b-p1-work-name" value="<?= htmlspecialchars($s['parent1_work_name']??'') ?>"></div>
+      <div class="fm-info-group"><label>勤務先電話番号</label>
+        <input class="fm-info-input" id="b-p1-work-phone" value="<?= htmlspecialchars($s['parent1_work_phone']??'') ?>"></div>
+      <div class="fm-info-group"><label>勤務先備考</label>
+        <input class="fm-info-input" id="b-p1-work-note" value="<?= htmlspecialchars($s['parent1_work_note']??'') ?>"></div>
+    </div>
+
+    <!-- 保護者２ -->
+    <div class="fm-info-section">保護者２
+      <label class="pri-radio-label">
+        <input type="radio" name="pri_parent" value="2" id="pri-2" <?= ($s['primary_parent']??'1')==='2' ? 'checked' : '' ?> onchange="applyPriParent()">
+        主保護者として採用
+      </label>
+    </div>
+    <div class="fm-info-grid">
+      <div class="fm-info-group"><label>氏名</label>
+        <input class="fm-info-input" id="b-p2-name" value="<?= htmlspecialchars($s['parent2_name']??'') ?>" oninput="refreshPriParent()"></div>
+      <div class="fm-info-group"><label>ふりがな</label>
+        <input class="fm-info-input" id="b-p2-furi" value="<?= htmlspecialchars($s['parent2_furi']??'') ?>"></div>
+      <div class="fm-info-group"><label>電話番号</label>
+        <input class="fm-info-input" id="b-p2-phone" value="<?= htmlspecialchars($s['parent2_phone']??'') ?>" oninput="refreshPriParent()"></div>
+      <div class="fm-info-group"><label>電話備考</label>
+        <input class="fm-info-input" id="b-p2-phone-note" value="<?= htmlspecialchars($s['parent2_phone_note']??'') ?>"></div>
+    </div>
+
+    <!-- 保護者２勤務先 -->
+    <div class="fm-info-section" style="font-size:.66rem;margin-top:4px;">保護者２勤務先</div>
+    <div class="fm-info-grid col3">
+      <div class="fm-info-group"><label>勤務先名</label>
+        <input class="fm-info-input" id="b-p2-work-name" value="<?= htmlspecialchars($s['parent2_work_name']??'') ?>"></div>
+      <div class="fm-info-group"><label>勤務先電話番号</label>
+        <input class="fm-info-input" id="b-p2-work-phone" value="<?= htmlspecialchars($s['parent2_work_phone']??'') ?>"></div>
+      <div class="fm-info-group"><label>勤務先備考</label>
+        <input class="fm-info-input" id="b-p2-work-note" value="<?= htmlspecialchars($s['parent2_work_note']??'') ?>"></div>
+    </div>
+
+    <div class="fm-info-section">その他</div>
+    <div class="fm-info-grid col2">
       <div class="fm-info-group full"><label>備考</label>
         <textarea class="fm-info-textarea" id="b-notes"><?= htmlspecialchars($s['notes']??'') ?></textarea></div>
     </div>
@@ -857,6 +939,7 @@ if ($prevId): ?>
 <script>
 const CSRF    = '<?= generateCsrfToken() ?>';
 let   SID     = '<?= htmlspecialchars($sid) ?>';
+let   GAKNO   = '<?= htmlspecialchars($gakno) ?>';
 const today   = new Date().toISOString().split('T')[0];
 const ALL_IDS = <?= json_encode(array_values($idList)) ?>;
 
@@ -916,8 +999,7 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
     const tab = document.querySelector(`.fm-tab[data-panel="${tabId}"]`);
     if (tab) { tab.click(); return; }
   }
-  // デフォルト：指導記録を読み込む
-  loadRecords();
+  // デフォルト：基本情報タブを表示（データ読み込み不要）
 })();
 
 
@@ -1150,27 +1232,158 @@ document.getElementById('btnSaveBasic').onclick = async () => {
   fd.append('parent_name', document.getElementById('b-parent').value);
   fd.append('address',     document.getElementById('b-addr').value);
   fd.append('notes',       document.getElementById('b-notes').value);
+  fd.append('school_from',       document.getElementById('b-school-from').value);
+  fd.append('student_phone',     document.getElementById('b-student-phone').value);
+  fd.append('primary_parent',    document.querySelector('input[name="pri_parent"]:checked')?.value || '1');
+  fd.append('parent1_name',      document.getElementById('b-p1-name').value);
+  fd.append('parent1_furi',      document.getElementById('b-p1-furi').value);
+  fd.append('parent1_phone',     document.getElementById('b-p1-phone').value);
+  fd.append('parent1_phone_note',document.getElementById('b-p1-phone-note').value);
+  fd.append('parent2_name',      document.getElementById('b-p2-name').value);
+  fd.append('parent2_furi',      document.getElementById('b-p2-furi').value);
+  fd.append('parent2_phone',     document.getElementById('b-p2-phone').value);
+  fd.append('parent2_phone_note',document.getElementById('b-p2-phone-note').value);
+  fd.append('parent1_work_name', document.getElementById('b-p1-work-name').value);
+  fd.append('parent1_work_phone',document.getElementById('b-p1-work-phone').value);
+  fd.append('parent1_work_note', document.getElementById('b-p1-work-note').value);
+  fd.append('parent2_work_name', document.getElementById('b-p2-work-name').value);
+  fd.append('parent2_work_phone',document.getElementById('b-p2-work-phone').value);
+  fd.append('parent2_work_note', document.getElementById('b-p2-work-note').value);
   const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
   const data = await res.json();
-  if (data.success) {
-    const ok = document.getElementById('saveOk');
-    ok.style.display='inline'; setTimeout(()=>ok.style.display='none',2500);
-  } else alert(data.error||'エラー');
+  if (!data.success) { alert(data.error||'エラー'); return; }
+  const ok = document.getElementById('saveOk');
+  ok.style.display='inline'; setTimeout(()=>ok.style.display='none',2500);
+  // 学籍リンク済みの場合、学籍への反映を確認
+  if (GAKNO && confirm('学籍台帳にも反映しますか？')) {
+    await syncToGakuseki();
+  }
 };
+
+async function syncToGakuseki() {
+  const pri = document.querySelector('input[name="pri_parent"]:checked')?.value || '1';
+  const pFuri  = document.getElementById(pri==='2' ? 'b-p2-furi'  : 'b-p1-furi')?.value  || '';
+  const pPhone = document.getElementById(pri==='2' ? 'b-p2-phone' : 'b-p1-phone')?.value || '';
+  const fd = new FormData();
+  fd.append('action','sync_to_gakuseki');
+  fd.append('csrf_token',   CSRF);
+  fd.append('student_id',   SID);
+  fd.append('name',         document.getElementById('b-name').value);
+  fd.append('furigana',     document.getElementById('b-furi').value);
+  fd.append('gender',       document.getElementById('b-gender').value);
+  fd.append('birthday',     document.getElementById('b-bday').value);
+  fd.append('address',      document.getElementById('b-addr').value);
+  fd.append('parent_name',  document.getElementById('b-parent').value);
+  fd.append('parent_furi',  pFuri);
+  fd.append('tel1',              pPhone || document.getElementById('b-phone').value);
+  fd.append('tel2',              document.getElementById('b-phone2')?.value || '');
+  fd.append('shusshin_chugaku', document.getElementById('b-school-from')?.value || '');
+  const r2 = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
+  const d2 = await r2.json();
+  if (d2.success) {
+    // ヘッダー更新
+    const hdrName = document.getElementById('hdr-name');
+    if (hdrName) hdrName.textContent = document.getElementById('b-name').value || '—';
+    const hdrFuri = document.getElementById('hdr-furi');
+    if (hdrFuri) hdrFuri.textContent = document.getElementById('b-furi').value || '—';
+    const hdrParent = document.getElementById('hdr-parent');
+    if (hdrParent) hdrParent.textContent = document.getElementById('b-parent').value || '—';
+    const hdrTel = document.getElementById('hdr-tel');
+    if (hdrTel) hdrTel.textContent = (pPhone || document.getElementById('b-phone').value) || '—';
+    const ok = document.getElementById('saveOk');
+    ok.textContent = '✓ カルテ・学籍を保存しました';
+    ok.style.display='inline'; setTimeout(()=>{ ok.style.display='none'; ok.textContent='✓ 保存しました'; },3000);
+  } else {
+    alert('学籍台帳の更新に失敗しました: ' + (d2.error||'エラー'));
+  }
+}
+
+/* ── 主保護者ラジオ ── */
+function applyPriParent() {
+  const v = document.querySelector('input[name="pri_parent"]:checked')?.value || '1';
+  const prefix = v === '2' ? 'b-p2' : 'b-p1';
+  const name  = document.getElementById(prefix + '-name')?.value  || '';
+  const phone = document.getElementById(prefix + '-phone')?.value || '';
+  const parentEl = document.getElementById('b-parent');
+  if (parentEl) parentEl.value = name;
+  const hdrParent = document.getElementById('hdr-parent');
+  if (hdrParent) hdrParent.textContent = name || '—';
+  const hdrTel = document.getElementById('hdr-tel');
+  if (hdrTel) hdrTel.textContent = phone || '—';
+}
+function refreshPriParent() {
+  const v = document.querySelector('input[name="pri_parent"]:checked')?.value || '1';
+  const activeId = document.activeElement?.id;
+  const isName  = (v==='1' && activeId==='b-p1-name')  || (v==='2' && activeId==='b-p2-name');
+  const isPhone = (v==='1' && activeId==='b-p1-phone') || (v==='2' && activeId==='b-p2-phone');
+  if (isName) {
+    const val = document.activeElement.value;
+    const parentEl = document.getElementById('b-parent');
+    if (parentEl) parentEl.value = val;
+    const hdrParent = document.getElementById('hdr-parent');
+    if (hdrParent) hdrParent.textContent = val || '—';
+  }
+  if (isPhone) {
+    const val = document.activeElement.value;
+    const hdrTel = document.getElementById('hdr-tel');
+    if (hdrTel) hdrTel.textContent = val || '—';
+  }
+}
 
 /* ── 学籍リンク ── */
 async function linkGakno(gakno) {
   if (!gakno) { alert('学籍番号を入力してください'); return; }
-  const fd = new FormData();
-  fd.append('action','save_gakno'); fd.append('csrf_token',CSRF);
-  fd.append('student_id',SID); fd.append('gakno',gakno);
-  const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
-  const data = await res.json();
-  if (data.success) location.reload();
-  else alert(data.error||'エラー');
+  const currentSID = window.SID || SID;
+  if (!currentSID) { alert('生徒IDが取得できません。ページを再読み込みしてください。'); return; }
+  try {
+    const fd = new FormData();
+    fd.append('action','save_gakno'); fd.append('csrf_token',CSRF);
+    fd.append('student_id', currentSID); fd.append('gakno', gakno);
+    const res  = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { alert('サーバーエラー:\n'+text.slice(0,300)); return; }
+    if (data.success) location.reload();
+    else alert(data.error || 'エラーが発生しました');
+  } catch(e) {
+    alert('通信エラー: '+e.message);
+  }
 }
 document.getElementById('btnLinkGakno')  && document.getElementById('btnLinkGakno').addEventListener('click', () => linkGakno(document.getElementById('gaknoInput').value.trim()));
 document.getElementById('btnLinkGakno2') && document.getElementById('btnLinkGakno2').addEventListener('click', () => linkGakno(document.getElementById('gaknoInput2').value.trim()));
+
+// 8桁入力で学籍データをプレビュー照会
+(function() {
+  const inp = document.getElementById('gaknoInput2');
+  const preview = document.getElementById('gaknoPreview');
+  if (!inp || !preview) return;
+  inp.addEventListener('input', async () => {
+    const v = inp.value.trim();
+    if (v.length !== 8 || !/^\d{8}$/.test(v)) { preview.style.display='none'; return; }
+    preview.style.display='block';
+    preview.textContent = '照会中…';
+    try {
+      const res = await fetch('/karte/api/gakuseki.php?action=get_one&gakno='+encodeURIComponent(v));
+      const d = await res.json();
+      if (d.success && d.data) {
+        const g = d.data;
+        preview.innerHTML =
+          '<strong>✓ 見つかりました</strong>　' +
+          (g.name||'') + '　' + (g.furigana||'') + '　' +
+          (g.gakunen ? g.gakunen+'年' : '') + (g.class_no ? g.class_no+'組' : '') + (g.bango ? g.bango+'番' : '') +
+          '　<span style="color:#888">（' + v + '）</span>';
+        preview.style.color = '#1a4522';
+        preview.style.background = '#f0fff4';
+        preview.style.borderColor = '#6dba8a';
+      } else {
+        preview.textContent = '✗ 該当する学籍が見つかりません（' + v + '）';
+        preview.style.color = '#991b1b';
+        preview.style.background = '#fff5f5';
+        preview.style.borderColor = '#f8a0a0';
+      }
+    } catch(e) { preview.textContent = '照会エラー'; }
+  });
+})();
 document.getElementById('btnUnlinkGakno') && document.getElementById('btnUnlinkGakno').addEventListener('click', async () => {
   if (!confirm('学籍台帳へのリンクを解除しますか？')) return;
   const fd = new FormData();
@@ -1353,7 +1566,7 @@ async function loadHistory(sid=SID) {
     // トップバー生徒名
     const tb = document.querySelector('.fm-topbar-student');
     if (tb) {
-      const cls = [(d.dispGakunen ? d.dispGakunen+'年' : ''), (d.dispClass||''), (d.dispBango ? d.dispBango+'番' : '')].join('') || '—';
+      const cls = [(d.dispGakunen ? d.dispGakunen+'年' : ''), (d.dispClass ? d.dispClass+'組' : ''), (d.dispBango ? d.dispBango+'番' : '')].join('') || '—';
       const clsEl  = tb.querySelector('.tb-class');
       const nameEl = tb.querySelector('.tb-name');
       if (clsEl)  clsEl.textContent  = cls;
@@ -1364,25 +1577,23 @@ async function loadHistory(sid=SID) {
     document.querySelectorAll('a[href*="karte_card.php"]').forEach(a =>
       a.href='/karte/karte_card.php?id='+encodeURIComponent(d.student_id));
 
-    // ヘッダーフィールド値（DOM順に対応）
+    // ヘッダーフィールド値（ID指定で確実にマッピング）
     const rows = document.querySelectorAll('#studentHeader .fm-field-value');
+    // DOM順: 年度(0) 学年(1) 組(2) 番号(3) 氏名(4) ふりがな(5) 保護者名(6) 電話(7) 生年月日(8) 性別(9) 住所(10)
     const vals = [
       d.dispNendo    || '—',
       d.dispGakunen  ? d.dispGakunen+'年' : '—',
       d.dispClass    || '—',
       d.dispBango    || '—',
-      d.dispStatus   || '—',
-      d.dispTannin   || '—',
-      d.dispFuri     || '—',
       d.dispName     || '—',
-      d.dispTel      || '—',
+      d.dispFuri     || '—',
       d.dispHogosya  || '—',
+      d.dispTel      || '—',
       d.dispBday     || '—',
       d.dispSeibetu  || '—',
       d.dispJyusyo   || '—',
     ];
     rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
-    if (rows[4]) rows[4].style.color = d.dispStatus==='退学'?'#dc2626':d.dispStatus==='卒業'?'#1d4ed8':'';
 
     // prev/next/pos/total をALL_IDSから計算
     curPos = ALL_IDS.indexOf(d.student_id);
@@ -1437,16 +1648,37 @@ async function loadHistory(sid=SID) {
     // 基本情報タブ更新
     setVal('b-sid',    d.student_id);
     setVal('b-class',  d.class_name);
-    setVal('b-name',   d.name);
-    setVal('b-furi',   d.furigana);
+    setVal('b-name',   d.gak_name   || d.name);
+    setVal('b-furi',   d.gak_furigana || d.furigana);
     setVal('b-seat',   d.seat_number);
-    setVal('b-gender', d.gender);
-    setVal('b-bday',   d.birthday);
-    setVal('b-phone',  d.phone);
-    setVal('b-parent', d.parent_name);
-    setVal('b-addr',   d.address);
+    setVal('b-gender', d.gak_seibetu || d.gender);
+    setVal('b-bday',   d.gak_birthday || d.birthday);
+    setVal('b-phone',       d.gak_tel1 || d.phone);
+    setVal('b-phone2',      d.gak_tel2 || '');
+    setVal('b-parent',      d.gak_hogosya || d.parent_name);
+    setVal('b-parent-furi', d.gak_hogokana || '');
+    setVal('b-addr',        d.gak_jyusyo || d.address);
+    setVal('b-school-from',    d.school_from);
+    setVal('b-student-phone',  d.student_phone);
+    setVal('b-p1-name',        d.parent1_name);
+    setVal('b-p1-furi',        d.parent1_furi);
+    setVal('b-p1-phone',       d.parent1_phone);
+    setVal('b-p1-phone-note',  d.parent1_phone_note);
+    setVal('b-p2-name',        d.parent2_name);
+    setVal('b-p2-furi',        d.parent2_furi);
+    setVal('b-p2-phone',       d.parent2_phone);
+    setVal('b-p2-phone-note',  d.parent2_phone_note);
+    setVal('b-p1-work-name',   d.parent1_work_name);
+    setVal('b-p1-work-phone',  d.parent1_work_phone);
+    setVal('b-p1-work-note',   d.parent1_work_note);
+    setVal('b-p2-work-name',   d.parent2_work_name);
+    setVal('b-p2-work-phone',  d.parent2_work_phone);
+    setVal('b-p2-work-note',   d.parent2_work_note);
+    const pri = d.primary_parent || '1';
+    const r1 = document.getElementById('pri-1'); if(r1) r1.checked = (pri==='1');
+    const r2 = document.getElementById('pri-2'); if(r2) r2.checked = (pri==='2');
     const bNotes = document.getElementById('b-notes');
-    if (bNotes) bNotes.value = d.b_notes || '';
+    if (bNotes) bNotes.value = d.notes || '';
     // 基本情報：学籍リンク表示
     const gakRefBox  = document.getElementById('gakRefBox');
     const gakLinkBox = document.getElementById('gakLinkBox');
@@ -1504,7 +1736,7 @@ async function loadHistory(sid=SID) {
       const h = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       let html = `<div><strong>${h(d.dispName)}</strong></div>`;
       if (d.dispFuri)    html += `<div style="color:#5a6080;font-size:.76rem">${h(d.dispFuri)}</div>`;
-      if (d.dispGakunen) html += `<div>${h(d.dispGakunen)}年${h(d.dispClass)} ${h(d.dispBango)}番</div>`;
+      if (d.dispGakunen) html += `<div>${h(d.dispGakunen)}年${h(d.dispClass)}組 ${h(d.dispBango)}番</div>`;
       if (d.dispTel)     html += `<div>📞 ${h(d.dispTel)}</div>`;
       if (d.dispHogosya) html += `<div>👨‍👩‍👦 ${h(d.dispHogosya)}</div>`;
       mapSummary.innerHTML = html;
@@ -1550,7 +1782,7 @@ async function loadHistory(sid=SID) {
     try {
       // ① ヘッダーデータ（キャッシュ済みなら即時）を取得して即座にDOM更新
       const studentData = await fetchStudent(id);
-      window.SID = studentData.student_id;
+      SID = window.SID = studentData.student_id;
       history.pushState({sid:studentData.student_id}, '',
         '/karte/karte_detail.php?id='+encodeURIComponent(studentData.student_id)+(tab?'&tab='+encodeURIComponent(tab):''));
       updateHeader(studentData);
@@ -1745,8 +1977,8 @@ async function uploadPhoto(input) {
   input.value = '';
 }
 
-function openDrawer()  { document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
-function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+function toggleKebab(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.toggle('open'); }
+document.addEventListener('click', function() { const d = document.getElementById('kebabDropdown'); if(d) d.classList.remove('open'); });
 
 async function deletePhoto(e) {
   e.stopPropagation();
