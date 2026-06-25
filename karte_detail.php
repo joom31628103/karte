@@ -316,8 +316,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
-/* ── 小画面（〜640px） ── */
-@media(max-width:640px){
+/* ── 小画面（〜820px） ── */
+@media(max-width:820px){
   .fm-topbar-title{display:none;}
 }
 
