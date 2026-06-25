@@ -319,6 +319,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 /* ── 小画面（〜820px） ── */
 @media(max-width:820px){
   .fm-topbar-title{display:none;}
+  .fm-tabs{flex-wrap:wrap;overflow-x:visible;}
+  .fm-tabs::after{display:none;}
+  .fm-tab{flex:1 1 auto;min-width:calc(25% - 2px);justify-content:center;}
 }
 
 /* ── iPhone / 小型スマホ（〜480px） ── */
