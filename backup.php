@@ -21,6 +21,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($r['fail']) $msg .= "、{$r['fail']}名失敗 (" . implode(',',$r['ids']) . ')';
             $msgType = $r['fail'] ? 'warn' : 'ok';
 
+        } elseif ($act === 'download_zip') {
+            // 全バックアップJSONをZIPにまとめてダウンロード
+            karteBackupAll($conn); // 最新化
+            $files = glob(KARTE_BACKUP_DIR . '*.json') ?: [];
+            if (!class_exists('ZipArchive')) {
+                // ZipArchive非対応の場合: JSON全件を1ファイルにまとめてダウンロード
+                $conn->close();
+                $all = [];
+                foreach ($files as $f) {
+                    $sid = basename($f, '.json');
+                    $all[$sid] = json_decode(file_get_contents($f), true);
+                }
+                $json = json_encode($all, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                header('Content-Type: application/json; charset=UTF-8');
+                header('Content-Disposition: attachment; filename="karte_backup_'.date('Ymd_His').'.json"');
+                header('Content-Length: ' . strlen($json));
+                echo $json;
+                exit;
+            }
+            $zipFile = tempnam(sys_get_temp_dir(), 'karte_bak_') . '.zip';
+            $zip = new ZipArchive();
+            if ($zip->open($zipFile, ZipArchive::CREATE) !== true) {
+                $msg = 'ZIP作成に失敗しました'; $msgType = 'err';
+            } else {
+                foreach ($files as $f) $zip->addFile($f, basename($f));
+                $zip->close();
+                $conn->close();
+                header('Content-Type: application/zip');
+                header('Content-Disposition: attachment; filename="karte_backup_'.date('Ymd_His').'.zip"');
+                header('Content-Length: ' . filesize($zipFile));
+                readfile($zipFile);
+                @unlink($zipFile);
+                exit;
+            }
+
         } elseif ($act === 'restore_all') {
             $files = glob(KARTE_BACKUP_DIR . '*.json') ?: [];
             $ok = $fail = 0;
@@ -53,6 +88,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($file && file_exists($file)) { @unlink($file); $msg = "バージョン {$ts} を削除しました"; }
             else { $msg = 'ファイルが見つかりません'; $msgType = 'err'; }
             $viewSid = $sid;
+
+        } elseif ($act === 'restore_from_zip') {
+            $up = $_FILES['zipfile'] ?? null;
+            if (!$up || $up['error'] !== UPLOAD_ERR_OK) {
+                $msg = 'ファイルのアップロードに失敗しました'; $msgType = 'err';
+            } else {
+                $tmpPath = $up['tmp_name'];
+                $origName = strtolower($up['name'] ?? '');
+                $ok = $fail = 0;
+                $failIds = [];
+
+                if (str_ends_with($origName, '.zip') && class_exists('ZipArchive')) {
+                    // ZIP形式: 各 *.json を KARTE_BACKUP_DIR に書き込んで復元
+                    $zip = new ZipArchive();
+                    if ($zip->open($tmpPath) !== true) {
+                        $msg = 'ZIPファイルを開けませんでした'; $msgType = 'err';
+                    } else {
+                        for ($i = 0; $i < $zip->numFiles; $i++) {
+                            $name = $zip->getNameIndex($i);
+                            if (!str_ends_with($name, '.json')) continue;
+                            $sid = preg_replace('/[^a-zA-Z0-9_\-]/', '', basename($name, '.json'));
+                            if (!$sid) continue;
+                            $content = $zip->getFromIndex($i);
+                            if ($content === false) { $fail++; $failIds[] = $sid; continue; }
+                            if (!json_decode($content)) { $fail++; $failIds[] = $sid; continue; }
+                            file_put_contents(KARTE_BACKUP_DIR . $sid . '.json', $content);
+                            $r = karteRestoreStudent($conn, $sid);
+                            $r['success'] ? $ok++ : ($fail++ && ($failIds[] = $sid));
+                        }
+                        $zip->close();
+                        if ($ok === 0 && $fail === 0) {
+                            $msg = 'ZIPにJSONファイルが見つかりませんでした'; $msgType = 'warn';
+                        } else {
+                            $msg = "ZIP復元完了: {$ok}名成功";
+                            if ($fail) $msg .= "、{$fail}名失敗 (" . implode(',', $failIds) . ')';
+                            $msgType = $fail ? 'warn' : 'ok';
+                        }
+                    }
+                } else {
+                    // JSON bundle形式: { "sid": {...}, ... }
+                    $content = file_get_contents($tmpPath);
+                    $all = json_decode($content, true);
+                    if (!is_array($all)) {
+                        $msg = 'ファイル形式が正しくありません（ZIP または JSONバンドルが必要です）'; $msgType = 'err';
+                    } else {
+                        foreach ($all as $sid => $data) {
+                            $sid = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string)$sid);
+                            if (!$sid || !is_array($data)) { $fail++; continue; }
+                            file_put_contents(KARTE_BACKUP_DIR . $sid . '.json', json_encode($data, JSON_UNESCAPED_UNICODE));
+                            $r = karteRestoreStudent($conn, $sid);
+                            $r['success'] ? $ok++ : ($fail++ && ($failIds[] = $sid));
+                        }
+                        $msg = "JSONバンドル復元完了: {$ok}名成功";
+                        if ($fail) $msg .= "、{$fail}名失敗";
+                        $msgType = $fail ? 'warn' : 'ok';
+                    }
+                }
+            }
         }
     }
 }
@@ -146,7 +239,7 @@ tr:hover td{background:#eef1fb;}
 <body>
 <div class="topbar">
   <h1>💾 バックアップ &amp; バージョン管理</h1>
-  <a href="/karte/home.php">← 一覧</a>
+  <a href="/karte/home.php">🏠 HOME</a>
   <a href="/karte/api/export_excel.php" class="tbtn-excel tbtn">📊 Excelダウンロード（全生徒）</a>
 </div>
 
@@ -179,6 +272,22 @@ tr:hover td{background:#eef1fb;}
   </div>
 </div>
 
+<!-- ZIPから復元 -->
+<div class="card">
+  <h2>📦 ZIPバックアップから復元</h2>
+  <p style="font-size:.8rem;color:#5a6080;margin-bottom:10px;">「ZIPでダウンロード」で保存した .zip ファイル（または .json バンドル）をアップロードすると、全生徒のデータをDBに復元します。<br>既存データは上書きされます。</p>
+  <div class="import-box" id="zipRestoreBox">
+    <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+      <input type="hidden" name="action" value="restore_from_zip">
+      <label class="import-label" for="zipFile" style="background:#7c3aed;">📂 ファイルを選択（.zip / .json）</label>
+      <input type="file" id="zipFile" name="zipfile" accept=".zip,.json" onchange="startZipRestore(this)">
+    </form>
+    <div style="margin-top:8px;font-size:.78rem;color:#8899cc">または ここにファイルをドラッグ＆ドロップ</div>
+    <div id="zipRestoreResult"></div>
+  </div>
+</div>
+
 <!-- 一括操作 -->
 <div class="card">
   <h2>一括操作</h2>
@@ -187,6 +296,13 @@ tr:hover td{background:#eef1fb;}
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
       <input type="hidden" name="action" value="export_all">
       <button type="submit" class="btn btn-primary">📤 全員バックアップ今すぐ実行</button>
+    </form>
+    <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+      <input type="hidden" name="action" value="download_zip">
+      <button type="submit" class="btn btn-green" style="font-size:.85rem;padding:8px 18px;">
+        ⬇ ZIPでダウンロード（学籍リンク情報含む）
+      </button>
     </form>
     <form method="post" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')">
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
@@ -323,7 +439,7 @@ function doImport(file) {
     .catch(() => { res.innerHTML = '<span class="res-err">❌ 通信エラー</span>'; });
 }
 
-// ドラッグ＆ドロップ
+// ドラッグ＆ドロップ (Excel)
 const box = document.getElementById('importBox');
 box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('drag'); });
 box.addEventListener('dragleave', () => box.classList.remove('drag'));
@@ -331,6 +447,47 @@ box.addEventListener('drop', e => {
   e.preventDefault(); box.classList.remove('drag');
   const file = e.dataTransfer.files[0];
   if (file) doImport(file);
+});
+
+// ZIP復元
+function startZipRestore(input) {
+  const file = input.files[0];
+  if (!file) return;
+  doZipRestore(file);
+}
+
+function doZipRestore(file) {
+  const res = document.getElementById('zipRestoreResult');
+  if (!confirm('⚠ アップロードしたZIPでDBを上書き復元します。よろしいですか？')) return;
+  res.innerHTML = '<span style="color:#666">⏳ 復元中...</span>';
+  const fd = new FormData();
+  fd.append('csrf_token', csrf);
+  fd.append('action', 'restore_from_zip');
+  fd.append('zipfile', file);
+  fetch(location.pathname, { method: 'POST', body: fd })
+    .then(r => r.text())
+    .then(html => {
+      // レスポンスのmsgを抽出してリロード
+      const m = html.match(/class="msg ([^"]+)">([^<]+)/);
+      if (m) {
+        const cls = m[1], txt = m[2];
+        res.innerHTML = `<div class="msg ${cls}" style="margin-top:8px">${txt}</div>`;
+      } else {
+        res.innerHTML = '<span class="res-ok">✅ 完了</span>';
+      }
+      setTimeout(() => location.reload(), 2500);
+    })
+    .catch(() => { res.innerHTML = '<span class="res-err">❌ 通信エラー</span>'; });
+}
+
+// ドラッグ＆ドロップ (ZIP)
+const zipBox = document.getElementById('zipRestoreBox');
+zipBox.addEventListener('dragover', e => { e.preventDefault(); zipBox.classList.add('drag'); });
+zipBox.addEventListener('dragleave', () => zipBox.classList.remove('drag'));
+zipBox.addEventListener('drop', e => {
+  e.preventDefault(); zipBox.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) doZipRestore(file);
 });
 </script>
 </body>
