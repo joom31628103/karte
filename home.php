@@ -32,8 +32,16 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-topbar-title .dot{width:8px;height:8px;border-radius:50%;background:#6ee7b7;display:inline-block;}
 .fm-topbar-name{color:#c4d4ff;font-size:.85rem;font-weight:600;}
 .fm-topbar-right{display:flex;gap:6px;align-items:center;}
-.fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
-.fm-btn-top:hover{background:rgba(255,255,255,.25);}
+/* ハンバーガーメニュー */
+.kebab-menu{position:relative;}
+.kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;font-size:.9rem;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
+.kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
+.kebab-btn:hover{background:rgba(255,255,255,.25);}
+.kebab-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.kebab-dropdown.open{display:block;}
+.kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
+.kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
+.kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
 /* コンテンツ */
 .container{max-width:1020px;margin:0 auto;padding:16px 16px 48px;}
@@ -102,34 +110,15 @@ td:last-child{border-right:none;}
 
 .table-wrap{-webkit-overflow-scrolling:touch;}
 
-/* ── モバイルメニュー ── */
-.mobile-menu-btn{display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;font-size:1.1rem;cursor:pointer;line-height:1;}
-.mobile-menu-btn:hover{background:rgba(255,255,255,.25);}
-.mobile-drawer{display:none;position:fixed;top:0;right:0;bottom:0;width:220px;background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);z-index:300;padding:16px 12px;box-shadow:-4px 0 20px rgba(0,0,0,.4);flex-direction:column;gap:6px;}
-.mobile-drawer.open{display:flex;}
-.mobile-drawer a,.mobile-drawer button{display:block;padding:11px 14px;color:#e8ecff;text-decoration:none;font-size:.88rem;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);width:100%;text-align:left;font-family:inherit;cursor:pointer;}
-.mobile-drawer a:hover,.mobile-drawer button:hover{background:rgba(255,255,255,.2);}
-.mobile-drawer-close{font-size:1.2rem;color:#c4d4ff;background:none;border:none;cursor:pointer;align-self:flex-end;margin-bottom:4px;padding:4px;}
-.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:299;}
-.drawer-overlay.open{display:block;}
-
 @media(max-width:768px){
   .fm-topbar-name{display:none;}
   .container{padding:10px 12px 40px;}
   .stats{grid-template-columns:1fr 1fr 1fr;}
 }
-@media(max-width:600px){
-  /* トップバー：アイコンのみに縮小 */
-  .fm-btn-top .btn-label{display:none;}
-  .fm-btn-top{padding:6px 8px;font-size:1rem;}
-}
 @media(max-width:480px){
   body{font-size:12px;}
   .fm-topbar{padding:4px 8px;}
   .fm-topbar-title{font-size:.95rem;}
-  /* モバイルはハンバーガーメニューに切り替え */
-  .fm-topbar-right{display:none;}
-  .mobile-menu-btn{display:block;}
   .stats{gap:5px;}
   .stat-num{font-size:1.3rem;}
   .stat-label{font-size:.62rem;}
@@ -151,16 +140,20 @@ td:last-child{border-right:none;}
     <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
   <div class="fm-topbar-right">
-    <a href="/karte/gakuseki.php" class="fm-btn-top">📚<span class="btn-label"> 学籍管理</span></a>
-    <a href="/karte/student_manager.php" class="fm-btn-top">👥<span class="btn-label"> 生徒管理</span></a>
-    <a href="/karte/photo_import.php" class="fm-btn-top">📸<span class="btn-label"> 写真取込</span></a>
-    <a href="/karte/survey_import.php" class="fm-btn-top">📋<span class="btn-label"> 調査票取込</span></a>
-    <a href="/karte/structure.php" class="fm-btn-top">🗺<span class="btn-label"> 構造図</span></a>
-    <a href="/karte/backup.php" class="fm-btn-top">💾<span class="btn-label"> バックアップ</span></a>
-    <a href="/karte/account.php" class="fm-btn-top">⚙<span class="btn-label"> アカウント</span></a>
-    <a href="/karte/logout.php" class="fm-btn-top">🚪<span class="btn-label"> ログアウト</span></a>
+    <div class="kebab-menu">
+      <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+      <div class="kebab-dropdown" id="kebabDropdown">
+        <a href="/karte/gakuseki.php">📚 学籍管理</a>
+        <a href="/karte/student_manager.php">👥 生徒管理</a>
+        <a href="/karte/photo_import.php">📸 写真取込</a>
+        <a href="/karte/survey_import.php">📋 調査票取込</a>
+        <a href="/karte/structure.php">🗺 構造図</a>
+        <a href="/karte/backup.php">💾 バックアップ</a>
+        <a href="/karte/account.php">⚙ アカウント</a>
+        <a href="/karte/logout.php">🚪 ログアウト</a>
+      </div>
+    </div>
   </div>
-  <button class="mobile-menu-btn" onclick="openDrawer()">☰</button>
 </div>
 
 <!-- 前回の続きバー（JS で表示制御） -->
@@ -168,18 +161,6 @@ td:last-child{border-right:none;}
   <span class="resume-text" id="resumeText">前回の続きから</span>
   <a href="#" class="resume-btn" id="resumeBtn">続きから開く</a>
   <button class="resume-dismiss" id="resumeDismiss" title="閉じる">✕</button>
-</div>
-
-<!-- モバイルドロワー -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<div class="mobile-drawer" id="mobileDrawer">
-  <button class="mobile-drawer-close" onclick="closeDrawer()">✕</button>
-  <a href="/karte/gakuseki.php">📚 学籍管理</a>
-  <a href="/karte/student_manager.php">👥 生徒管理</a>
-  <a href="/karte/photo_import.php">📸 写真取込</a>
-  <a href="/karte/survey_import.php">📋 調査票取込</a>
-  <a href="/karte/structure.php">🗺 構造図</a>
-  <a href="/karte/logout.php">🚪 ログアウト</a>
 </div>
 
 <div class="container">
@@ -335,8 +316,8 @@ document.getElementById('btnSaveAdd').onclick = async () => {
 
 loadStudents();
 
-function openDrawer()  { document.getElementById('mobileDrawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); }
-function closeDrawer() { document.getElementById('mobileDrawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); }
+function toggleKebab(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.toggle('open'); }
+document.addEventListener('click', function() { document.getElementById('kebabDropdown').classList.remove('open'); });
 
 /* ── 前回の続きバー ── */
 (function(){
