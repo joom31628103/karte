@@ -284,6 +284,7 @@ tr:hover td{background:#eef1fb;}
           <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
             サーバーのJSONファイルを<strong>まとめてPCに保存</strong>します。<br>
             📦 形式: 全生徒分の個別 <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> を1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.zip</code> にまとめる<br>
+            ✅ 含まれる情報: 生徒情報・<strong>学籍台帳・年度別クラス</strong>・指導記録・出欠・面談<br>
             💡 端末の移行・外部保管・障害復旧の備えに
           </div>
           <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
