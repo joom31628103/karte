@@ -1583,12 +1583,13 @@ async function loadHistory(sid=SID) {
 
     // ヘッダーフィールド値（ID指定で確実にマッピング）
     const rows = document.querySelectorAll('#studentHeader .fm-field-value');
-    // DOM順: 年度(0) 学年(1) 組(2) 番号(3) 氏名(4) ふりがな(5) 保護者名(6) 電話(7) 生年月日(8) 性別(9) 住所(10)
+    // DOM順: 年度(0) 学年(1) 組(2) 番号(3) 出身中学校(4) 氏名(5) ふりがな(6) 保護者名(7) 電話(8) 生年月日(9) 性別(10) 住所(11)
     const vals = [
       d.dispNendo    || '—',
       d.dispGakunen  || '—',
       d.dispClass    || '—',
       d.dispBango    || '—',
+      d.dispShusshin || '—',
       d.dispName     || '—',
       d.dispFuri     || '—',
       d.dispHogosya  || '—',
@@ -1598,8 +1599,6 @@ async function loadHistory(sid=SID) {
       d.dispJyusyo   || '—',
     ];
     rows.forEach((el,i) => { if (vals[i]!==undefined) el.textContent=vals[i]; });
-    const shEl = document.getElementById('hdr-shusshin');
-    if (shEl) shEl.textContent = d.dispShusshin || '—';
 
     // prev/next/pos/total をALL_IDSから計算
     curPos = ALL_IDS.indexOf(d.student_id);
