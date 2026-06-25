@@ -267,99 +267,100 @@ tr:hover td{background:#eef1fb;}
 
 <!-- バックアップ・エクスポート -->
 <div class="card">
-  <h2>📤 バックアップ・エクスポート</h2>
+  <h2>📋 機能一覧</h2>
   <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
     <colgroup><col style="width:33%"><col style="width:33%"><col style="width:34%"></colgroup>
     <thead>
       <tr>
-        <th style="background:#2c5282;color:#fff;padding:8px 12px;border:1px solid #1a3a6e;font-size:.82rem;text-align:center;">💾 全員バックアップ今すぐ実行</th>
-        <th style="background:#276749;color:#fff;padding:8px 12px;border:1px solid #1a4a32;font-size:.82rem;text-align:center;">⬇ ZIPでダウンロード</th>
-        <th style="background:#276749;color:#fff;padding:8px 12px;border:1px solid #1a4a32;font-size:.82rem;text-align:center;">📊 Excelダウンロード</th>
+        <th style="background:#276749;color:#fff;padding:10px 12px;border:1px solid #1a4a32;font-size:.85rem;text-align:center;">⬇ ZIPでダウンロード</th>
+        <th style="background:#2c5282;color:#fff;padding:10px 12px;border:1px solid #1a3a6e;font-size:.85rem;text-align:center;">💾 全員バックアップ今すぐ実行</th>
+        <th style="background:#276749;color:#fff;padding:10px 12px;border:1px solid #1a4a32;font-size:.85rem;text-align:center;">📊 Excelダウンロード</th>
       </tr>
     </thead>
     <tbody>
-      <tr style="background:#f8f9fc;">
+      <!-- 上段: ダウンロード・バックアップ系 -->
+      <tr style="background:#f0f8f4;">
         <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
-          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
-            全生徒のデータを<strong>サーバー内に保存</strong>します。<br>
-            📄 形式: 生徒1人につき1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> ファイル<br>
-            📁 保存先: サーバーの <code style="background:#eef;padding:1px 4px;border-radius:3px;">data/students/</code><br>
-            🕐 世代履歴が自動作成されます
-          </div>
-          <div style="margin-top:10px;">
-            <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
-              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-              <input type="hidden" name="action" value="export_all">
-              <button type="submit" class="btn btn-primary" style="width:100%;">💾 実行</button>
-            </form>
-          </div>
-        </td>
-        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
-          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
             サーバーのJSONファイルを<strong>まとめてPCに保存</strong>します。<br>
-            📦 形式: 全生徒分の .json を1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.zip</code> にまとめてダウンロード<br>
-            💡 端末の移行・障害復旧・外部保管に使用します
+            📦 形式: 全生徒分の個別 <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> を1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.zip</code> にまとめる<br>
+            💡 端末の移行・外部保管・障害復旧の備えに
           </div>
-          <div style="margin-top:10px;">
-            <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
-              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-              <input type="hidden" name="action" value="download_zip">
-              <button type="submit" class="btn btn-green" style="width:100%;">⬇ ダウンロード</button>
-            </form>
-          </div>
+          <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+            <input type="hidden" name="action" value="download_zip">
+            <button type="submit" class="btn btn-green" style="width:100%;">⬇ ZIPでダウンロード</button>
+          </form>
         </td>
         <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
-          <div style="font-size:.78rem;color:#3a4060;line-height:1.7;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            全生徒のデータを<strong>サーバー内のJSONファイルに保存</strong>します。<br>
+            📄 形式: 生徒1人につき1つの <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> ファイル（別々に保存）<br>
+            🕐 世代履歴が自動作成され、過去の状態に戻せます
+          </div>
+          <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+            <input type="hidden" name="action" value="export_all">
+            <button type="submit" class="btn btn-primary" style="width:100%;">💾 全員バックアップ実行</button>
+          </form>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
             全生徒の指導記録・出欠・面談を<strong>表形式でPC保存</strong>します。<br>
             📊 形式: <code style="background:#eef;padding:1px 4px;border-radius:3px;">.xls</code>（Excel）ファイル<br>
-            💡 他のカルテへの取り込みや、Excel上での閲覧・印刷に使用します
+            💡 閲覧・印刷・他のカルテへの取り込みに使用
           </div>
-          <div style="margin-top:10px;">
-            <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:block;text-align:center;">📊 ダウンロード</a>
+          <a href="/karte/api/export_excel.php" class="btn btn-green" style="background:#276749;text-decoration:none;display:block;text-align:center;">📊 Excelダウンロード</a>
+        </td>
+      </tr>
+      <!-- 下段: 復元・インポート系 -->
+      <tr style="background:#fff8f8;">
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            ダウンロードした <code style="background:#eef;padding:1px 4px;border-radius:3px;">.zip</code> をアップロードしてDBを復元します。<br>
+            💡 端末移行・障害復旧時に使用<br>
+            <span style="color:#c53030;font-weight:700;">⚠ 既存データは上書きされます</span>
+          </div>
+          <div class="import-box" id="zipRestoreBox" style="padding:10px;">
+            <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+              <input type="hidden" name="action" value="restore_from_zip">
+              <label class="import-label" for="zipFile" style="background:#7c3aed;display:block;text-align:center;">📂 .zip / .json を選択</label>
+              <input type="file" id="zipFile" name="zipfile" accept=".zip,.json" onchange="startZipRestore(this)">
+            </form>
+            <div style="margin-top:5px;font-size:.72rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
+            <div id="zipRestoreResult"></div>
+          </div>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            サーバー内の最新 <code style="background:#eef;padding:1px 4px;border-radius:3px;">.json</code> ファイルでDBを上書き復元します。<br>
+            💡 誤操作などで直前の状態に戻したいときに使用<br>
+            <span style="color:#c53030;font-weight:700;">⚠ 既存データは上書きされます</span>
+          </div>
+          <form method="post" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+            <input type="hidden" name="action" value="restore_all">
+            <button type="submit" class="btn btn-danger" style="width:100%;">♻ サーバー上のバックアップから全員復元</button>
+          </form>
+        </td>
+        <td style="padding:12px;border:1px solid #d0d4dc;vertical-align:top;">
+          <div style="font-size:.77rem;color:#3a4060;line-height:1.7;margin-bottom:10px;">
+            <code style="background:#eef;padding:1px 4px;border-radius:3px;">.xls</code> をアップロードして別のカルテのデータを取り込みます。<br>
+            💡 他校・他担任のカルテからの移行に<br>
+            <span style="color:#276749;font-weight:700;">✔ 重複データは自動スキップ</span>
+          </div>
+          <div class="import-box" id="importBox" style="padding:10px;">
+            <label class="import-label" for="importFile" style="display:block;text-align:center;">📂 .xls を選択</label>
+            <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)">
+            <div style="margin-top:5px;font-size:.72rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
+            <div id="importResult"></div>
           </div>
         </td>
       </tr>
     </tbody>
   </table>
   <p class="path">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
-</div>
-
-<!-- インポート・復元 -->
-<div class="card">
-  <h2>📥 インポート・復元</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-    <!-- ZIP復元 -->
-    <div>
-      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:4px;">📦 ZIPバックアップから復元</div>
-      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">「ZIPでダウンロード」で保存したファイルを使って全生徒のDBを復元します。端末の移行・障害復旧時に使用。<br><span style="color:#c53030;font-weight:700;">※ 既存データは上書きされます</span></p>
-      <div class="import-box" id="zipRestoreBox">
-        <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-          <input type="hidden" name="action" value="restore_from_zip">
-          <label class="import-label" for="zipFile" style="background:#7c3aed;">📂 .zip / .json を選択</label>
-          <input type="file" id="zipFile" name="zipfile" accept=".zip,.json" onchange="startZipRestore(this)">
-        </form>
-        <div style="margin-top:6px;font-size:.75rem;color:#8899cc">ドラッグ＆ドロップも可</div>
-        <div id="zipRestoreResult"></div>
-      </div>
-      <form method="post" style="margin-top:8px;" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-        <input type="hidden" name="action" value="restore_all">
-        <button type="submit" class="btn btn-danger btn-sm">♻ サーバー上のバックアップから全員復元</button>
-      </form>
-    </div>
-    <!-- Excelインポート -->
-    <div>
-      <div style="font-size:.8rem;font-weight:700;color:#3a4060;margin-bottom:4px;">📊 Excelインポート</div>
-      <p style="font-size:.76rem;color:#5a6080;margin-bottom:8px;">「Excelダウンロード」で書き出したファイルを別のカルテに取り込みます。生徒・指導記録・出欠・面談を一括追加。<br><span style="color:#276749;font-weight:700;">※ 重複データは自動スキップ</span></p>
-      <div class="import-box" id="importBox">
-        <label class="import-label" for="importFile">📂 .xls を選択</label>
-        <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)">
-        <div style="margin-top:6px;font-size:.75rem;color:#8899cc">ドラッグ＆ドロップも可</div>
-        <div id="importResult"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- 生徒別一覧 -->
