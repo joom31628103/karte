@@ -2038,7 +2038,11 @@ async function deletePhoto(e) {
       if (e.key === 'Enter') { e.preventDefault(); goTo(+numInp.value); }
     });
     numInp.addEventListener('focus', () => numInp.select());
-    numInp.addEventListener('blur', () => { numInp.value = current; slider && (slider.value=current); });
+    numInp.addEventListener('blur', () => {
+      const pos = curPos + 1;
+      numInp.value = pos;
+      if (slider) slider.value = pos;
+    });
   }
 
 })();
