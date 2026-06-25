@@ -668,8 +668,7 @@ if ($prevId): ?>
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;" id="btnLinkGakno">変更</button>
         <button class="fm-save-btn" style="padding:5px 12px;font-size:.78rem;background:linear-gradient(180deg,#aab0cc 0%,#8890b0 100%);border-color:#6a7090;" id="btnUnlinkGakno">リンク解除</button>
       </div>
-      </div><!-- /#gakRefBody -->
-    </div>
+      </div><!-- /#gakRefBox -->
     <div id="gakLinkBox" class="gak-link-box" <?= $gak ? 'style="display:none"' : '' ?>>
       <strong>学籍台帳と未連携</strong> — 学籍番号を入力してリンクするか、<a href="/karte/gakuseki.php" style="color:#92400e">学籍管理</a>で登録してください。
       <div class="gak-link-form">
