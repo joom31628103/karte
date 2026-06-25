@@ -108,7 +108,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 /* ── 生徒情報ヘッダー ── */
 .fm-student-header{background:#f0f2f8;border-bottom:2px solid #aab0cc;padding:10px 14px;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s;}
 .fm-student-header.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;border-bottom-width:0;}
-.fm-header-row1{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
+.fm-header-row1{display:flex;gap:12px;align-items:flex-start;flex-wrap:nowrap;}
 .fm-header-fields{flex:1;min-width:0;}
 .fm-field-row{display:flex;gap:0;align-items:stretch;margin-bottom:5px;flex-wrap:wrap;}
 .fm-field{display:flex;flex-direction:column;flex:1;min-width:80px;}
@@ -333,9 +333,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-arrow{width:36px;height:36px;font-size:1.1rem;}
 
   .fm-student-header{padding:8px;}
-  .fm-field{min-width:90px;}
-  .fm-field-label{font-size:.64rem;}
-  .fm-field-value{font-size:.78rem;}
+  .fm-field{min-width:70px;}
+  .fm-field-label{font-size:.60rem;}
+  .fm-field-value{font-size:.74rem;}
+  .fm-photo{width:80px;height:100px;}
   .fm-photo{width:90px;height:112px;}
   .fm-tabs{padding:5px 6px 0;gap:1px;}
   .fm-tab{padding:0 10px;font-size:.75rem;min-height:44px;}
@@ -345,7 +346,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-table th,.fm-table td{padding:6px 7px;font-size:.76rem;}
   .fm-info-grid,.modal-2col,.posineg-grid{grid-template-columns:1fr;}
   .fm-info-group.full,.modal-2col>*{grid-column:1;}
-  .fm-header-row1{flex-direction:column;}
+  .fm-header-row1{flex-wrap:nowrap;}
   .modal{width:96%;}
   .modal-body{padding:12px;}
   .modal-2col{gap:8px;}
