@@ -319,9 +319,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 /* ── 小画面（〜820px） ── */
 @media(max-width:820px){
   .fm-topbar-title{display:none;}
-  .fm-tabs{flex-wrap:wrap;overflow-x:visible;}
+  .fm-tabs{flex-wrap:wrap;overflow-x:visible;padding-bottom:4px;border-bottom:3px solid #2c3e6b;}
   .fm-tabs::after{display:none;}
-  .fm-tab{flex:1 1 auto;min-width:calc(25% - 2px);justify-content:center;}
+  .fm-tab{flex:1 1 auto;min-width:calc(25% - 2px);justify-content:center;border-radius:5px 5px 0 0;margin-bottom:0;}
+  .fm-tab.active{background:#f0f2f8;color:#1a2240;border-color:#aab0cc;border-bottom:3px solid #6a7bb5;margin-bottom:0;padding-bottom:6px;}
 }
 
 /* ── iPhone / 小型スマホ（〜480px） ── */
