@@ -111,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($zip->open($tmpPath) !== true) {
                         $msg = 'ZIPファイルを開けませんでした'; $msgType = 'err';
                     } else {
+                        $firstErr = '';
                         for ($i = 0; $i < $zip->numFiles; $i++) {
                             $name = $zip->getNameIndex($i);
                             if (!str_ends_with($name, '.json')) continue;
@@ -119,16 +120,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $content = $zip->getFromIndex($i);
                             if ($content === false) { $fail++; $failIds[] = $sid; continue; }
                             if (!json_decode($content)) { $fail++; $failIds[] = $sid; continue; }
-                            file_put_contents(KARTE_BACKUP_DIR . $sid . '.json', $content);
+                            $written = file_put_contents(KARTE_BACKUP_DIR . $sid . '.json', $content);
+                            if ($written === false) {
+                                $fail++; $failIds[] = $sid;
+                                if (!$firstErr) $firstErr = "書込失敗: " . KARTE_BACKUP_DIR . $sid . '.json';
+                                continue;
+                            }
                             $r = karteRestoreStudent($conn, $sid);
-                            $r['success'] ? $ok++ : ($fail++ && ($failIds[] = $sid));
+                            if ($r['success']) {
+                                $ok++;
+                            } else {
+                                $fail++; $failIds[] = $sid;
+                                if (!$firstErr) $firstErr = $r['error'] ?? '不明なエラー';
+                            }
                         }
                         $zip->close();
                         if ($ok === 0 && $fail === 0) {
                             $msg = 'ZIPにJSONファイルが見つかりませんでした'; $msgType = 'warn';
                         } else {
                             $msg = "ZIP復元完了: {$ok}名成功";
-                            if ($fail) $msg .= "、{$fail}名失敗 (" . implode(',', $failIds) . ')';
+                            if ($fail) $msg .= "、{$fail}名失敗";
+                            if ($firstErr) $msg .= " — エラー例: {$firstErr}";
                             $msgType = $fail ? 'warn' : 'ok';
                         }
                     }
