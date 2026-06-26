@@ -516,7 +516,7 @@ if ($prevId): ?>
           <div class="fm-field-value" id="hdr-parent" data-filter="hogosya"><?= htmlspecialchars($dispHogosya ?: '—') ?></div>
         </div>
         <div class="fm-field">
-          <div class="fm-field-label">電話（保護者）</div>
+          <div class="fm-field-label">家庭代表電話</div>
           <div class="fm-field-value" id="hdr-tel" data-filter="tel"><?= htmlspecialchars($dispTel ?: '—') ?></div>
         </div>
       </div>
@@ -757,7 +757,7 @@ if ($prevId): ?>
         <input class="fm-info-input" id="b-gender" value="<?= htmlspecialchars($dispSeibetu) ?>" placeholder="男・女・その他"></div>
       <div class="fm-info-group"><label>生年月日</label>
         <input class="fm-info-input" id="b-bday" type="date" value="<?= htmlspecialchars($dispBday) ?>"></div>
-      <div class="fm-info-group"><label>生徒電話番号</label>
+      <div class="fm-info-group"><label>生徒携帯電話</label>
         <input class="fm-info-input" id="b-student-phone" value="<?= htmlspecialchars($s['student_phone']??'') ?>"></div>
       <div class="fm-info-group"><label>出身中学校</label>
         <input class="fm-info-input" id="b-school-from" value="<?= htmlspecialchars($dispShusshin) ?>"></div>
@@ -765,7 +765,7 @@ if ($prevId): ?>
         <input class="fm-info-input" id="b-parent" value="<?= htmlspecialchars($dispHogosya) ?>"></div>
       <div class="fm-info-group"><label>保護者ふりがな</label>
         <input class="fm-info-input" id="b-parent-furi" value="<?= htmlspecialchars($dispHogokana) ?>"></div>
-      <div class="fm-info-group"><label>電話（保護者）</label>
+      <div class="fm-info-group"><label>家庭代表電話</label>
         <input class="fm-info-input" id="b-phone" value="<?= htmlspecialchars($dispTel) ?>"></div>
       <div class="fm-info-group"><label>電話２</label>
         <input class="fm-info-input" id="b-phone2" value="<?= htmlspecialchars($dispTel2) ?>"></div>
