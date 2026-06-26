@@ -1038,6 +1038,9 @@ let   SID     = '<?= htmlspecialchars($sid) ?>';
 let   GAKNO   = '<?= htmlspecialchars($gakno) ?>';
 const today   = new Date().toISOString().split('T')[0];
 const ALL_IDS = <?= json_encode(array_values($idList)) ?>;
+if (new URLSearchParams(location.search).get('list') === '1') {
+  window.addEventListener('load', () => setTimeout(openHeaderList, 100));
+}
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
 function esc2(s){return String(s||'').replace(/'/g,"\\'");}

@@ -13,6 +13,7 @@ while ($r = $classRows->fetch_assoc()) $classes[] = $r['class_name'];
 $total   = (int)$conn->query("SELECT COUNT(*) AS c FROM students")->fetch_assoc()['c'];
 $recCnt  = (int)$conn->query("SELECT COUNT(*) AS c FROM karte_records")->fetch_assoc()['c'];
 $attCnt  = (int)$conn->query("SELECT COUNT(*) AS c FROM karte_attendance")->fetch_assoc()['c'];
+$firstSid = $conn->query("SELECT student_id FROM students ORDER BY class_name,seat_number,student_id LIMIT 1")->fetch_assoc()['student_id'] ?? '';
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -144,6 +145,7 @@ td:last-child{border-right:none;}
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
+        <?php if ($firstSid): ?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>&list=1">📋 一覧表示</a><?php endif; ?>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/photo_import.php">📸 写真取込</a>
