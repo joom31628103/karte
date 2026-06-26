@@ -4,6 +4,28 @@ requireLogin();
 $sid = $_GET['id'] ?? '';
 if (!$sid) { header('Location: /karte/home.php'); exit; }
 $conn = getDB();
+// 追加カラムが未存在の場合に自動作成
+foreach ([
+    "student_phone VARCHAR(50) DEFAULT NULL",
+    "parent1_name VARCHAR(100) DEFAULT NULL",
+    "parent1_furi VARCHAR(100) DEFAULT NULL",
+    "parent1_phone VARCHAR(50) DEFAULT NULL",
+    "parent1_phone_note VARCHAR(200) DEFAULT NULL",
+    "parent1_work_name VARCHAR(100) DEFAULT NULL",
+    "parent1_work_phone VARCHAR(50) DEFAULT NULL",
+    "parent1_work_note VARCHAR(200) DEFAULT NULL",
+    "parent2_name VARCHAR(100) DEFAULT NULL",
+    "parent2_furi VARCHAR(100) DEFAULT NULL",
+    "parent2_phone VARCHAR(50) DEFAULT NULL",
+    "parent2_phone_note VARCHAR(200) DEFAULT NULL",
+    "parent2_work_name VARCHAR(100) DEFAULT NULL",
+    "parent2_work_phone VARCHAR(50) DEFAULT NULL",
+    "parent2_work_note VARCHAR(200) DEFAULT NULL",
+    "primary_parent CHAR(1) DEFAULT '1'",
+    "school_from VARCHAR(100) DEFAULT NULL",
+] as $colDef) {
+    try { $conn->query("ALTER TABLE students ADD COLUMN $colDef"); } catch(Exception $e) {}
+}
 $s = $conn->query("SELECT * FROM students WHERE student_id='".$conn->real_escape_string($sid)."'")->fetch_assoc();
 if (!$s) { $conn->close(); header('Location: /karte/home.php'); exit; }
 
