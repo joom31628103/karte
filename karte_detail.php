@@ -356,36 +356,32 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
-/* ── 一覧表示モーダル ── */
-#headerListOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;overflow-y:auto;padding:20px 12px;}
-#headerListModal{background:#fff;border-radius:10px;max-width:1200px;margin:0 auto;overflow:hidden;}
-#headerListModal .hl-toolbar{background:#1a2a55;color:#e8ecff;padding:10px 16px;display:flex;align-items:center;gap:12px;}
-#headerListModal .hl-toolbar h2{font-size:1rem;font-weight:700;margin:0;flex:1;}
-#headerListModal .hl-close{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#e8ecff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.85rem;}
-#headerListModal .hl-count{font-size:.8rem;color:#a0b0d0;}
-#headerListBody{padding:12px;}
-.hl-row{display:grid;grid-template-columns:80px 50px 36px 36px 1fr;gap:0;border:1px solid #c5cce0;border-radius:6px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:box-shadow .12s;}
-.hl-row:hover{box-shadow:0 2px 8px rgba(26,42,85,.2);}
-.hl-row-top{display:flex;gap:0;border-bottom:1px solid #dde3ef;}
-.hl-cell{padding:4px 8px;font-size:.8rem;border-right:1px solid #dde3ef;}
-.hl-cell:last-child{border-right:none;}
-.hl-label{font-size:.68rem;color:#7080a0;font-weight:600;background:#f0f3fa;padding:2px 8px;border-bottom:1px solid #dde3ef;display:block;}
-.hl-val{display:block;font-size:.82rem;color:#1a1a2e;padding:3px 8px 4px;}
-.hl-name-cell{flex:1;border-right:1px solid #dde3ef;}
-.hl-furi-cell{flex:1;border-right:1px solid #dde3ef;}
-.hl-hogosya-cell{flex:1;border-right:1px solid #dde3ef;}
-.hl-tel-cell{min-width:130px;border-right:1px solid #dde3ef;}
-.hl-row-bot{display:flex;gap:0;}
-.hl-bday-cell{min-width:100px;border-right:1px solid #dde3ef;}
-.hl-sei-cell{min-width:40px;border-right:1px solid #dde3ef;}
-.hl-addr-cell{flex:1;border-right:1px solid #dde3ef;}
-.hl-shusshin-cell{min-width:160px;}
-.hl-photo{width:56px;border-right:1px solid #dde3ef;display:flex;align-items:center;justify-content:center;background:#f8f9fc;}
-.hl-photo img{width:48px;height:60px;object-fit:cover;border-radius:3px;}
-.hl-photo-empty{width:48px;height:60px;background:#e8ecf5;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#aab;font-size:1.2rem;}
-.hl-main{flex:1;}
-.hl-nendo-strip{background:#1a2a55;color:#c4d4ff;font-size:.72rem;padding:2px 8px;display:flex;gap:16px;}
-#hl-loading{text-align:center;padding:40px;color:#7080a0;font-size:.9rem;}
+/* ── 一覧表示画面 ── */
+#listScreen{display:none;position:fixed;inset:0;z-index:500;background:#f0f2f8;overflow-y:auto;flex-direction:column;}
+#listScreen.active{display:flex;}
+#listTopbar{background:linear-gradient(180deg,#2c3e6b 0%,#1a2a55 100%);color:#e8ecff;padding:6px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:2px solid #0f1e40;}
+#listTopbar h2{font-size:1rem;font-weight:700;margin:0;flex:1;}
+#listTopbar .hl-count{font-size:.8rem;color:#a0b0d0;}
+#listTopbar .hl-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#e8ecff;border-radius:6px;padding:5px 14px;cursor:pointer;font-size:.85rem;font-family:inherit;}
+#listTopbar .hl-back:hover{background:rgba(255,255,255,.28);}
+#listBody{padding:10px 14px;flex:1;}
+#hl-loading{text-align:center;padding:60px;color:#7080a0;font-size:.95rem;}
+.hl-card{border:1px solid #c5cce0;border-radius:6px;margin-bottom:10px;overflow:hidden;cursor:pointer;background:#fff;transition:box-shadow .12s;}
+.hl-card:hover{box-shadow:0 3px 10px rgba(26,42,85,.18);}
+.hl-strip{background:#1a2a55;color:#c4d4ff;font-size:.72rem;padding:3px 10px;display:flex;gap:0;align-items:stretch;}
+.hl-strip-cell{padding:2px 10px;border-right:1px solid rgba(255,255,255,.12);}
+.hl-strip-cell:last-child{flex:1;text-align:right;border-right:none;}
+.hl-body{display:flex;}
+.hl-photo{width:62px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#f0f3fa;border-right:1px solid #dde3ef;}
+.hl-photo img{width:52px;height:65px;object-fit:cover;border-radius:2px;}
+.hl-photo-empty{width:52px;height:65px;background:#e2e6f0;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#9aa;font-size:1.4rem;}
+.hl-fields{flex:1;}
+.hl-row1,.hl-row2{display:flex;border-bottom:1px solid #e8ecf5;}
+.hl-row2{border-bottom:none;}
+.hl-f{flex:1;border-right:1px solid #e8ecf5;min-width:0;}
+.hl-f:last-child{border-right:none;}
+.hl-f-lbl{font-size:.65rem;font-weight:700;color:#7080a0;background:#f5f7fc;padding:2px 8px;border-bottom:1px solid #e8ecf5;}
+.hl-f-val{font-size:.82rem;color:#1a1a2e;padding:3px 8px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ── 小画面（〜820px） ── */
 @media(max-width:820px){
@@ -2505,31 +2501,19 @@ document.addEventListener('DOMContentLoaded', initStudentHeader);
 function hlEsc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
 window.hlGoTo = function(sid) {
-  const ov = document.getElementById('headerListOverlay');
-  if (ov) ov.style.display = 'none';
+  document.getElementById('listScreen').classList.remove('active');
   if (window._karteGo) window._karteGo(encodeURIComponent(sid));
 };
 
+window.closeListScreen = function() {
+  document.getElementById('listScreen').classList.remove('active');
+};
+
 window.openHeaderList = async function() {
-  let overlay = document.getElementById('headerListOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'headerListOverlay';
-    overlay.innerHTML =
-      '<div id="headerListModal">' +
-        '<div class="hl-toolbar">' +
-          '<h2>📋 一覧表示</h2>' +
-          '<span class="hl-count" id="hlCount"></span>' +
-          '<button class="hl-close" onclick="document.getElementById(\'headerListOverlay\').style.display=\'none\'">✕ 閉じる</button>' +
-        '</div>' +
-        '<div id="headerListBody"><div id="hl-loading">読み込み中...</div></div>' +
-      '</div>';
-    overlay.addEventListener('click', function(ev){ if(ev.target===overlay) overlay.style.display='none'; });
-    document.body.appendChild(overlay);
-  } else {
-    document.getElementById('headerListBody').innerHTML = '<div id="hl-loading">読み込み中...</div>';
-  }
-  overlay.style.display = 'block';
+  const screen = document.getElementById('listScreen');
+  document.getElementById('listBody').innerHTML = '<div id="hl-loading">読み込み中...</div>';
+  document.getElementById('hlCount').textContent = '';
+  screen.classList.add('active');
 
   let j;
   try {
@@ -2537,11 +2521,11 @@ window.openHeaderList = async function() {
     const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
     j = await res.json();
   } catch(err) {
-    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">読み込みエラー: ' + err.message + '</p>';
+    document.getElementById('listBody').innerHTML = '<p style="padding:20px;color:red">読み込みエラー: ' + err.message + '</p>';
     return;
   }
   if (!j || !j.success) {
-    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">エラー: ' + (j && j.error ? j.error : '不明') + '</p>';
+    document.getElementById('listBody').innerHTML = '<p style="padding:20px;color:red">エラー: ' + (j && j.error ? j.error : '不明') + '</p>';
     return;
   }
 
@@ -2551,41 +2535,51 @@ window.openHeaderList = async function() {
     const parts = [];
     j.rows.forEach(function(r) {
       const photoHtml = r.photo
-        ? '<img src="' + hlEsc(r.photo) + '" alt="" onerror="this.style.display=\'none\'">'
+        ? '<img src="' + hlEsc(r.photo) + '" alt="" onerror="this.parentNode.innerHTML=\'<div class=hl-photo-empty>👤</div>\'">'
         : '<div class="hl-photo-empty">👤</div>';
       parts.push(
-        '<div class="hl-row" onclick="hlGoTo(\'' + hlEsc(r.student_id) + '\')">' +
-          '<div style="display:flex">' +
+        '<div class="hl-card" onclick="hlGoTo(\'' + hlEsc(r.student_id) + '\')">' +
+          '<div class="hl-strip">' +
+            '<span class="hl-strip-cell">年度: ' + hlEsc(r.nendo) + '</span>' +
+            '<span class="hl-strip-cell">学年: ' + hlEsc(r.gakunen) + '</span>' +
+            '<span class="hl-strip-cell">組: ' + hlEsc(r.class_no) + '</span>' +
+            '<span class="hl-strip-cell">番号: ' + hlEsc(r.bango) + '</span>' +
+            '<span class="hl-strip-cell">' + hlEsc(r.shusshin) + '</span>' +
+          '</div>' +
+          '<div class="hl-body">' +
             '<div class="hl-photo">' + photoHtml + '</div>' +
-            '<div class="hl-main">' +
-              '<div class="hl-nendo-strip">' +
-                '<span>年度: ' + hlEsc(r.nendo) + '</span>' +
-                '<span>学年: ' + hlEsc(r.gakunen) + '</span>' +
-                '<span>組: ' + hlEsc(r.class_no) + '</span>' +
-                '<span>番号: ' + hlEsc(r.bango) + '</span>' +
-                '<span style="flex:1;text-align:right">' + hlEsc(r.shusshin) + '</span>' +
+            '<div class="hl-fields">' +
+              '<div class="hl-row1">' +
+                '<div class="hl-f"><div class="hl-f-lbl">氏名</div><div class="hl-f-val">' + hlEsc(r.name) + '</div></div>' +
+                '<div class="hl-f"><div class="hl-f-lbl">ふりがな</div><div class="hl-f-val">' + hlEsc(r.furigana) + '</div></div>' +
+                '<div class="hl-f"><div class="hl-f-lbl">保護者名</div><div class="hl-f-val">' + hlEsc(r.hogosya) + '</div></div>' +
+                '<div class="hl-f" style="max-width:160px"><div class="hl-f-lbl">家庭代表電話</div><div class="hl-f-val">' + hlEsc(r.tel) + '</div></div>' +
               '</div>' +
-              '<div class="hl-row-top">' +
-                '<div class="hl-name-cell"><span class="hl-label">氏名</span><span class="hl-val">' + hlEsc(r.name) + '</span></div>' +
-                '<div class="hl-furi-cell"><span class="hl-label">ふりがな</span><span class="hl-val">' + hlEsc(r.furigana) + '</span></div>' +
-                '<div class="hl-hogosya-cell"><span class="hl-label">保護者名</span><span class="hl-val">' + hlEsc(r.hogosya) + '</span></div>' +
-                '<div class="hl-tel-cell"><span class="hl-label">家庭代表電話</span><span class="hl-val">' + hlEsc(r.tel) + '</span></div>' +
-              '</div>' +
-              '<div class="hl-row-bot">' +
-                '<div class="hl-bday-cell"><span class="hl-label">生年月日</span><span class="hl-val">' + hlEsc(r.birthday) + '</span></div>' +
-                '<div class="hl-sei-cell"><span class="hl-label">性別</span><span class="hl-val">' + hlEsc(r.seibetu) + '</span></div>' +
-                '<div class="hl-addr-cell"><span class="hl-label">住所</span><span class="hl-val">' + hlEsc(r.address) + '</span></div>' +
+              '<div class="hl-row2">' +
+                '<div class="hl-f" style="max-width:110px"><div class="hl-f-lbl">生年月日</div><div class="hl-f-val">' + hlEsc(r.birthday) + '</div></div>' +
+                '<div class="hl-f" style="max-width:50px"><div class="hl-f-lbl">性別</div><div class="hl-f-val">' + hlEsc(r.seibetu) + '</div></div>' +
+                '<div class="hl-f"><div class="hl-f-lbl">住所</div><div class="hl-f-val">' + hlEsc(r.address) + '</div></div>' +
               '</div>' +
             '</div>' +
           '</div>' +
         '</div>'
       );
     });
-    document.getElementById('headerListBody').innerHTML = parts.length ? parts.join('') : '<p style="padding:20px;color:#888">データがありません</p>';
+    document.getElementById('listBody').innerHTML = parts.length ? parts.join('') : '<p style="padding:20px;color:#888">データがありません</p>';
   } catch(renderErr) {
-    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">表示エラー: ' + renderErr.message + '</p>';
+    document.getElementById('listBody').innerHTML = '<p style="padding:20px;color:red">表示エラー: ' + renderErr.message + '</p>';
   }
 };
 </script>
+
+<!-- 一覧表示画面 -->
+<div id="listScreen">
+  <div id="listTopbar">
+    <h2>📋 一覧表示</h2>
+    <span class="hl-count" id="hlCount"></span>
+    <button class="hl-back" onclick="closeListScreen()">← 戻る</button>
+  </div>
+  <div id="listBody"></div>
+</div>
 </body>
 </html>
