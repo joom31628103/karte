@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     'birthday'   => $r2['g_birthday'] ?: $r2['birthday'],
                     'seibetu'    => $r2['seibetu'] ?: $r2['gender'],
                     'address'    => $r2['yuubin'] ? '〒'.$r2['yuubin'].' '.$r2['jyusyo'] : ($r2['jyusyo'] ?: $r2['address']),
-                    'photo'      => $photo ? '/karte/uploads/photos/'.rawurlencode($photo) : '',
+                    'photo'      => $photo ?? '',
                 ];
             }
             jout(['success'=>true,'rows'=>$rows]);
