@@ -145,6 +145,7 @@ td:last-child{border-right:none;}
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
+        <?php if ($firstSid): ?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>">🏫 生徒情報</a><?php endif; ?>
         <?php if ($firstSid): ?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>&list=1">📋 一覧表示</a><?php endif; ?>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
