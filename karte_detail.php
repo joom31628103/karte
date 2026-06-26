@@ -1947,6 +1947,7 @@ async function loadHistory(sid=SID) {
   // マウスホイール（デスクトップ・Chromebook）
   let wheelAcc = 0, wheelTimer = null;
   document.addEventListener('wheel', e => {
+    if (document.getElementById('listScreen')?.classList.contains('active')) return;
     if (e.target.closest('textarea,select,.fm-table-wrap,.fm-tabs,iframe')) return;
     e.preventDefault();
     wheelAcc += e.deltaY;
@@ -1962,6 +1963,7 @@ async function loadHistory(sid=SID) {
   let tx=0, ty=0;
   document.addEventListener('touchstart', e => { tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
   document.addEventListener('touchend', e => {
+    if (document.getElementById('listScreen')?.classList.contains('active')) return;
     const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
     if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50) go(dx<0?NEXT:PREV);
   }, {passive:true});
