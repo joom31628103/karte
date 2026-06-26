@@ -2092,7 +2092,11 @@ async function uploadPhoto(input) {
 }
 
 function toggleKebab(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.toggle('open'); }
-document.addEventListener('click', function() { const d = document.getElementById('kebabDropdown'); if(d) d.classList.remove('open'); });
+function toggleListKebab(e) { e.stopPropagation(); document.getElementById('listKebabDropdown').classList.toggle('open'); }
+document.addEventListener('click', function() {
+  const d = document.getElementById('kebabDropdown'); if(d) d.classList.remove('open');
+  const d2 = document.getElementById('listKebabDropdown'); if(d2) d2.classList.remove('open');
+});
 
 async function deletePhoto(e) {
   e.stopPropagation();
@@ -2580,9 +2584,21 @@ window.openHeaderList = async function() {
 <!-- 一覧表示画面 -->
 <div id="listScreen">
   <div id="listTopbar">
+    <button class="hl-back" onclick="closeListScreen()">← 戻る</button>
     <h2>📋 一覧表示</h2>
     <span class="hl-count" id="hlCount"></span>
-    <button class="hl-back" onclick="closeListScreen()">← 戻る</button>
+    <div class="kebab-menu" style="margin-left:auto;">
+      <button class="kebab-btn" onclick="toggleListKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+      <div class="kebab-dropdown" id="listKebabDropdown">
+        <a href="/karte/karte_detail.php?id=<?= urlencode($sid) ?>">🏫 生徒情報</a>
+        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
+        <a href="/karte/gakuseki.php">📚 学籍管理</a>
+        <a href="/karte/home.php">🏠 HOME</a>
+        <a href="/karte/backup.php">🗄️ バックアップ</a>
+        <a href="/karte/account.php">⚙ アカウント</a>
+        <a href="/karte/logout.php">🚪 ログアウト</a>
+      </div>
+    </div>
   </div>
   <div id="listBody"></div>
 </div>
