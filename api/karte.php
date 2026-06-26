@@ -58,6 +58,9 @@ function logActivity(mysqli $conn, string $studentId, string $actionType, string
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     switch ($action) {
 
+        case 'keepalive':
+            jout(['success'=>true]);
+
         case 'student_summary':
             $result = ps($conn, "
                 SELECT s.student_id, s.name, s.furigana, s.class_name, s.seat_number,

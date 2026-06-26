@@ -2361,6 +2361,112 @@ document.addEventListener('DOMContentLoaded', initStudentHeader);
     if (filterActive) window.cancelFilterMode();
   };
 })();
+
+/* ══════════════════════════════════════════════
+   セッション維持 & 切断対応
+══════════════════════════════════════════════ */
+(function(){
+  const STORAGE_KEY = 'karte_draft_' + SID;
+  const KEEPALIVE_INTERVAL = 3 * 60 * 1000; // 3分ごと
+
+  /* ── keepalive ping ── */
+  setInterval(async () => {
+    try {
+      await fetch('/karte/api/karte.php?action=keepalive', {cache:'no-store'});
+    } catch(e) {}
+  }, KEEPALIVE_INTERVAL);
+
+  /* ── 入力フィールドの収集 ── */
+  function collectDraft() {
+    const ids = [
+      'b-name','b-furi','b-class','b-seat','b-gender','b-bday',
+      'b-phone','b-parent','b-addr','b-notes','b-school-from','b-student-phone',
+      'b-p1-name','b-p1-furi','b-p1-phone','b-p1-phone-note',
+      'b-p1-work-name','b-p1-work-phone','b-p1-work-note',
+      'b-p2-name','b-p2-furi','b-p2-phone','b-p2-phone-note',
+      'b-p2-work-name','b-p2-work-phone','b-p2-work-note',
+      'memo-main','memo-posi','memo-nega','family-notes'
+    ];
+    const draft = {_ts: Date.now()};
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) draft[id] = el.value;
+    });
+    const pri = document.querySelector('input[name="pri_parent"]:checked');
+    if (pri) draft['_pri_parent'] = pri.value;
+    return draft;
+  }
+
+  /* ── draft を localStorage に保存 ── */
+  function saveDraft() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectDraft()));
+    } catch(e) {}
+  }
+
+  /* ── draft を復元 ── */
+  function restoreDraft(draft) {
+    Object.keys(draft).forEach(id => {
+      if (id.startsWith('_')) return;
+      const el = document.getElementById(id);
+      if (el) el.value = draft[id];
+    });
+    if (draft['_pri_parent']) {
+      const r = document.querySelector(`input[name="pri_parent"][value="${draft['_pri_parent']}"]`);
+      if (r) r.checked = true;
+    }
+  }
+
+  /* ── セッション切断バナー表示 ── */
+  function showSessionBanner() {
+    if (document.getElementById('session-expired-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'session-expired-banner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#c53030;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;font-size:.9rem;box-shadow:0 2px 8px rgba(0,0,0,.3);';
+    banner.innerHTML = `
+      <span style="flex:1">⚠ セッションが切れました。入力内容を保存しました。新しいタブでログインしてから、このページを再読み込みしてください。</span>
+      <button onclick="window.open('/karte/index.php','_blank')" style="background:#fff;color:#c53030;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-weight:700;white-space:nowrap">ログイン画面を開く</button>
+    `;
+    document.body.prepend(banner);
+  }
+
+  /* ── fetch をラップして401を検知 ── */
+  const _origFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const res = await _origFetch(...args);
+    if (res.status === 401) {
+      saveDraft();
+      showSessionBanner();
+      return res;
+    }
+    return res;
+  };
+
+  /* ── ページ読み込み時に draft があれば復元 ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      const age = Date.now() - (draft._ts || 0);
+      if (age > 24 * 60 * 60 * 1000) { localStorage.removeItem(STORAGE_KEY); return; }
+      if (confirm('前回の未保存の入力内容があります。復元しますか？')) {
+        restoreDraft(draft);
+      }
+      localStorage.removeItem(STORAGE_KEY);
+    } catch(e) {}
+  });
+
+  /* ── 保存成功時に draft を削除 ── */
+  const _btnSave = document.getElementById('btnSaveBasic');
+  if (_btnSave) {
+    const _orig = _btnSave.onclick;
+    _btnSave.onclick = async function(e) {
+      await _orig?.call(this, e);
+      localStorage.removeItem(STORAGE_KEY);
+    };
+  }
+})();
 </script>
 </body>
 </html>
