@@ -20,11 +20,13 @@ if ($_is_local) {
     define('DB_NAME', 'opened_karte_db');
 }
 
-/* ── Gemini API ── */
-// Gemini APIキーは config.local.php に記載（gitignore済み）
-define('GEMINI_API_KEY', file_exists(__DIR__.'/config.local.php')
-    ? (require __DIR__.'/config.local.php')
-    : '');
+/* ── ローカル設定（APIキー・環境名など、gitignore済み） ── */
+if (file_exists(__DIR__.'/config.local.php')) {
+    require_once __DIR__.'/config.local.php';
+}
+if (!defined('GEMINI_API_KEY')) define('GEMINI_API_KEY', '');
+// ENV_NAME: 'work'=職場localhost / 'home'=家localhost / 'sakura'=本番（自動）
+if (!defined('ENV_NAME')) define('ENV_NAME', $_is_local ? 'local' : 'sakura');
 
 /* ── セキュリティヘッダー送信 ── */
 function sendSecurityHeaders(): void {
@@ -44,6 +46,7 @@ function getDB(): mysqli {
         die(_isAjax() ? json_encode(['success'=>false,'error'=>'DB接続エラー']) : 'DB接続エラー');
     }
     $conn->set_charset('utf8mb4');
+    $conn->query("SET collation_connection = 'utf8mb4_unicode_ci'");
     try { $selected = $conn->select_db(DB_NAME); } catch (Exception $e) { $selected = false; }
     if (!$selected) {
         $conn->close();

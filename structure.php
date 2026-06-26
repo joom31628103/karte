@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 ?>
@@ -6,6 +6,7 @@ requireLogin();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>システム構造図 - 生徒カルテ</title>
 <style>
@@ -119,7 +120,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 
 <div class="topbar">
   <div class="topbar-title"><span class="dot"></span>生徒カルテ — システム構造図</div>
-  <a href="/karte/home.php" class="back-btn">← ホームへ戻る</a>
+  <a href="/karte/home.php" class="back-btn">🏠 HOME</a>
 </div>
 
 <div class="tab-bar">

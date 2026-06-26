@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 sendSecurityHeaders();
 startSession();
@@ -71,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>生徒カルテ ログイン</title>
 <style>

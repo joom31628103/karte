@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 sendSecurityHeaders();
@@ -85,6 +85,7 @@ $csrf = generateCsrfToken();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>アカウント設定 — 生徒カルテ</title>
 <style>
@@ -123,7 +124,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 <div class="fm-topbar">
   <div class="fm-topbar-title"><span class="dot"></span>生徒カルテ — アカウント設定</div>
   <div class="fm-topbar-right">
-    <a href="/karte/home.php" class="fm-btn-top">← 一覧へ</a>
+    <a href="/karte/home.php" class="fm-btn-top">🏠 HOME</a>
     <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
 </div>

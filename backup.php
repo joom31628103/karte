@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 require_once 'lib/backup.php';
 requireLogin();
@@ -201,6 +201,7 @@ $csrf = generateCsrfToken();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ZIPバックアップ＆復元 — カルテ</title>
 <style>
@@ -287,6 +288,25 @@ tr:hover td{background:#eef1fb;}
   .func-grid-3{grid-template-columns:1fr;}
   .func-grid-2{grid-template-columns:1fr;}
 }
+
+/* ── 4機能グリッド ── */
+.box4-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+@media(max-width:1100px){.box4-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.box4-grid{grid-template-columns:1fr;}}
+.box4{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;}
+.box4-header{padding:10px 14px;font-size:.88rem;font-weight:900;letter-spacing:.03em;color:#fff;}
+.box4-hdr-green{background:linear-gradient(135deg,#276749,#38a169);}
+.box4-hdr-blue{background:linear-gradient(135deg,#2c5282,#4a7cc9);}
+.box4-hdr-excel{background:linear-gradient(135deg,#1a5c2a,#2e9148);}
+.box4-hdr-brown{background:linear-gradient(135deg,#744210,#c47a2a);}
+.box4-section{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.box4-section+.box4-section{border-top:2px solid #e2e8f0;}
+.box4-out{background:#f6fff9;}
+.box4-in{background:#fff8f8;}
+.box4-section-label{font-size:.7rem;font-weight:800;color:#8899cc;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;}
+.box4-desc{font-size:.74rem;color:#4a5070;line-height:1.7;flex:1;}
+.box4-desc code{background:#eef;padding:1px 4px;border-radius:3px;font-size:.85em;}
+.box4-footer{padding:6px 14px;font-size:.68rem;color:#8899cc;background:#f0f2f8;border-top:1px solid #e0e4ef;word-break:break-all;}
 </style>
 </head>
 <body>
@@ -312,162 +332,127 @@ tr:hover td{background:#eef1fb;}
   <div class="stat"><div class="num"><?= round(array_sum(array_column($backups,'size')),1) ?>KB</div><div class="lbl">合計サイズ</div></div>
 </div>
 
-<!-- バックアップ・エクスポート -->
-<div class="card">
-  <h2>🗂️ JSON世代管理復元機能</h2>
+<!-- 4機能グリッド -->
+<div class="box4-grid">
 
-  <!-- ── ダウンロード系（ZIP・JSON） ── -->
-  <div class="func-group">
-    <div class="func-group-label func-label-dl">⬇ ダウンロード・バックアップ</div>
-    <div class="func-grid func-grid-2">
-
-      <div class="func-item">
-        <div class="func-icon func-icon-green">📦</div>
-        <div class="func-title">ZIPでダウンロード</div>
-        <div class="func-desc">
-          全生徒の個別 <code>.json</code> を <code>.zip</code> にまとめてPCに保存。<br>
-          端末移行・外部保管・障害復旧の備えに。<br>
-          <span class="tag tag-green">学籍台帳・年度別クラス含む</span>
-        </div>
-        <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')" style="margin-top:auto;">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-          <input type="hidden" name="action" value="download_zip">
-          <button type="submit" class="func-btn func-btn-green">⬇ ZIPでダウンロード</button>
-        </form>
+  <!-- ① ZIPバックアップ -->
+  <div class="box4">
+    <div class="box4-header box4-hdr-green">📦 ZIPバックアップ</div>
+    <div class="box4-section box4-out">
+      <div class="box4-section-label">⬇ 出力</div>
+      <div class="box4-desc">
+        全生徒の <code>.json</code> を <code>.zip</code> にまとめてPCに保存。<br>
+        <span class="tag tag-green">学籍台帳・年度別クラス含む</span>
       </div>
-
-      <div class="func-item">
-        <div class="func-icon func-icon-blue">💾</div>
-        <div class="func-title">全員バックアップ実行</div>
-        <div class="func-desc">
-          全生徒を <code>.json</code> ファイルとしてサーバーに保存。<br>
-          世代履歴が自動作成され、過去の状態に戻せます。
-        </div>
-        <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')" style="margin-top:auto;">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-          <input type="hidden" name="action" value="export_all">
-          <button type="submit" class="func-btn func-btn-blue">💾 全員バックアップ実行</button>
-        </form>
+      <form method="post" onsubmit="return confirm('最新状態にバックアップしてZIPでダウンロードします。よろしいですか？')">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+        <input type="hidden" name="action" value="download_zip">
+        <button type="submit" class="func-btn func-btn-green">⬇ ZIPでダウンロード</button>
+      </form>
+    </div>
+    <div class="box4-section box4-in">
+      <div class="box4-section-label">⬆ 入力</div>
+      <div class="box4-desc">
+        ダウンロードした <code>.zip</code> をアップロードしてDBを復元。<br>
+        <span class="tag tag-danger">⚠ 既存データは上書き</span>
       </div>
+      <div class="import-box" id="zipRestoreBox">
+        <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+          <input type="hidden" name="action" value="restore_from_zip">
+          <label class="func-btn func-btn-purple" for="zipFile" style="display:block;text-align:center;cursor:pointer;">📂 .zip / .json を選択</label>
+          <input type="file" id="zipFile" name="zipfile" accept=".zip,.json" onchange="startZipRestore(this)" style="display:none;">
+        </form>
+        <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
+        <div id="zipRestoreResult"></div>
+      </div>
+    </div>
+    <div class="box4-footer">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> | 世代保持: <?= KARTE_BACKUP_KEEP ?>件</div>
+  </div>
 
+  <!-- ② JSON世代管理 -->
+  <div class="box4">
+    <div class="box4-header box4-hdr-blue">🗂️ JSON世代管理</div>
+    <div class="box4-section box4-out">
+      <div class="box4-section-label">⬇ 出力（サーバーに保存）</div>
+      <div class="box4-desc">
+        全生徒を <code>.json</code> としてサーバーに保存。<br>
+        世代履歴が自動作成され、過去の状態に戻せます。
+      </div>
+      <form method="post" onsubmit="return confirm('全生徒のバックアップを更新しますか？')">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+        <input type="hidden" name="action" value="export_all">
+        <button type="submit" class="func-btn func-btn-blue">💾 全員バックアップ実行</button>
+      </form>
+    </div>
+    <div class="box4-section box4-in">
+      <div class="box4-section-label">⬆ 入力（サーバーから復元）</div>
+      <div class="box4-desc">
+        サーバー内の最新 <code>.json</code> でDBを上書き復元。<br>
+        <span class="tag tag-danger">⚠ 既存データは上書き</span><br>
+        <span style="font-size:.72rem;color:#5a6080;">個別復元は下の一覧表から</span>
+      </div>
+      <form method="post" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
+        <input type="hidden" name="action" value="restore_all">
+        <button type="submit" class="func-btn func-btn-red">♻ サーバーから全員復元</button>
+      </form>
     </div>
   </div>
 
-  <!-- ── 復元系（ZIP・JSON） ── -->
-  <div class="func-group" style="margin-top:14px;">
-    <div class="func-group-label func-label-restore">♻ 復元</div>
-    <div class="func-grid func-grid-2">
-
-      <div class="func-item func-item-danger">
-        <div class="func-icon func-icon-purple">📂</div>
-        <div class="func-title">ZIPから復元</div>
-        <div class="func-desc">
-          ダウンロードした <code>.zip</code> をアップロードしてDBを復元。<br>
-          端末移行・障害復旧時に使用。<br>
-          <span class="tag tag-danger">⚠ 既存データは上書き</span>
-        </div>
-        <div class="import-box" id="zipRestoreBox" style="margin-top:auto;">
-          <form method="post" enctype="multipart/form-data" id="zipRestoreForm">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-            <input type="hidden" name="action" value="restore_from_zip">
-            <label class="func-btn func-btn-purple" for="zipFile" style="display:block;text-align:center;cursor:pointer;">📂 .zip / .json を選択</label>
-            <input type="file" id="zipFile" name="zipfile" accept=".zip,.json" onchange="startZipRestore(this)" style="display:none;">
-          </form>
-          <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
-          <div id="zipRestoreResult"></div>
-        </div>
-      </div>
-
-      <div class="func-item func-item-danger">
-        <div class="func-icon func-icon-red">♻</div>
-        <div class="func-title">サーバーから全員復元</div>
-        <div class="func-desc">
-          サーバー内の最新 <code>.json</code> でDBを上書き復元。<br>
-          誤操作などで直前の状態に戻したいときに使用。<br>
-          <span class="tag tag-danger">⚠ 既存データは上書き</span><br>
-          <span style="font-size:.72rem;color:#5a6080;">個別復元は下の一覧表から</span>
-        </div>
-        <form method="post" onsubmit="return confirm('⚠ 全JSONファイルでDBを上書きします。よろしいですか？')" style="margin-top:auto;">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
-          <input type="hidden" name="action" value="restore_all">
-          <button type="submit" class="func-btn func-btn-red">♻ サーバーから全員復元</button>
-        </form>
-      </div>
-
-    </div>
-  </div>
-
-  <p class="path" style="margin-top:10px;">📁 <?= htmlspecialchars(KARTE_BACKUP_DIR) ?> &nbsp;|&nbsp; 世代保持数: <?= KARTE_BACKUP_KEEP ?>件/生徒</p>
-</div>
-
-<!-- Excel連携機能 -->
-<div class="card">
-  <h2>📊 Excel連携機能</h2>
-  <div class="func-grid func-grid-2">
-
-    <div class="func-item">
-      <div class="func-icon func-icon-green">📊</div>
-      <div class="func-title">Excelダウンロード</div>
-      <div class="func-desc">
+  <!-- ③ Excel連携 -->
+  <div class="box4">
+    <div class="box4-header box4-hdr-excel">📊 Excel連携機能</div>
+    <div class="box4-section box4-out">
+      <div class="box4-section-label">⬇ 出力</div>
+      <div class="box4-desc">
         指導記録・出欠・面談を <code>.xls</code> 形式でPC保存。<br>
         閲覧・印刷・他のカルテへの取り込みに使用。
       </div>
-      <a href="/karte/api/export_excel.php" class="func-btn func-btn-green" style="text-decoration:none;margin-top:auto;">📊 Excelダウンロード</a>
+      <a href="/karte/api/export_excel.php" class="func-btn func-btn-green" style="text-decoration:none;display:block;text-align:center;">📊 Excelダウンロード</a>
     </div>
-
-    <div class="func-item">
-      <div class="func-icon func-icon-green">📥</div>
-      <div class="func-title">Excelインポート</div>
-      <div class="func-desc">
+    <div class="box4-section box4-in">
+      <div class="box4-section-label">⬆ 入力</div>
+      <div class="box4-desc">
         <code>.xls</code> をアップロードして別のカルテのデータを取り込み。<br>
-        他校・他担任のカルテからの移行に。<br>
         <span class="tag tag-green">✔ 重複データは自動スキップ</span>
       </div>
-      <div class="import-box" id="importBox" style="margin-top:auto;">
+      <div class="import-box" id="importBox">
         <label class="func-btn func-btn-green" for="importFile" style="display:block;text-align:center;cursor:pointer;">📂 .xls を選択</label>
         <input type="file" id="importFile" accept=".xls,.xlsx" onchange="startImport(this)" style="display:none;">
         <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
         <div id="importResult"></div>
       </div>
     </div>
-
   </div>
-</div>
 
-<!-- 保護者連絡先CSV -->
-<div class="card">
-  <h2>📋 CSV保護者情報入出力</h2>
-  <div class="func-grid func-grid-2">
-
-    <div class="func-item">
-      <div class="func-icon func-icon-green">📋</div>
-      <div class="func-title">CSVダウンロード</div>
-      <div class="func-desc">
+  <!-- ④ CSV保護者情報 -->
+  <div class="box4">
+    <div class="box4-header box4-hdr-brown">📋 CSV保護者情報入出力</div>
+    <div class="box4-section box4-out">
+      <div class="box4-section-label">⬇ 出力</div>
+      <div class="box4-desc">
         全生徒の保護者電話番号・勤務先情報を出力。<br>
-        <code>.csv</code>（Excel対応・BOM付きUTF-8）<br>
-        Excelで編集して一括インポートに使用可。
+        <code>.csv</code>（Excel対応・BOM付きUTF-8）
       </div>
-      <a href="/karte/api/export_contacts_csv.php" class="func-btn func-btn-green" style="text-decoration:none;margin-top:auto;">⬇ CSVダウンロード</a>
+      <a href="/karte/api/export_contacts_csv.php" class="func-btn func-btn-brown" style="text-decoration:none;display:block;text-align:center;">⬇ CSVダウンロード</a>
     </div>
-
-    <div class="func-item">
-      <div class="func-icon func-icon-brown">⬆</div>
-      <div class="func-title">CSVインポート</div>
-      <div class="func-desc">
+    <div class="box4-section box4-in">
+      <div class="box4-section-label">⬆ 入力</div>
+      <div class="box4-desc">
         CSVをアップロードして保護者・職場情報を一括更新。<br>
-        <strong>学籍番号</strong>をキーに照合・上書き。<br>
-        ダウンロードしたCSVをExcelで編集してそのまま使用可。
+        <strong>学籍番号</strong>をキーに照合・上書き。
       </div>
-      <div class="import-box" style="margin-top:auto;">
+      <div class="import-box" style="">
         <label class="func-btn func-btn-brown" for="csvFile" style="display:block;text-align:center;cursor:pointer;">📂 CSVを選択</label>
         <input type="file" id="csvFile" accept=".csv" onchange="startCsvImport(this)" style="display:none;">
         <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
         <div id="csvImportResult"></div>
       </div>
     </div>
-
   </div>
-</div>
+
+</div><!-- /box4-grid -->
 
 <!-- 生徒別一覧 -->
 <div class="card">

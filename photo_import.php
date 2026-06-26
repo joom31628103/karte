@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 ?>
@@ -6,6 +6,7 @@ requireLogin();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>顔写真一括取り込み — 生徒カルテ</title>
 <style>
@@ -83,7 +84,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 <div class="fm-topbar">
   <div class="fm-topbar-title">📸 顔写真一括取り込み（Gemini AI）</div>
   <div style="display:flex;gap:6px;">
-    <a href="/karte/home.php" class="fm-btn-top">← 一覧に戻る</a>
+    <a href="/karte/home.php" class="fm-btn-top">🏠 HOME</a>
     <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
 </div>
@@ -167,7 +168,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
     <div class="card-title">🎉 完了</div>
     <div id="doneMsg" style="font-size:.9rem;color:#15803d;font-weight:700;margin-bottom:12px;"></div>
     <button class="btn-primary" onclick="resetAll()">続けて取り込む</button>
-    <a href="/karte/home.php" class="btn-primary" style="display:inline-block;margin-left:8px;text-decoration:none;">一覧に戻る</a>
+    <a href="/karte/home.php" class="btn-primary" style="display:inline-block;margin-left:8px;text-decoration:none;">🏠 HOME</a>
   </div>
 
 </div>

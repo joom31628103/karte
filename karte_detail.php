@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 $sid = $_GET['id'] ?? '';
@@ -64,6 +64,7 @@ $dispTel2     = $gv('tel2');
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title><?= htmlspecialchars($dispName) ?> — 生徒情報</title>
 <style>
@@ -100,6 +101,23 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-rec-sep{color:#6677aa;font-size:.75rem;}
 .fm-rec-total{color:#9ab0e0;font-size:.78rem;font-weight:600;white-space:nowrap;}
 .fm-topbar-right{display:flex;gap:6px;align-items:center;}
+/* ── フィルタモード ── */
+.fm-btn-exec-top{background:rgba(255,215,0,.25)!important;border-color:rgba(255,215,0,.6)!important;color:#ffe97a!important;font-weight:800!important;}
+.fm-btn-exec-top:hover{background:rgba(255,215,0,.4)!important;}
+.fm-btn-cancel-top{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.3)!important;color:#c4d4ff!important;}
+.fm-btn-filter-clear{background:rgba(255,100,100,.2)!important;border-color:rgba(255,100,100,.4)!important;color:#ffaaaa!important;}
+/* フィルタモード中のヘッダー */
+.fm-student-header.filter-mode{background:#fff7f9;outline:2px solid #e8b4c0;}
+.fm-student-header.filter-mode .fm-field{background:#fff7f9;}
+.fm-student-header.filter-mode .fm-field-label{color:#6b4050;background:#fce8ed;border-bottom-color:#ecc8d0;}
+.fm-student-header.filter-mode .fm-field-row{border-color:#ecc8d0;}
+/* フィールドが入力欄に変わったとき */
+.fm-field-value.filter-input-wrap{padding:2px!important;background:#fff7f9!important;}
+.fm-filter-input{width:100%;background:#fff;border:1px solid #dba8b8;border-radius:4px;padding:4px 8px;color:#1a1a1a;font-size:.85rem;font-family:inherit;outline:none;min-width:0;}
+.fm-filter-input:focus{border-color:#e8b4c0;box-shadow:0 0 0 2px rgba(232,180,192,.25);background:#fffbfc;}
+.fm-filter-input::placeholder{color:#bbb;}
+.fm-filter-select{width:100%;background:#fff;border:1px solid #dba8b8;border-radius:4px;padding:4px 5px;color:#1a1a1a;font-size:.85rem;font-family:inherit;outline:none;}
+.fm-filter-select:focus{border-color:#e8b4c0;background:#fffbfc;}
 .fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;}
 .fm-btn-top:hover{background:rgba(255,255,255,.25);}
 .fm-btn-top.active{background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.6);}
@@ -407,6 +425,14 @@ if ($prevId): ?>
     <div class="tb-name"><?= htmlspecialchars($dispName ?: '—') ?></div>
   </div>
   <div class="fm-topbar-right">
+    <!-- フィルタ関連 -->
+    <div id="filterIndicator" style="display:none;background:rgba(255,200,50,.18);border:1px solid rgba(255,200,50,.5);border-radius:6px;padding:2px 8px;font-size:.75rem;color:#ffe97a;font-weight:700;white-space:nowrap;">
+      🔍 <span id="filterCountLabel">0件</span>
+    </div>
+    <button class="fm-btn-top" id="filterModeBtn" onclick="enterFilterMode()" title="フィルタ検索モード">🔍 フィルタ</button>
+    <button class="fm-btn-top fm-btn-exec-top" id="filterExecBtn" onclick="executeFilter()" style="display:none" title="検索実行">🔍 検索実行</button>
+    <button class="fm-btn-top fm-btn-cancel-top" id="filterCancelBtn" onclick="cancelFilterMode()" style="display:none" title="キャンセル">✕ キャンセル</button>
+    <button class="fm-btn-top fm-btn-filter-clear" id="clearFilterBtn" onclick="clearFilter()" style="display:none" title="全件表示に戻す">✕ 全件表示</button>
     <button class="fm-btn-top fm-header-toggle" id="headerToggleBtn" onclick="toggleStudentHeader()" title="生徒情報を折りたたむ/展開する">
       <span id="headerToggleIcon">▲</span> <span id="headerToggleLabel">情報を隠す</span>
     </button>
@@ -425,6 +451,7 @@ if ($prevId): ?>
 </div>
 
 
+<!-- ── フィルタパネル ── -->
 <!-- ── 生徒情報ヘッダー ── -->
 <div class="fm-student-header" id="studentHeader">
   <div class="fm-header-row1">
@@ -433,57 +460,57 @@ if ($prevId): ?>
       <div class="fm-field-row">
         <div class="fm-field" style="max-width:90px">
           <div class="fm-field-label">年度</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispNendo ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="nendo"><?= htmlspecialchars($dispNendo ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:70px">
           <div class="fm-field-label">学年</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispGakunen ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="gakunen"><?= htmlspecialchars($dispGakunen ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:70px">
           <div class="fm-field-label">組</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispClass ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="class_no"><?= htmlspecialchars($dispClass ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:60px">
           <div class="fm-field-label">番号</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispBango ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="bango"><?= htmlspecialchars($dispBango ?: '—') ?></div>
         </div>
         <div class="fm-field">
           <div class="fm-field-label">出身中学校</div>
-          <div class="fm-field-value" id="hdr-shusshin"><?= htmlspecialchars($dispShusshin ?: '—') ?></div>
+          <div class="fm-field-value" id="hdr-shusshin" data-filter="shusshin"><?= htmlspecialchars($dispShusshin ?: '—') ?></div>
         </div>
       </div>
       <!-- 行2: 氏名・ふりがな・保護者名・保護者電話 -->
       <div class="fm-field-row">
         <div class="fm-field" style="max-width:200px">
           <div class="fm-field-label">氏名</div>
-          <div class="fm-field-value" style="font-weight:900;color:#1a2240;" id="hdr-name"><?= htmlspecialchars($dispName ?: '—') ?></div>
+          <div class="fm-field-value" style="font-weight:900;color:#1a2240;" id="hdr-name" data-filter="name"><?= htmlspecialchars($dispName ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:200px">
           <div class="fm-field-label">ふりがな</div>
-          <div class="fm-field-value" id="hdr-furi"><?= htmlspecialchars($dispFuri ?: '—') ?></div>
+          <div class="fm-field-value" id="hdr-furi" data-filter="furi"><?= htmlspecialchars($dispFuri ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:220px">
           <div class="fm-field-label">保護者名</div>
-          <div class="fm-field-value" id="hdr-parent"><?= htmlspecialchars($dispHogosya ?: '—') ?></div>
+          <div class="fm-field-value" id="hdr-parent" data-filter="hogosya"><?= htmlspecialchars($dispHogosya ?: '—') ?></div>
         </div>
         <div class="fm-field">
           <div class="fm-field-label">電話（保護者）</div>
-          <div class="fm-field-value" id="hdr-tel"><?= htmlspecialchars($dispTel ?: '—') ?></div>
+          <div class="fm-field-value" id="hdr-tel" data-filter="tel"><?= htmlspecialchars($dispTel ?: '—') ?></div>
         </div>
       </div>
       <!-- 行3: 生年月日・性別・住所 -->
       <div class="fm-field-row">
         <div class="fm-field" style="max-width:120px">
           <div class="fm-field-label">生年月日</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispBday ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="birthday"><?= htmlspecialchars($dispBday ?: '—') ?></div>
         </div>
         <div class="fm-field" style="max-width:60px">
           <div class="fm-field-label">性別</div>
-          <div class="fm-field-value"><?= htmlspecialchars($dispSeibetu ?: '—') ?></div>
+          <div class="fm-field-value" data-filter="seibetu" data-filter-type="select" data-filter-options="男,女"><?= htmlspecialchars($dispSeibetu ?: '—') ?></div>
         </div>
         <div class="fm-field">
           <div class="fm-field-label">住所</div>
-          <div class="fm-field-value wide"><?= htmlspecialchars($dispJyusyo ?: '—') ?></div>
+          <div class="fm-field-value wide" data-filter="address"><?= htmlspecialchars($dispJyusyo ?: '—') ?></div>
         </div>
       </div>
     </div>
@@ -2162,6 +2189,156 @@ function updateHeaderBtn(collapsed) {
   }
 }
 document.addEventListener('DOMContentLoaded', initStudentHeader);
+
+// ── フィルタ検索機能（FileMaker風：表示枠がそのまま入力欄に変わる） ──
+(function(){
+  let ALL_IDS_ORIGINAL = null;
+  let filterActive = false;
+
+  // フィルタ対象フィールド（data-filter属性を持つ.fm-field-value要素）
+  function getFilterFields() {
+    return Array.from(document.querySelectorAll('.fm-field-value[data-filter]'));
+  }
+
+  // フィルタモード開始：表示値をクリアして入力欄に変換
+  window.enterFilterMode = function() {
+    if (filterActive) return;
+    filterActive = true;
+
+    const hdr = document.getElementById('studentHeader');
+    hdr.classList.add('filter-mode');
+
+    getFilterFields().forEach(el => {
+      const param   = el.dataset.filter;
+      const type    = el.dataset.filterType || 'text';
+      const options = el.dataset.filterOptions ? el.dataset.filterOptions.split(',') : [];
+      el.dataset.origText = el.textContent;
+      el.classList.add('filter-input-wrap');
+      if (type === 'select') {
+        const sel = document.createElement('select');
+        sel.className = 'fm-filter-select';
+        sel.dataset.param = param;
+        const blank = document.createElement('option');
+        blank.value = ''; blank.textContent = '—';
+        sel.appendChild(blank);
+        options.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o; opt.textContent = o;
+          sel.appendChild(opt);
+        });
+        el.textContent = '';
+        el.appendChild(sel);
+      } else {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'fm-filter-input';
+        inp.dataset.param = param;
+        inp.placeholder = '検索…';
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); window.executeFilter(); } });
+        el.textContent = '';
+        el.appendChild(inp);
+      }
+    });
+
+    // topbarボタン切替
+    document.getElementById('filterModeBtn').style.display   = 'none';
+    document.getElementById('filterExecBtn').style.display   = '';
+    document.getElementById('filterCancelBtn').style.display = '';
+    document.getElementById('clearFilterBtn').style.display  = 'none';
+
+    // 最初の入力欄にフォーカス
+    const first = document.querySelector('.fm-filter-input');
+    if (first) first.focus();
+  };
+
+  // フィルタモード終了（キャンセル）：元の表示値に戻す
+  window.cancelFilterMode = function() {
+    if (!filterActive) return;
+    filterActive = false;
+
+    const hdr = document.getElementById('studentHeader');
+    hdr.classList.remove('filter-mode');
+
+    getFilterFields().forEach(el => {
+      el.classList.remove('filter-input-wrap');
+      el.textContent = el.dataset.origText || '';
+      delete el.dataset.origText;
+    });
+
+    document.getElementById('filterModeBtn').style.display   = '';
+    document.getElementById('filterExecBtn').style.display   = 'none';
+    document.getElementById('filterCancelBtn').style.display = 'none';
+    // clearFilterBtnはフィルタ中のみ表示
+    if (ALL_IDS_ORIGINAL) document.getElementById('clearFilterBtn').style.display = '';
+  };
+
+  // 検索実行
+  window.executeFilter = async function() {
+    const params = new URLSearchParams({ action: 'search_students' });
+    document.querySelectorAll('.fm-filter-input,.fm-filter-select').forEach(el => {
+      const v = el.value.trim();
+      if (v) params.set(el.dataset.param, v);
+    });
+
+    const execBtn = document.getElementById('filterExecBtn');
+    const origTxt = execBtn.textContent;
+    execBtn.textContent = '検索中…'; execBtn.disabled = true;
+
+    try {
+      const r = await fetch('/karte/api/karte.php?' + params);
+      const j = await r.json();
+      if (!j.success) { alert('検索エラー: ' + j.error); return; }
+      if (!j.ids.length) { alert('該当する生徒が見つかりません'); return; }
+
+      // 元のID一覧を保存して差し替え
+      if (!ALL_IDS_ORIGINAL) ALL_IDS_ORIGINAL = [...ALL_IDS];
+      ALL_IDS.length = 0;
+      j.ids.forEach(id => ALL_IDS.push(id));
+
+      // スライダーのmax更新
+      const slider = document.getElementById('recSlider');
+      const total  = document.querySelector('.fm-rec-total');
+      if (slider) slider.max = ALL_IDS.length;
+      if (total)  total.textContent = ALL_IDS.length;
+
+      // フィルタ表示切替
+      document.getElementById('filterIndicator').style.display = '';
+      document.getElementById('filterCountLabel').textContent = j.total + '件';
+
+      // フィルタモード終了してヘッダーを表示値に戻す
+      window.cancelFilterMode();
+
+      document.getElementById('filterModeBtn').style.display  = '';
+      document.getElementById('clearFilterBtn').style.display = '';
+
+      // 最初の生徒に移動
+      if (window._karteGo) window._karteGo(encodeURIComponent(ALL_IDS[0]));
+    } finally {
+      execBtn.textContent = origTxt; execBtn.disabled = false;
+    }
+  };
+
+  // 全件表示に戻す
+  window.clearFilter = function() {
+    if (ALL_IDS_ORIGINAL) {
+      ALL_IDS.length = 0;
+      ALL_IDS_ORIGINAL.forEach(id => ALL_IDS.push(id));
+      ALL_IDS_ORIGINAL = null;
+    }
+    const slider = document.getElementById('recSlider');
+    const total  = document.querySelector('.fm-rec-total');
+    if (slider) slider.max = ALL_IDS.length;
+    if (total)  total.textContent = ALL_IDS.length;
+
+    document.getElementById('filterIndicator').style.display  = 'none';
+    document.getElementById('clearFilterBtn').style.display   = 'none';
+    document.getElementById('filterModeBtn').style.display    = '';
+    document.getElementById('filterExecBtn').style.display    = 'none';
+    document.getElementById('filterCancelBtn').style.display  = 'none';
+
+    if (filterActive) window.cancelFilterMode();
+  };
+})();
 </script>
 </body>
 </html>

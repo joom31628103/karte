@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 $sid = $_GET['id'] ?? '';
@@ -20,6 +20,7 @@ $year = date('Y');
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <title><?= fv($s['name']) ?> カード印刷</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}

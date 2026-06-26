@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 生徒カルテ セットアップ / メンテナンス
  * アクセス条件: localhost OR ログイン済み OR ?token=karte2026setup
@@ -120,8 +120,13 @@ $tables = [
         nyunendo        INT DEFAULT NULL,
         nyugaku         DATE DEFAULT NULL,
         sotsugyo        DATE DEFAULT NULL,
-        gakuseki_status VARCHAR(20) DEFAULT '',
-        notes           TEXT,
+        gakuseki_status  VARCHAR(20) DEFAULT '',
+        shusshin_chugaku VARCHAR(100) DEFAULT '',
+        hogosya_yuubin   VARCHAR(10) DEFAULT '',
+        hogosya_jyusyo   TEXT,
+        hogosya_addr1    VARCHAR(200) DEFAULT '',
+        hogosya_addr2    VARCHAR(200) DEFAULT '',
+        notes            TEXT,
         created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
@@ -235,6 +240,7 @@ $conn->close();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>生徒カルテ セットアップ</title>
 <style>

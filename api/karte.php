@@ -154,6 +154,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'parent_name'=> $s['parent_name'] ?? '',
                 'address'    => $s['address']     ?? '',
                 'b_notes'    => $s['notes']       ?? '',
+                // 保護者1
+                'parent1_name'      => $s['parent1_name']       ?? '',
+                'parent1_furi'      => $s['parent1_furi']       ?? '',
+                'parent1_phone'     => $s['parent1_phone']      ?? '',
+                'parent1_phone_note'=> $s['parent1_phone_note'] ?? '',
+                'parent1_work_name' => $s['parent1_work_name']  ?? '',
+                'parent1_work_phone'=> $s['parent1_work_phone'] ?? '',
+                'parent1_work_note' => $s['parent1_work_note']  ?? '',
+                // 保護者2
+                'parent2_name'      => $s['parent2_name']       ?? '',
+                'parent2_furi'      => $s['parent2_furi']       ?? '',
+                'parent2_phone'     => $s['parent2_phone']      ?? '',
+                'parent2_phone_note'=> $s['parent2_phone_note'] ?? '',
+                'parent2_work_name' => $s['parent2_work_name']  ?? '',
+                'parent2_work_phone'=> $s['parent2_work_phone'] ?? '',
+                'parent2_work_note' => $s['parent2_work_note']  ?? '',
+                'primary_parent'    => $s['primary_parent']     ?? '1',
                 'gak_name'   => $gak['name']      ?? '',
                 'gak_furigana'=> $gak['furigana'] ?? '',
                 'gak_birthday'=> $gak['birthday'] ?? '',
@@ -182,6 +199,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 if ($result) while ($row = $result->fetch_assoc()) $rows[] = $row;
             }
             jout(['success'=>true,'rows'=>$rows]);
+
+        case 'search_students':
+            $name    = trim($_GET['name']     ?? '');
+            $furi    = trim($_GET['furi']     ?? '');
+            $gakunen = trim($_GET['gakunen']  ?? '');
+            $classno = trim($_GET['class_no'] ?? '');
+            $bango   = trim($_GET['bango']    ?? '');
+            $shusshin= trim($_GET['shusshin'] ?? '');
+            $seibetu = trim($_GET['seibetu']  ?? '');
+            $nendo   = trim($_GET['nendo']    ?? '');
+            $birthday= trim($_GET['birthday'] ?? '');
+            $address = trim($_GET['address']  ?? '');
+            $hogosya = trim($_GET['hogosya']  ?? '');
+            $tel     = trim($_GET['tel']      ?? '');
+
+            $sql = "SELECT DISTINCT s.student_id
+                    FROM students s
+                    LEFT JOIN gakuseki g ON s.gakno = g.gakno
+                    LEFT JOIN (
+                        SELECT sn.gakno, sn.nendo, sn.gakunen, sn.class_no, sn.bango
+                        FROM student_nendo sn
+                        INNER JOIN (
+                            SELECT gakno, MAX(nendo) AS maxnendo FROM student_nendo GROUP BY gakno
+                        ) m ON sn.gakno = m.gakno AND sn.nendo = m.maxnendo
+                    ) sn ON s.gakno = sn.gakno
+                    WHERE 1=1";
+            $types = ''; $params = [];
+
+            if ($name)    { $sql .= " AND (s.name LIKE ? OR g.name LIKE ?)";                            $params[]= "%$name%";     $params[]= "%$name%";     $types .= 'ss'; }
+            if ($furi)    { $sql .= " AND (s.furigana LIKE ? OR g.furigana LIKE ?)";                    $params[]= "%$furi%";     $params[]= "%$furi%";     $types .= 'ss'; }
+            if ($gakunen) { $sql .= " AND sn.gakunen = ?";                                              $params[]= $gakunen;                               $types .= 's';  }
+            if ($classno) { $sql .= " AND (sn.class_no = ? OR s.class_name = ?)";                       $params[]= $classno;      $params[]= $classno;      $types .= 'ss'; }
+            if ($bango)   { $sql .= " AND (sn.bango = ? OR s.seat_number = ?)";                         $params[]= $bango;        $params[]= $bango;        $types .= 'ss'; }
+            if ($shusshin){ $sql .= " AND g.shusshin_chugaku LIKE ?";                                   $params[]= "%$shusshin%";                           $types .= 's';  }
+            if ($seibetu) { $sql .= " AND g.seibetu = ?";                                               $params[]= $seibetu;                               $types .= 's';  }
+            if ($nendo)   { $sql .= " AND sn.nendo = ?";                                                $params[]= $nendo;                                 $types .= 's';  }
+            if ($birthday){ $sql .= " AND (g.birthday LIKE ? OR s.birthday LIKE ?)";                    $params[]= "%$birthday%"; $params[]= "%$birthday%"; $types .= 'ss'; }
+            if ($address) { $sql .= " AND g.jyusyo LIKE ?";                                             $params[]= "%$address%";                           $types .= 's';  }
+            if ($hogosya) { $sql .= " AND (g.hogosya LIKE ? OR s.parent_name LIKE ?)";                  $params[]= "%$hogosya%";  $params[]= "%$hogosya%";  $types .= 'ss'; }
+            if ($tel)     { $sql .= " AND (g.tel1 LIKE ? OR g.tel2 LIKE ? OR s.phone LIKE ?)";         $params[]= "%$tel%";      $params[]= "%$tel%";      $params[]= "%$tel%"; $types .= 'sss'; }
+
+            $sql .= " ORDER BY s.class_name, s.seat_number, s.student_id";
+            $res = ps($conn, $sql, $types, $params);
+            $ids = [];
+            while ($r = $res->fetch_assoc()) $ids[] = $r['student_id'];
+            jout(['success'=>true, 'ids'=>$ids, 'total'=>count($ids)]);
 
         default: err('不明なアクション');
     }

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 requireLogin();
 $teacher = htmlspecialchars($_SESSION['teacher_name']);
@@ -10,6 +10,7 @@ $conn->close();
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>学籍管理 — 生徒カルテ</title>
 <style>
@@ -126,7 +127,7 @@ td:last-child{border-right:none;}
     <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
   <div class="fm-topbar-right">
-    <a href="/karte/home.php" class="fm-btn-top">← カルテ一覧</a>
+    <a href="/karte/home.php" class="fm-btn-top">🏠 HOME</a>
     <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
   </div>
 </div>
@@ -144,6 +145,10 @@ td:last-child{border-right:none;}
         <option>在学</option><option>卒業</option><option>転出</option><option>退学</option>
       </select>
       <button class="fm-add-btn" id="btnAdd">＋ 学籍を登録</button>
+      <a href="/karte/api/gakuseki.php?action=csv_export" class="fm-add-btn" style="background:linear-gradient(180deg,#3a7d44 0%,#256030 100%);border-color:#1a4522;text-decoration:none;">↓ CSV書出</a>
+      <button class="fm-add-btn" id="btnImport" style="background:linear-gradient(180deg,#7a5c1e 0%,#5a4010 100%);border-color:#3a280a;">↑ CSV読込</button>
+      <button class="fm-add-btn" id="btnDeleteAll" style="background:linear-gradient(180deg,#8b1a1a 0%,#5a0a0a 100%);border-color:#3a0000;">⚠ 全件削除</button>
+      <input type="file" id="csvFileInput" accept=".csv" style="display:none">
     </div>
     <div class="table-wrap">
       <table id="gakTable">
@@ -245,6 +250,22 @@ td:last-child{border-right:none;}
           <option>父</option><option>母</option><option>祖父</option><option>祖母</option><option>その他</option>
         </select>
       </div>
+      <div class="form-row">
+        <label>保護者郵便番号</label>
+        <input type="text" id="m-hogosya_yuubin" placeholder="900-0000">
+      </div>
+      <div class="form-row full">
+        <label>保護者住所</label>
+        <input type="text" id="m-hogosya_jyusyo">
+      </div>
+      <div class="form-row">
+        <label>保護者住所１</label>
+        <input type="text" id="m-hogosya_addr1">
+      </div>
+      <div class="form-row">
+        <label>保護者住所２</label>
+        <input type="text" id="m-hogosya_addr2">
+      </div>
     </div>
 
     <div class="modal-section">在籍期間</div>
@@ -260,6 +281,14 @@ td:last-child{border-right:none;}
       <div class="form-row">
         <label>卒業（予定）日</label>
         <input type="date" id="m-sotsugyo">
+      </div>
+    </div>
+
+    <div class="modal-section">その他</div>
+    <div class="form-grid">
+      <div class="form-row full">
+        <label>出身中学校</label>
+        <input type="text" id="m-shusshin_chugaku" placeholder="〇〇中学校">
       </div>
     </div>
 
@@ -359,7 +388,7 @@ function renderTable(rows) {
   if (!rows.length) { tbody.innerHTML=''; table.style.display='none'; empty.style.display=''; return; }
   table.style.display=''; empty.style.display='none';
   tbody.innerHTML = rows.map(r => {
-    const gakunenInfo = r.gakunen ? `${r.gakunen}年${r.class_no||''}${r.bango ? ' '+r.bango+'番' : ''}` : '—';
+    const gakunenInfo = r.gakunen ? `${r.gakunen}年${r.class_no ? r.class_no+'組' : ''}${r.bango ? r.bango+'番' : ''}` : '—';
     const status = r.gakuseki_status || '';
     return `<tr>
       <td><span class="gakno-chip">${esc(r.gakno)}</span></td>
@@ -369,8 +398,8 @@ function renderTable(rows) {
       <td>${esc(r.tanninmei||'—')}</td>
       <td>${status ? `<span class="status-chip status-${esc(status)}">${esc(status)}</span>` : '—'}</td>
       <td style="white-space:nowrap">
-        <button class="btn-sm btn-edit" onclick="openEdit('${esc2(r.gakno)}')">編集</button>
-        <button class="btn-sm btn-del" onclick="delGak('${esc2(r.gakno)}',${JSON.stringify(r.name)})">削除</button>
+        <button class="btn-sm btn-edit" data-gakno="${esc(r.gakno)}" onclick="openEdit(this.dataset.gakno)">編集</button>
+        <button class="btn-sm btn-del" data-gakno="${esc(r.gakno)}" data-name="${esc(r.name)}" onclick="delGak(this.dataset.gakno,this.dataset.name)">削除</button>
       </td>
     </tr>`;
   }).join('');
@@ -384,7 +413,7 @@ function openAdd() {
   document.getElementById('modalTitle').textContent = '学籍を登録';
   document.getElementById('m-gakno-orig').value = '';
   document.getElementById('m-gakno').readOnly = false;
-  ['gakno','name','furigana','yuubin','jyusyo','tel1','tel2','hogosya','hogokana','notes'].forEach(f => document.getElementById('m-'+f).value='');
+  ['gakno','name','furigana','yuubin','jyusyo','tel1','tel2','hogosya','hogokana','hogosya_yuubin','hogosya_jyusyo','hogosya_addr1','hogosya_addr2','shusshin_chugaku','notes'].forEach(f => document.getElementById('m-'+f).value='');
   ['seibetu','zokugara','status'].forEach(f => document.getElementById('m-'+f).value='');
   ['birthday','nyugaku','sotsugyo'].forEach(f => document.getElementById('m-'+f).value='');
   document.getElementById('m-nyunendo').value='';
@@ -417,6 +446,11 @@ async function openEdit(gakno) {
   document.getElementById('m-nyugaku').value = g.nyugaku||'';
   document.getElementById('m-sotsugyo').value = g.sotsugyo||'';
   document.getElementById('m-status').value = g.gakuseki_status||'';
+  document.getElementById('m-shusshin_chugaku').value  = g.shusshin_chugaku||'';
+  document.getElementById('m-hogosya_yuubin').value    = g.hogosya_yuubin||'';
+  document.getElementById('m-hogosya_jyusyo').value    = g.hogosya_jyusyo||'';
+  document.getElementById('m-hogosya_addr1').value     = g.hogosya_addr1||'';
+  document.getElementById('m-hogosya_addr2').value     = g.hogosya_addr2||'';
   document.getElementById('m-notes').value = g.notes||'';
   document.getElementById('nendoSection').style.display='';
   renderNendoList(data.nendo_list);
@@ -429,7 +463,7 @@ function renderNendoList(list) {
   container.innerHTML = list.map(n => `
     <div class="nendo-row">
       <span class="nendo-year">${n.nendo}年度</span>
-      <span class="nendo-info">${n.gakunen||'?'}年 ${n.class_no||''} ${n.bango ? n.bango+'番' : ''} ${n.tanninmei ? '/ 担任:'+n.tanninmei : ''} ${n.sinkyu ? '['+n.sinkyu+']' : ''}</span>
+      <span class="nendo-info">${n.gakunen||'?'}年${n.class_no ? n.class_no+'組' : ''}${n.bango ? n.bango+'番' : ''} ${n.tanninmei ? '/ 担任:'+n.tanninmei : ''} ${n.sinkyu ? '['+n.sinkyu+']' : ''}</span>
       <button class="btn-sm btn-del" onclick="delNendo('${esc2(currentGakno)}',${n.nendo})">削除</button>
     </div>
   `).join('');
@@ -470,7 +504,7 @@ async function delNendo(gakno, nendo) {
 document.getElementById('btnSave').onclick = async () => {
   const fd = new FormData();
   fd.append('action','save_gakuseki'); fd.append('csrf_token',CSRF);
-  ['gakno','name','furigana','yuubin','jyusyo','tel1','tel2','hogosya','hogokana','notes'].forEach(f =>
+  ['gakno','name','furigana','yuubin','jyusyo','tel1','tel2','hogosya','hogokana','hogosya_yuubin','hogosya_jyusyo','hogosya_addr1','hogosya_addr2','shusshin_chugaku','notes'].forEach(f =>
     fd.append(f, document.getElementById('m-'+f).value));
   ['seibetu','zokugara'].forEach(f => fd.append(f, document.getElementById('m-'+f).value));
   ['birthday','nyugaku','sotsugyo'].forEach(f => fd.append(f, document.getElementById('m-'+f).value));
@@ -501,6 +535,45 @@ document.getElementById('modal').addEventListener('click', e => { if(e.target===
 document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('statusFilter').addEventListener('change', filterTable);
 document.getElementById('nendoFilter').addEventListener('change', loadList);
+
+/* ===== 全件削除 ===== */
+document.getElementById('btnDeleteAll').onclick = async () => {
+  const cnt = document.querySelectorAll('#tbody tr').length;
+  if (!confirm(`学籍データを全件（${cnt}件）削除しますか？\nこの操作は取り消せません。`)) return;
+  if (!confirm('本当に全件削除しますか？')) return;
+  const fd = new FormData();
+  fd.append('action','delete_all'); fd.append('csrf_token',CSRF);
+  const res  = await fetch('/karte/api/gakuseki.php',{method:'POST',body:fd});
+  const data = await res.json();
+  if (data.success) { alert(`${data.deleted}件削除しました`); await loadList(); await loadNendos(); }
+  else alert(data.error||'エラー');
+};
+
+/* ===== CSV インポート ===== */
+document.getElementById('btnImport').onclick = () => document.getElementById('csvFileInput').click();
+document.getElementById('csvFileInput').onchange = async function() {
+  const file = this.files[0];
+  if (!file) return;
+  if (!confirm(`「${file.name}」を読み込んで学籍データを更新しますか？\n既存の学籍番号は上書きされます。`)) {
+    this.value = ''; return;
+  }
+  const fd = new FormData();
+  fd.append('action', 'csv_import');
+  fd.append('csrf_token', CSRF);
+  fd.append('csv', file);
+  try {
+    const res  = await fetch('/karte/api/gakuseki.php', {method:'POST', body:fd});
+    const data = await res.json();
+    if (!data.success) { alert('エラー: ' + (data.error || '不明')); return; }
+    let msg = `読込完了\n新規追加: ${data.inserted}件\n更新: ${data.updated}件`;
+    if (data.errors && data.errors.length) msg += '\n\n警告:\n' + data.errors.join('\n');
+    alert(msg);
+    await loadList();
+  } catch(e) {
+    alert('読込中にエラーが発生しました: ' + e.message);
+  }
+  this.value = '';
+};
 
 loadNendos().then(() => loadList());
 </script>

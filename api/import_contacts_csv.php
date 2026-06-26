@@ -36,10 +36,24 @@ foreach ($addCols as $colDef) {
     try { $conn->query("ALTER TABLE students ADD COLUMN $colDef"); } catch(Exception $e) {}
 }
 
-// CSVを読み込む（BOM対応）
+// CSVを読み込む（BOM除去・エンコーディング自動変換）
 $content = file_get_contents($file['tmp_name']);
-$content = ltrim($content, "\xEF\xBB\xBF");
-$lines = explode("\n", str_replace("\r\n", "\n", str_replace("\r", "\n", $content)));
+
+// UTF-8 BOM を正確に除去
+if (substr($content, 0, 3) === "\xEF\xBB\xBF") {
+    $content = substr($content, 3);
+}
+
+// エンコーディング検出してUTF-8に変換（Excel保存のShift-JIS等に対応）
+$enc = mb_detect_encoding($content, ['UTF-8', 'SJIS-win', 'SJIS', 'EUC-JP', 'JIS', 'ASCII'], true);
+if ($enc && $enc !== 'UTF-8' && $enc !== 'ASCII') {
+    $content = mb_convert_encoding($content, 'UTF-8', $enc);
+}
+
+// メモリストリームに書き込んでfgetcsvで処理
+$fp = fopen('php://memory', 'r+');
+fwrite($fp, $content);
+rewind($fp);
 
 // ヘッダー行を取得してカラムマッピング
 $header = null;
@@ -55,15 +69,11 @@ $stmt = $conn->prepare("UPDATE students SET
     WHERE student_id=?");
 if (!$stmt) { echo json_encode(['success'=>false,'error'=>'DB準備エラー: '.$conn->error]); exit; }
 
-foreach ($lines as $i => $line) {
-    $line = trim($line);
-    if ($line === '') continue;
-
-    // CSV行をパース
-    $row = str_getcsv($line);
+while (($row = fgetcsv($fp, 0, ',', '"')) !== false) {
+    if ($row === [null]) continue; // 空行スキップ
 
     if ($header === null) {
-        $header = $row;
+        $header = array_map('trim', $row);
         continue;
     }
 
@@ -104,6 +114,7 @@ foreach ($lines as $i => $line) {
         $errors[] = $sid;
     }
 }
+fclose($fp);
 $stmt->close();
 $conn->close();
 
