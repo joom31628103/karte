@@ -61,9 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'keepalive':
             jout(['success'=>true]);
 
-        case 'keepalive':
-            jout(['success'=>true]);
-
         case 'header_list':
             $ids = isset($_GET['ids']) ? explode(',', $_GET['ids']) : [];
             if (empty($ids)) {

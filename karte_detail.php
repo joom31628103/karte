@@ -2524,10 +2524,16 @@ document.addEventListener('DOMContentLoaded', initStudentHeader);
     }
     overlay.style.display = 'block';
 
-    const ids = ALL_IDS.join(',');
-    const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
-    const j = await res.json();
-    if (!j.success) { document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">読み込みエラー</p>'; return; }
+    let j;
+    try {
+      const ids = ALL_IDS.join(',');
+      const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
+      j = await res.json();
+    } catch(err) {
+      document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">読み込みエラー: '+err.message+'</p>';
+      return;
+    }
+    if (!j.success) { document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">エラー: '+(j.error||'不明')+'</p>'; return; }
 
     document.getElementById('hlCount').textContent = j.rows.length + '件';
     const rows = j.rows;
