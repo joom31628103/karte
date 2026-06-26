@@ -26,6 +26,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-topbar-right{display:flex;gap:6px;align-items:center;}
 .fm-btn-top{padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#e8ecff;cursor:pointer;font-size:.78rem;font-family:inherit;text-decoration:none;transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
 .fm-btn-top:hover{background:rgba(255,255,255,.25);}
+.kebab-menu{position:relative;}
+.kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
+.kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
+.kebab-btn:hover{background:rgba(255,255,255,.25);}
+.kebab-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.kebab-dropdown.open{display:block;}
+.kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
+.kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
+.kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
 .container{max-width:1080px;margin:0 auto;padding:14px 16px 48px;}
 
@@ -127,8 +136,17 @@ td:last-child{border-right:none;}
     <span class="fm-topbar-name"><?= $teacher ?> 先生</span>
   </div>
   <div class="fm-topbar-right">
-    <a href="/karte/home.php" class="fm-btn-top">🏠 HOME</a>
-    <a href="/karte/logout.php" class="fm-btn-top">ログアウト</a>
+    <div class="kebab-menu">
+      <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+      <div class="kebab-dropdown" id="kebabDropdown">
+        <a href="/karte/home.php">🏠 HOME</a>
+        <a href="/karte/karte_detail.php">🏫 生徒情報</a>
+        <a href="/karte/student_manager.php">👥 生徒管理</a>
+        <a href="/karte/backup.php">🗄️ バックアップ</a>
+        <a href="/karte/account.php">⚙ アカウント</a>
+        <a href="/karte/logout.php">🚪 ログアウト</a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -576,6 +594,9 @@ document.getElementById('csvFileInput').onchange = async function() {
 };
 
 loadNendos().then(() => loadList());
+
+function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
+document.addEventListener('click',function(){const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');});
 </script>
 </body>
 </html>

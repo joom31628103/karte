@@ -2593,6 +2593,7 @@ window.openHeaderList = async function() {
         <a href="/karte/karte_detail.php?id=<?= urlencode($sid) ?>">🏫 生徒情報</a>
         <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
+        <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/home.php">🏠 HOME</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
         <a href="/karte/account.php">⚙ アカウント</a>

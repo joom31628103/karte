@@ -211,6 +211,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 .topbar h1{font-size:1.05rem;font-weight:900;color:#e8ecff;white-space:nowrap;}
 .topbar a,.topbar button.tbtn{color:#c4d4ff;font-size:.8rem;text-decoration:none;padding:5px 11px;border:1px solid rgba(255,255,255,.25);border-radius:5px;background:rgba(255,255,255,.08);cursor:pointer;font-family:inherit;font-weight:700;}
 .topbar a:hover,.topbar button.tbtn:hover{background:rgba(255,255,255,.2);}
+.kebab-menu{position:relative;margin-left:auto;}
+.kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
+.kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
+.kebab-btn:hover{background:rgba(255,255,255,.25);}
+.kebab-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.kebab-dropdown.open{display:block;}
+.kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
+.kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
+.kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 .tbtn-excel{background:rgba(0,128,0,.35)!important;border-color:rgba(0,200,0,.4)!important;}
 .layout{display:flex;gap:0;min-height:calc(100vh - 45px);}
 .main{flex:1;padding:16px;min-width:0;}
@@ -312,7 +321,17 @@ tr:hover td{background:#eef1fb;}
 <body>
 <div class="topbar">
   <h1>🗄️ バックアップ</h1>
-  <a href="/karte/home.php">🏠 HOME</a>
+  <div class="kebab-menu">
+    <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+    <div class="kebab-dropdown" id="kebabDropdown">
+      <a href="/karte/home.php">🏠 HOME</a>
+      <a href="/karte/karte_detail.php">🏫 生徒情報</a>
+      <a href="/karte/gakuseki.php">📚 学籍管理</a>
+      <a href="/karte/student_manager.php">👥 生徒管理</a>
+      <a href="/karte/account.php">⚙ アカウント</a>
+      <a href="/karte/logout.php">🚪 ログアウト</a>
+    </div>
+  </div>
 </div>
 
 <div class="layout">
@@ -666,6 +685,9 @@ if (csvBox) {
     if (file) doCsvImport(file);
   });
 }
+
+function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
+document.addEventListener('click',function(){const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');});
 </script>
 </body>
 </html>
