@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $result = $conn->query("
                     SELECT s.student_id, s.name, s.furigana, s.photo,
                            s.phone, s.parent_name, s.birthday, s.gender, s.address,
-                           g.tel1, g.hogosya, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
+                           g.tel1, g.hogosya, g.furigana AS g_furigana, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
                            g.shusshin_chugaku, g.photo AS g_photo,
                            sn.nendo, sn.gakunen, sn.class_no, sn.bango
                     FROM students s
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $result = ps($conn, "
                     SELECT s.student_id, s.name, s.furigana, s.photo,
                            s.phone, s.parent_name, s.birthday, s.gender, s.address,
-                           g.tel1, g.hogosya, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
+                           g.tel1, g.hogosya, g.furigana AS g_furigana, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
                            g.shusshin_chugaku, g.photo AS g_photo,
                            sn.nendo, sn.gakunen, sn.class_no, sn.bango
                     FROM students s
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $rows[] = [
                     'student_id' => $r2['student_id'],
                     'name'       => $r2['name'],
-                    'furigana'   => $r2['furigana'],
+                    'furigana'   => $r2['g_furigana'] ?: $r2['furigana'],
                     'nendo'      => $r2['nendo'] ?? '',
                     'gakunen'    => $r2['gakunen'] ?? '',
                     'class_no'   => $r2['class_no'] ?? $r2['class_name'] ?? '',
