@@ -2502,81 +2502,90 @@ document.addEventListener('DOMContentLoaded', initStudentHeader);
 /* ══════════════════════════════════════════════
    一覧表示モード
 ══════════════════════════════════════════════ */
-(function(){
-  function e(s){ return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+function hlEsc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
-  window.openHeaderList = async function() {
-    let overlay = document.getElementById('headerListOverlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'headerListOverlay';
-      overlay.innerHTML = `
-        <div id="headerListModal">
-          <div class="hl-toolbar">
-            <h2>📋 一覧表示</h2>
-            <span class="hl-count" id="hlCount"></span>
-            <button class="hl-close" onclick="document.getElementById('headerListOverlay').style.display='none'">✕ 閉じる</button>
-          </div>
-          <div id="headerListBody"><div id="hl-loading">読み込み中...</div></div>
-        </div>`;
-      overlay.addEventListener('click', function(ev){ if(ev.target===overlay) overlay.style.display='none'; });
-      document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block';
+window.hlGoTo = function(sid) {
+  const ov = document.getElementById('headerListOverlay');
+  if (ov) ov.style.display = 'none';
+  if (window._karteGo) window._karteGo(encodeURIComponent(sid));
+};
 
-    let j;
-    try {
-      const ids = ALL_IDS.join(',');
-      const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
-      j = await res.json();
-    } catch(err) {
-      document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">読み込みエラー: '+err.message+'</p>';
-      return;
-    }
-    if (!j.success) { document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">エラー: '+(j.error||'不明')+'</p>'; return; }
-
-    document.getElementById('hlCount').textContent = j.rows.length + '件';
-    const rows = j.rows;
-    let html = '';
-    rows.forEach(r => {
-      const photo = r.photo
-        ? `<img src="${e(r.photo)}" alt="" onerror="this.style.display='none'">`
-        : `<div class="hl-photo-empty">👤</div>`;
-      html += `
-      <div class="hl-row" onclick="goTo('${e(r.student_id)}')">
-        <div style="display:flex;">
-          <div class="hl-photo">${photo}</div>
-          <div class="hl-main">
-            <div class="hl-nendo-strip">
-              <span>年度: ${e(r.nendo)}</span>
-              <span>学年: ${e(r.gakunen)}</span>
-              <span>組: ${e(r.class_no)}</span>
-              <span>番号: ${e(r.bango)}</span>
-              <span style="flex:1;text-align:right">${e(r.shusshin)}</span>
-            </div>
-            <div class="hl-row-top">
-              <div class="hl-name-cell"><span class="hl-label">氏名</span><span class="hl-val">${e(r.name)}</span></div>
-              <div class="hl-furi-cell"><span class="hl-label">ふりがな</span><span class="hl-val">${e(r.furigana)}</span></div>
-              <div class="hl-hogosya-cell"><span class="hl-label">保護者名</span><span class="hl-val">${e(r.hogosya)}</span></div>
-              <div class="hl-tel-cell"><span class="hl-label">家庭代表電話</span><span class="hl-val">${e(r.tel)}</span></div>
-            </div>
-            <div class="hl-row-bot">
-              <div class="hl-bday-cell"><span class="hl-label">生年月日</span><span class="hl-val">${e(r.birthday)}</span></div>
-              <div class="hl-sei-cell"><span class="hl-label">性別</span><span class="hl-val">${e(r.seibetu)}</span></div>
-              <div class="hl-addr-cell"><span class="hl-label">住所</span><span class="hl-val">${e(r.address)}</span></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    });
-    document.getElementById('headerListBody').innerHTML = html || '<p style="padding:20px;color:#888">データがありません</p>';
-  };
-
-  function goTo(sid) {
-    document.getElementById('headerListOverlay').style.display = 'none';
-    if (window._karteGo) window._karteGo(encodeURIComponent(sid));
+window.openHeaderList = async function() {
+  let overlay = document.getElementById('headerListOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'headerListOverlay';
+    overlay.innerHTML =
+      '<div id="headerListModal">' +
+        '<div class="hl-toolbar">' +
+          '<h2>📋 一覧表示</h2>' +
+          '<span class="hl-count" id="hlCount"></span>' +
+          '<button class="hl-close" onclick="document.getElementById(\'headerListOverlay\').style.display=\'none\'">✕ 閉じる</button>' +
+        '</div>' +
+        '<div id="headerListBody"><div id="hl-loading">読み込み中...</div></div>' +
+      '</div>';
+    overlay.addEventListener('click', function(ev){ if(ev.target===overlay) overlay.style.display='none'; });
+    document.body.appendChild(overlay);
+  } else {
+    document.getElementById('headerListBody').innerHTML = '<div id="hl-loading">読み込み中...</div>';
   }
-})();
+  overlay.style.display = 'block';
+
+  let j;
+  try {
+    const ids = ALL_IDS.join(',');
+    const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
+    j = await res.json();
+  } catch(err) {
+    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">読み込みエラー: ' + err.message + '</p>';
+    return;
+  }
+  if (!j || !j.success) {
+    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">エラー: ' + (j && j.error ? j.error : '不明') + '</p>';
+    return;
+  }
+
+  document.getElementById('hlCount').textContent = j.rows.length + '件';
+
+  try {
+    const parts = [];
+    j.rows.forEach(function(r) {
+      const photoHtml = r.photo
+        ? '<img src="' + hlEsc(r.photo) + '" alt="" onerror="this.style.display=\'none\'">'
+        : '<div class="hl-photo-empty">👤</div>';
+      parts.push(
+        '<div class="hl-row" onclick="hlGoTo(\'' + hlEsc(r.student_id) + '\')">' +
+          '<div style="display:flex">' +
+            '<div class="hl-photo">' + photoHtml + '</div>' +
+            '<div class="hl-main">' +
+              '<div class="hl-nendo-strip">' +
+                '<span>年度: ' + hlEsc(r.nendo) + '</span>' +
+                '<span>学年: ' + hlEsc(r.gakunen) + '</span>' +
+                '<span>組: ' + hlEsc(r.class_no) + '</span>' +
+                '<span>番号: ' + hlEsc(r.bango) + '</span>' +
+                '<span style="flex:1;text-align:right">' + hlEsc(r.shusshin) + '</span>' +
+              '</div>' +
+              '<div class="hl-row-top">' +
+                '<div class="hl-name-cell"><span class="hl-label">氏名</span><span class="hl-val">' + hlEsc(r.name) + '</span></div>' +
+                '<div class="hl-furi-cell"><span class="hl-label">ふりがな</span><span class="hl-val">' + hlEsc(r.furigana) + '</span></div>' +
+                '<div class="hl-hogosya-cell"><span class="hl-label">保護者名</span><span class="hl-val">' + hlEsc(r.hogosya) + '</span></div>' +
+                '<div class="hl-tel-cell"><span class="hl-label">家庭代表電話</span><span class="hl-val">' + hlEsc(r.tel) + '</span></div>' +
+              '</div>' +
+              '<div class="hl-row-bot">' +
+                '<div class="hl-bday-cell"><span class="hl-label">生年月日</span><span class="hl-val">' + hlEsc(r.birthday) + '</span></div>' +
+                '<div class="hl-sei-cell"><span class="hl-label">性別</span><span class="hl-val">' + hlEsc(r.seibetu) + '</span></div>' +
+                '<div class="hl-addr-cell"><span class="hl-label">住所</span><span class="hl-val">' + hlEsc(r.address) + '</span></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    });
+    document.getElementById('headerListBody').innerHTML = parts.length ? parts.join('') : '<p style="padding:20px;color:#888">データがありません</p>';
+  } catch(renderErr) {
+    document.getElementById('headerListBody').innerHTML = '<p style="padding:20px;color:red">表示エラー: ' + renderErr.message + '</p>';
+  }
+};
 </script>
 </body>
 </html>
