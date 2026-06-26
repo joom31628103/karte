@@ -356,6 +356,37 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 
+/* ── 一覧表示モーダル ── */
+#headerListOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;overflow-y:auto;padding:20px 12px;}
+#headerListModal{background:#fff;border-radius:10px;max-width:1200px;margin:0 auto;overflow:hidden;}
+#headerListModal .hl-toolbar{background:#1a2a55;color:#e8ecff;padding:10px 16px;display:flex;align-items:center;gap:12px;}
+#headerListModal .hl-toolbar h2{font-size:1rem;font-weight:700;margin:0;flex:1;}
+#headerListModal .hl-close{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#e8ecff;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.85rem;}
+#headerListModal .hl-count{font-size:.8rem;color:#a0b0d0;}
+#headerListBody{padding:12px;}
+.hl-row{display:grid;grid-template-columns:80px 50px 36px 36px 1fr;gap:0;border:1px solid #c5cce0;border-radius:6px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:box-shadow .12s;}
+.hl-row:hover{box-shadow:0 2px 8px rgba(26,42,85,.2);}
+.hl-row-top{display:flex;gap:0;border-bottom:1px solid #dde3ef;}
+.hl-cell{padding:4px 8px;font-size:.8rem;border-right:1px solid #dde3ef;}
+.hl-cell:last-child{border-right:none;}
+.hl-label{font-size:.68rem;color:#7080a0;font-weight:600;background:#f0f3fa;padding:2px 8px;border-bottom:1px solid #dde3ef;display:block;}
+.hl-val{display:block;font-size:.82rem;color:#1a1a2e;padding:3px 8px 4px;}
+.hl-name-cell{flex:1;border-right:1px solid #dde3ef;}
+.hl-furi-cell{flex:1;border-right:1px solid #dde3ef;}
+.hl-hogosya-cell{flex:1;border-right:1px solid #dde3ef;}
+.hl-tel-cell{min-width:130px;border-right:1px solid #dde3ef;}
+.hl-row-bot{display:flex;gap:0;}
+.hl-bday-cell{min-width:100px;border-right:1px solid #dde3ef;}
+.hl-sei-cell{min-width:40px;border-right:1px solid #dde3ef;}
+.hl-addr-cell{flex:1;border-right:1px solid #dde3ef;}
+.hl-shusshin-cell{min-width:160px;}
+.hl-photo{width:56px;border-right:1px solid #dde3ef;display:flex;align-items:center;justify-content:center;background:#f8f9fc;}
+.hl-photo img{width:48px;height:60px;object-fit:cover;border-radius:3px;}
+.hl-photo-empty{width:48px;height:60px;background:#e8ecf5;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#aab;font-size:1.2rem;}
+.hl-main{flex:1;}
+.hl-nendo-strip{background:#1a2a55;color:#c4d4ff;font-size:.72rem;padding:2px 8px;display:flex;gap:16px;}
+#hl-loading{text-align:center;padding:40px;color:#7080a0;font-size:.9rem;}
+
 /* ── 小画面（〜820px） ── */
 @media(max-width:820px){
   .fm-topbar-title{display:none;}
@@ -461,6 +492,7 @@ if ($prevId): ?>
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
+        <button onclick="openHeaderList();toggleKebab(event)">📋 一覧表示</button>
         <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/home.php">🏠 HOME</a>
@@ -2465,6 +2497,78 @@ document.addEventListener('DOMContentLoaded', initStudentHeader);
       await _orig?.call(this, e);
       localStorage.removeItem(STORAGE_KEY);
     };
+  }
+})();
+/* ══════════════════════════════════════════════
+   一覧表示モード
+══════════════════════════════════════════════ */
+(function(){
+  function e(s){ return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+
+  window.openHeaderList = async function() {
+    let overlay = document.getElementById('headerListOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'headerListOverlay';
+      overlay.innerHTML = `
+        <div id="headerListModal">
+          <div class="hl-toolbar">
+            <h2>📋 一覧表示</h2>
+            <span class="hl-count" id="hlCount"></span>
+            <button class="hl-close" onclick="document.getElementById('headerListOverlay').style.display='none'">✕ 閉じる</button>
+          </div>
+          <div id="headerListBody"><div id="hl-loading">読み込み中...</div></div>
+        </div>`;
+      overlay.addEventListener('click', function(ev){ if(ev.target===overlay) overlay.style.display='none'; });
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block';
+
+    const ids = ALL_IDS.join(',');
+    const res = await fetch('/karte/api/karte.php?action=header_list' + (ids ? '&ids='+encodeURIComponent(ids) : ''));
+    const j = await res.json();
+    if (!j.success) { document.getElementById('headerListBody').innerHTML='<p style="padding:20px;color:red">読み込みエラー</p>'; return; }
+
+    document.getElementById('hlCount').textContent = j.rows.length + '件';
+    const rows = j.rows;
+    let html = '';
+    rows.forEach(r => {
+      const photo = r.photo
+        ? `<img src="${e(r.photo)}" alt="" onerror="this.style.display='none'">`
+        : `<div class="hl-photo-empty">👤</div>`;
+      html += `
+      <div class="hl-row" onclick="goTo('${e(r.student_id)}')">
+        <div style="display:flex;">
+          <div class="hl-photo">${photo}</div>
+          <div class="hl-main">
+            <div class="hl-nendo-strip">
+              <span>年度: ${e(r.nendo)}</span>
+              <span>学年: ${e(r.gakunen)}</span>
+              <span>組: ${e(r.class_no)}</span>
+              <span>番号: ${e(r.bango)}</span>
+              <span style="flex:1;text-align:right">${e(r.shusshin)}</span>
+            </div>
+            <div class="hl-row-top">
+              <div class="hl-name-cell"><span class="hl-label">氏名</span><span class="hl-val">${e(r.name)}</span></div>
+              <div class="hl-furi-cell"><span class="hl-label">ふりがな</span><span class="hl-val">${e(r.furigana)}</span></div>
+              <div class="hl-hogosya-cell"><span class="hl-label">保護者名</span><span class="hl-val">${e(r.hogosya)}</span></div>
+              <div class="hl-tel-cell"><span class="hl-label">家庭代表電話</span><span class="hl-val">${e(r.tel)}</span></div>
+            </div>
+            <div class="hl-row-bot">
+              <div class="hl-bday-cell"><span class="hl-label">生年月日</span><span class="hl-val">${e(r.birthday)}</span></div>
+              <div class="hl-sei-cell"><span class="hl-label">性別</span><span class="hl-val">${e(r.seibetu)}</span></div>
+              <div class="hl-addr-cell"><span class="hl-label">住所</span><span class="hl-val">${e(r.address)}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('headerListBody').innerHTML = html || '<p style="padding:20px;color:#888">データがありません</p>';
+  };
+
+  function goTo(sid) {
+    document.getElementById('headerListOverlay').style.display = 'none';
+    if (window._karteGo) window._karteGo(encodeURIComponent(sid));
   }
 })();
 </script>

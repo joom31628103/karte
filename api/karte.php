@@ -61,6 +61,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         case 'keepalive':
             jout(['success'=>true]);
 
+        case 'keepalive':
+            jout(['success'=>true]);
+
+        case 'header_list':
+            $ids = isset($_GET['ids']) ? explode(',', $_GET['ids']) : [];
+            if (empty($ids)) {
+                // 全件
+                $result = $conn->query("
+                    SELECT s.student_id, s.name, s.furigana, s.photo,
+                           s.phone, s.parent_name, s.birthday, s.gender, s.address,
+                           g.tel1, g.hogosya, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
+                           g.shusshin_chugaku, g.photo AS g_photo,
+                           sn.nendo, sn.gakunen, sn.class_no, sn.bango
+                    FROM students s
+                    LEFT JOIN gakuseki g ON s.gakno = g.gakno
+                    LEFT JOIN (
+                        SELECT sn2.gakno, sn2.nendo, sn2.gakunen, sn2.class_no, sn2.bango
+                        FROM student_nendo sn2
+                        INNER JOIN (SELECT gakno, MAX(nendo) AS mn FROM student_nendo GROUP BY gakno) m
+                        ON sn2.gakno = m.gakno AND sn2.nendo = m.mn
+                    ) sn ON s.gakno = sn.gakno
+                    ORDER BY sn.gakunen, sn.class_no, sn.bango, s.student_id
+                ");
+            } else {
+                $ph = implode(',', array_fill(0, count($ids), '?'));
+                $types = str_repeat('s', count($ids));
+                $result = ps($conn, "
+                    SELECT s.student_id, s.name, s.furigana, s.photo,
+                           s.phone, s.parent_name, s.birthday, s.gender, s.address,
+                           g.tel1, g.hogosya, g.birthday AS g_birthday, g.seibetu, g.jyusyo, g.yuubin,
+                           g.shusshin_chugaku, g.photo AS g_photo,
+                           sn.nendo, sn.gakunen, sn.class_no, sn.bango
+                    FROM students s
+                    LEFT JOIN gakuseki g ON s.gakno = g.gakno
+                    LEFT JOIN (
+                        SELECT sn2.gakno, sn2.nendo, sn2.gakunen, sn2.class_no, sn2.bango
+                        FROM student_nendo sn2
+                        INNER JOIN (SELECT gakno, MAX(nendo) AS mn FROM student_nendo GROUP BY gakno) m
+                        ON sn2.gakno = m.gakno AND sn2.nendo = m.mn
+                    ) sn ON s.gakno = sn.gakno
+                    WHERE s.student_id IN ($ph)
+                    ORDER BY sn.gakunen, sn.class_no, sn.bango, s.student_id
+                ", $types, $ids);
+            }
+            $rows = [];
+            while ($r2 = $result->fetch_assoc()) {
+                $photo = $r2['g_photo'] ?: $r2['photo'];
+                $rows[] = [
+                    'student_id' => $r2['student_id'],
+                    'name'       => $r2['name'],
+                    'furigana'   => $r2['furigana'],
+                    'nendo'      => $r2['nendo'] ?? '',
+                    'gakunen'    => $r2['gakunen'] ?? '',
+                    'class_no'   => $r2['class_no'] ?? $r2['class_name'] ?? '',
+                    'bango'      => $r2['bango'] ?? $r2['seat_number'] ?? '',
+                    'shusshin'   => $r2['shusshin_chugaku'] ?? '',
+                    'hogosya'    => $r2['hogosya'] ?: $r2['parent_name'],
+                    'tel'        => $r2['tel1'] ?: $r2['phone'],
+                    'birthday'   => $r2['g_birthday'] ?: $r2['birthday'],
+                    'seibetu'    => $r2['seibetu'] ?: $r2['gender'],
+                    'address'    => $r2['yuubin'] ? '〒'.$r2['yuubin'].' '.$r2['jyusyo'] : ($r2['jyusyo'] ?: $r2['address']),
+                    'photo'      => $photo ? '/karte/uploads/photos/'.rawurlencode($photo) : '',
+                ];
+            }
+            jout(['success'=>true,'rows'=>$rows]);
+
         case 'student_summary':
             $result = ps($conn, "
                 SELECT s.student_id, s.name, s.furigana, s.class_name, s.seat_number,
