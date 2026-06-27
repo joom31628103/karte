@@ -1,0 +1,3 @@
+Options -ExecCGI
+RemoveHandler .php .phtml .php3 .php4 .php5
+RemoveType application/x-httpd-php

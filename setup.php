@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * 生徒カルテ セットアップ / メンテナンス
  * アクセス条件: localhost OR ログイン済み OR ?token=karte2026setup
@@ -241,6 +241,7 @@ $conn->close();
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
+  <link rel="apple-touch-icon" href="/karte/favicon.php?size=180">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>生徒カルテ セットアップ</title>
 <style>

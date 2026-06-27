@@ -1,0 +1,71 @@
+{
+    "_meta": {
+        "student_id": "1115",
+        "exported_at": "2026-06-25T10:10:17",
+        "version": 2
+    },
+    "student": {
+        "id": 15,
+        "student_id": "1115",
+        "name": "長濱　雅",
+        "furigana": "",
+        "class_name": "1年1組",
+        "seat_number": null,
+        "gender": "",
+        "birthday": null,
+        "address": "",
+        "parent_name": "",
+        "phone": "",
+        "photo": "\/karte\/uploads\/photos\/15.jpg",
+        "notes": "",
+        "created_at": "2026-06-02 14:33:54",
+        "updated_at": "2026-06-25 17:05:12",
+        "gakno": "20261115",
+        "memo_posi": null,
+        "memo_nega": null,
+        "memo_main": null
+    },
+    "gakuseki": {
+        "id": 93,
+        "gakno": "20261115",
+        "name": "長濱　雅",
+        "furigana": "ながはま　みやび",
+        "seibetu": "男",
+        "birthday": "2010-05-21",
+        "yuubin": "9042161",
+        "jyusyo": "沖縄県沖縄市古謝２丁目１番１号　メゾン新垣Ａー１",
+        "hogosya": "長濱　由紀",
+        "hogokana": "ながはま　ゆき",
+        "zokugara": "",
+        "tel1": "070-5483-2014",
+        "tel2": "070-5483-2014",
+        "nyunendo": 2026,
+        "nyugaku": "2026-04-07",
+        "sotsugyo": null,
+        "gakuseki_status": "",
+        "shusshin_chugaku": "沖縄市立　沖縄東中学校",
+        "notes": "",
+        "created_at": "2026-06-25 16:21:02",
+        "updated_at": "2026-06-25 16:24:30",
+        "hogosya_yuubin": "9042161",
+        "hogosya_jyusyo": "生徒の欄に同じ",
+        "hogosya_addr1": "沖縄県",
+        "hogosya_addr2": "沖縄市"
+    },
+    "nendo": [
+        {
+            "id": 15,
+            "gakno": "20261115",
+            "nendo": 2026,
+            "gakunen": 1,
+            "class_no": "1",
+            "bango": 15,
+            "teacher_id": null,
+            "sinkyu": "",
+            "created_at": "2026-06-25 16:21:02"
+        }
+    ],
+    "records": [],
+    "attendance": [],
+    "interviews": []
+}

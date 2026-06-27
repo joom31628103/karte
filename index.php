@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'config.php';
 sendSecurityHeaders();
 startSession();
@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
+  <link rel="apple-touch-icon" href="/karte/favicon.php?size=180">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>生徒カルテ ログイン</title>
 <style>

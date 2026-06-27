@@ -1,0 +1,86 @@
+{
+    "_meta": {
+        "student_id": "1101",
+        "exported_at": "2026-06-25T12:52:07",
+        "version": 2
+    },
+    "student": {
+        "id": 1,
+        "student_id": "1101",
+        "name": "安谷屋　祐津希",
+        "furigana": "",
+        "class_name": "1年1組",
+        "seat_number": null,
+        "gender": "",
+        "birthday": null,
+        "address": "",
+        "parent_name": "",
+        "phone": "",
+        "notes": "",
+        "created_at": "2026-06-02 14:33:54",
+        "updated_at": "2026-06-25 17:02:25",
+        "gakno": "20261101",
+        "memo_posi": null,
+        "memo_nega": null,
+        "memo_main": null,
+        "photo": "\/karte\/uploads\/photos\/01.jpg",
+        "family_scan": null
+    },
+    "gakuseki": {
+        "id": 79,
+        "gakno": "20261101",
+        "name": "安谷屋　祐津希",
+        "furigana": "あだにや　ゆづき",
+        "seibetu": "男",
+        "birthday": "2010-05-12",
+        "yuubin": "9012201",
+        "jyusyo": "沖縄県宜野湾市新城２丁目３５番１０　Ｔ－プランドール２０２号",
+        "hogosya": "當山　千歳",
+        "hogokana": "とうやま　ちとせ",
+        "zokugara": "",
+        "tel1": "090-5728-6099",
+        "tel2": "090-5728-6099",
+        "nyunendo": 2026,
+        "nyugaku": "2026-04-07",
+        "sotsugyo": null,
+        "gakuseki_status": "",
+        "notes": "",
+        "created_at": "2026-06-25 16:21:02",
+        "updated_at": "2026-06-25 16:24:29",
+        "photo": null,
+        "family_scan": null,
+        "shusshin_chugaku": "宜野湾市立　普天間中学校",
+        "hogosya_yuubin": "9012201",
+        "hogosya_jyusyo": "生徒の欄に同じ",
+        "hogosya_addr1": "沖縄県",
+        "hogosya_addr2": "宜野湾市"
+    },
+    "nendo": [
+        {
+            "id": 1,
+            "gakno": "20261101",
+            "nendo": 2026,
+            "gakunen": 1,
+            "class_no": "1",
+            "bango": 1,
+            "teacher_id": null,
+            "sinkyu": "",
+            "created_at": "2026-06-25 16:21:02"
+        }
+    ],
+    "records": [
+        {
+            "id": 1,
+            "student_id": "1101",
+            "record_date": "2026-06-02",
+            "record_type": "面談",
+            "content": "三者面談を実施",
+            "teacher": "担任",
+            "next_action": "",
+            "created_at": "2026-06-02 14:35:02",
+            "nendo": null
+        }
+    ],
+    "attendance": [],
+    "interviews": []
+}

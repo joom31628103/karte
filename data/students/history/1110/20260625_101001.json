@@ -1,0 +1,71 @@
+{
+    "_meta": {
+        "student_id": "1110",
+        "exported_at": "2026-06-25T10:04:41",
+        "version": 2
+    },
+    "student": {
+        "id": 10,
+        "student_id": "1110",
+        "name": "古謝　星來",
+        "furigana": "",
+        "class_name": "1年1組",
+        "seat_number": null,
+        "gender": "",
+        "birthday": null,
+        "address": "",
+        "parent_name": "",
+        "phone": "",
+        "photo": "\/karte\/uploads\/photos\/10.jpg",
+        "notes": "",
+        "created_at": "2026-06-02 14:33:54",
+        "updated_at": "2026-06-25 17:04:41",
+        "gakno": "20261110",
+        "memo_posi": null,
+        "memo_nega": null,
+        "memo_main": null
+    },
+    "gakuseki": {
+        "id": 88,
+        "gakno": "20261110",
+        "name": "古謝　星來",
+        "furigana": "こじゃ　せな",
+        "seibetu": "男",
+        "birthday": "2010-08-05",
+        "yuubin": "9042164",
+        "jyusyo": "沖縄県沖縄市桃原４丁目５番２７号　",
+        "hogosya": "古謝　裕也",
+        "hogokana": "こじゃ　ゆうや",
+        "zokugara": "",
+        "tel1": "090-9789-1014",
+        "tel2": "090-9789-1014",
+        "nyunendo": 2026,
+        "nyugaku": "2026-04-07",
+        "sotsugyo": null,
+        "gakuseki_status": "",
+        "shusshin_chugaku": "沖縄市立　沖縄東中学校",
+        "notes": "",
+        "created_at": "2026-06-25 16:21:02",
+        "updated_at": "2026-06-25 16:24:30",
+        "hogosya_yuubin": "9042164",
+        "hogosya_jyusyo": "生徒の欄に同じ",
+        "hogosya_addr1": "沖縄県",
+        "hogosya_addr2": "沖縄市"
+    },
+    "nendo": [
+        {
+            "id": 10,
+            "gakno": "20261110",
+            "nendo": 2026,
+            "gakunen": 1,
+            "class_no": "1",
+            "bango": 10,
+            "teacher_id": null,
+            "sinkyu": "",
+            "created_at": "2026-06-25 16:21:02"
+        }
+    ],
+    "records": [],
+    "attendance": [],
+    "interviews": []
+}

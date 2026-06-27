@@ -1,0 +1,40 @@
+{
+    "_meta": {
+        "student_id": "1101",
+        "exported_at": "2026-06-24T12:44:42",
+        "version": 2
+    },
+    "student": {
+        "id": 1,
+        "student_id": "1101",
+        "name": "安谷屋　祐津希",
+        "furigana": "",
+        "class_name": "1年1組",
+        "seat_number": null,
+        "gender": "",
+        "birthday": null,
+        "address": "",
+        "parent_name": "",
+        "phone": "",
+        "photo": "\/karte\/uploads\/photos\/01.jpg",
+        "notes": "",
+        "created_at": "2026-06-02 14:33:54",
+        "updated_at": "2026-06-24 19:02:11"
+    },
+    "gakuseki": null,
+    "nendo": [],
+    "records": [
+        {
+            "id": 1,
+            "student_id": "1101",
+            "record_date": "2026-06-02",
+            "record_type": "面談",
+            "content": "三者面談を実施",
+            "teacher": "担任",
+            "next_action": "",
+            "created_at": "2026-06-02 14:35:02"
+        }
+    ],
+    "attendance": [],
+    "interviews": []
+}

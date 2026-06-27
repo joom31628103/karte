@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'config.php';
 requireLogin();
 ?>
@@ -7,6 +7,7 @@ requireLogin();
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
+  <link rel="apple-touch-icon" href="/karte/favicon.php?size=180">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>顔写真一括取り込み — 生徒カルテ</title>
 <style>

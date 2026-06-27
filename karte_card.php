@@ -28,6 +28,7 @@ $year=date('Y'); $teacher=htmlspecialchars($_SESSION['teacher_name']??'');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
+  <link rel="apple-touch-icon" href="/karte/favicon.php?size=180">
 <title>印刷・PDF — <?= fv($s['name']) ?></title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}

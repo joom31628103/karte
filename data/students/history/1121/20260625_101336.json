@@ -1,0 +1,71 @@
+{
+    "_meta": {
+        "student_id": "1121",
+        "exported_at": "2026-06-25T10:10:18",
+        "version": 2
+    },
+    "student": {
+        "id": 21,
+        "student_id": "1121",
+        "name": "堀井　大志",
+        "furigana": "",
+        "class_name": "1年1組",
+        "seat_number": null,
+        "gender": "",
+        "birthday": null,
+        "address": "",
+        "parent_name": "",
+        "phone": "",
+        "photo": "\/karte\/uploads\/photos\/21.jpg",
+        "notes": "",
+        "created_at": "2026-06-02 14:33:54",
+        "updated_at": "2026-06-25 17:05:54",
+        "gakno": "20261121",
+        "memo_posi": null,
+        "memo_nega": null,
+        "memo_main": null
+    },
+    "gakuseki": {
+        "id": 99,
+        "gakno": "20261121",
+        "name": "堀井　大志",
+        "furigana": "ほりい　たいし",
+        "seibetu": "男",
+        "birthday": "2011-02-17",
+        "yuubin": "9042225",
+        "jyusyo": "沖縄県うるま市字喜屋武９５番地　アクシズ１０２",
+        "hogosya": "堀井　光輔",
+        "hogokana": "ほりい　こうすけ",
+        "zokugara": "",
+        "tel1": "070-5086-7374",
+        "tel2": "070-5086-7374",
+        "nyunendo": 2026,
+        "nyugaku": "2026-04-07",
+        "sotsugyo": null,
+        "gakuseki_status": "",
+        "shusshin_chugaku": "うるま市立　具志川中学校",
+        "notes": "",
+        "created_at": "2026-06-25 16:21:02",
+        "updated_at": "2026-06-25 16:24:30",
+        "hogosya_yuubin": "9042225",
+        "hogosya_jyusyo": "生徒の欄に同じ",
+        "hogosya_addr1": "沖縄県",
+        "hogosya_addr2": "うるま市"
+    },
+    "nendo": [
+        {
+            "id": 21,
+            "gakno": "20261121",
+            "nendo": 2026,
+            "gakunen": 1,
+            "class_no": "1",
+            "bango": 21,
+            "teacher_id": null,
+            "sinkyu": "",
+            "created_at": "2026-06-25 16:21:02"
+        }
+    ],
+    "records": [],
+    "attendance": [],
+    "interviews": []
+}
