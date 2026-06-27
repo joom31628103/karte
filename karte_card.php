@@ -64,6 +64,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
 .kebab-dropdown .current-page{color:#6a7a99;cursor:default;pointer-events:none;}
 .kebab-dropdown .current-page:hover{background:none;}
+/* PDF toast */
+#pdfToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2a55;color:#e8ecff;padding:10px 20px;border-radius:8px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+#pdfToast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 }
 
 @media print{
@@ -287,7 +290,8 @@ table.rec td{border:1px solid #333;padding:1.5mm 2mm;vertical-align:top;}
 </div><!-- .page -->
 </div><!-- .page-wrap -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<div id="pdfToast">🖨 印刷ダイアログで「PDFとして保存」を選択してください</div>
+
 <script>
 let currentTab = 0;
 function switchTab(idx, btn) {
@@ -297,18 +301,11 @@ function switchTab(idx, btn) {
   currentTab = idx;
 }
 function downloadPdf() {
-  const tabNames = ['生徒カルテ','基本情報カード','記録シート'];
-  const name = <?= json_encode($s['name']) ?>;
-  const filename = name + '_' + tabNames[currentTab] + '_<?= $year ?>年度.pdf';
-  const el = document.getElementById('tab' + currentTab);
-  const opt = {
-    margin: 10,
-    filename: filename,
-    image: { type: 'jpeg', quality: 0.97 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(el).save();
+  // ブラウザの印刷ダイアログで「PDFとして保存」を選択してください
+  const toast = document.getElementById('pdfToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+  setTimeout(() => window.print(), 300);
 }
 function toggleKebab(e) {
   e.stopPropagation();
