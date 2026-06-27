@@ -355,6 +355,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
+.kebab-dropdown .current-page{color:#6a7a99;cursor:default;pointer-events:none;}
+.kebab-dropdown .current-page:hover{background:none;}
 
 /* ── 一覧表示画面 ── */
 #listScreen{display:none;position:fixed;inset:0;z-index:500;background:#f0f2f8;overflow-y:auto;flex-direction:column;}
@@ -488,6 +490,7 @@ if ($prevId): ?>
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
+        <a class="current-page">🏫 生徒情報</a>
         <button onclick="openHeaderList();toggleKebab(event)">📋 一覧表示</button>
         <a href="/karte/home.php">🏠 HOME</a>
         <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>">🖨 印刷・PDF</a>
@@ -506,6 +509,18 @@ if ($prevId): ?>
 <!-- ── 生徒情報ヘッダー ── -->
 <div class="fm-student-header" id="studentHeader">
   <div class="fm-header-row1">
+    <!-- 写真欄（左側） -->
+    <div class="photo-wrap">
+      <div class="fm-photo" id="photoBox" onclick="document.getElementById('photoInput').click()" title="クリックして写真をアップロード" style="cursor:pointer;">
+        <?php if ($dispPhoto): ?>
+          <img id="photoImg" src="<?= htmlspecialchars($dispPhoto) ?>" alt="生徒写真">
+        <?php else: ?>
+          <span id="photoPlaceholder" style="font-size:.65rem;color:#9aa0c0;text-align:center;line-height:1.5;">📷<br>写真<br>タップ</span>
+        <?php endif; ?>
+        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadPhoto(this)">
+      </div>
+      <button class="photo-del-btn" id="photoDelBtn" onclick="deletePhoto(event)" title="写真を削除" <?= $dispPhoto ? '' : 'style="display:none"' ?>>×</button>
+    </div>
     <div class="fm-header-fields" style="flex:1">
       <!-- 行1: 年度・学年・組・番号 -->
       <div class="fm-field-row">
@@ -564,18 +579,6 @@ if ($prevId): ?>
           <div class="fm-field-value wide" data-filter="address"><?= htmlspecialchars($dispJyusyo ?: '—') ?></div>
         </div>
       </div>
-    </div>
-    <!-- 写真欄 -->
-    <div class="photo-wrap">
-      <div class="fm-photo" id="photoBox" onclick="document.getElementById('photoInput').click()" title="クリックして写真をアップロード" style="cursor:pointer;">
-        <?php if ($dispPhoto): ?>
-          <img id="photoImg" src="<?= htmlspecialchars($dispPhoto) ?>" alt="生徒写真">
-        <?php else: ?>
-          <span id="photoPlaceholder" style="font-size:.65rem;color:#9aa0c0;text-align:center;line-height:1.5;">📷<br>写真<br>タップ</span>
-        <?php endif; ?>
-        <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="uploadPhoto(this)">
-      </div>
-      <button class="photo-del-btn" id="photoDelBtn" onclick="deletePhoto(event)" title="写真を削除" <?= $dispPhoto ? '' : 'style="display:none"' ?>>×</button>
     </div>
   </div>
 </div>
@@ -2592,6 +2595,7 @@ window.openHeaderList = async function() {
       <button class="kebab-btn" onclick="toggleListKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="listKebabDropdown">
         <a href="/karte/karte_detail.php?id=<?= urlencode($sid) ?>">🏫 生徒情報</a>
+        <a class="current-page">📋 一覧表示</a>
         <a href="/karte/home.php">🏠 HOME</a>
         <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>">🖨 印刷・PDF</a>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>

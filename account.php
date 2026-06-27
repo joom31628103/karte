@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'config.php';
 requireLogin();
 sendSecurityHeaders();
@@ -107,6 +107,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
+.kebab-dropdown .current-page{color:#6a7a99;cursor:default;pointer-events:none;}
+.kebab-dropdown .current-page:hover{background:none;}
 .fm-body{flex:1;display:flex;justify-content:center;padding:32px 16px;}
 .panel-wrap{width:100%;max-width:480px;display:flex;flex-direction:column;gap:20px;}
 .panel{background:#f0f2f8;border:1.5px solid #aab0cc;border-radius:6px;overflow:hidden;}
@@ -144,6 +146,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
+        <a class="current-page">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>
     </div>

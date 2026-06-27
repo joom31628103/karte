@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'config.php';
 requireLogin();
 $teacher = htmlspecialchars($_SESSION['teacher_name']);
@@ -36,6 +36,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .kebab-dropdown a,.kebab-dropdown button{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;text-align:left;cursor:pointer;font-family:inherit;box-sizing:border-box;}
 .kebab-dropdown a:last-child,.kebab-dropdown button:last-child{border-bottom:none;}
 .kebab-dropdown a:hover,.kebab-dropdown button:hover{background:rgba(255,255,255,.15);}
+.kebab-dropdown .current-page{color:#6a7a99;cursor:default;pointer-events:none;}
+.kebab-dropdown .current-page:hover{background:none;}
 
 .container{max-width:1080px;margin:0 auto;padding:14px 16px 48px;}
 
@@ -144,6 +146,7 @@ td:last-child{border-right:none;}
         <?php if($firstSid):?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>&list=1">📋 一覧表示</a><?php endif;?>
         <a href="/karte/home.php">🏠 HOME</a>
         <?php if($firstSid):?><a href="/karte/karte_card.php?id=<?= urlencode($firstSid) ?>">🖨 印刷・PDF</a><?php endif;?>
+        <a class="current-page">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
         <a href="/karte/account.php">⚙ アカウント</a>
