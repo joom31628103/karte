@@ -19,14 +19,14 @@ $colors = [
 $c = $colors[$env] ?? $colors['local'];
 ?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="<?= $size ?>" height="<?= $size ?>">
-  <!-- 背景を環境色で塗りつぶし -->
-  <rect width="48" height="48" rx="8" fill="<?= $c['bg'] ?>"/>
-  <!-- クリップボード本体（大きく） -->
-  <rect x="7" y="11" width="34" height="33" rx="4" fill="<?= $c['body'] ?>"/>
-  <!-- クリップ（上部タブ） -->
-  <rect x="16" y="6" width="16" height="11" rx="3.5" fill="<?= $c['clip'] ?>"/>
-  <!-- ライン3本（太め） -->
-  <line x1="13" y1="24" x2="35" y2="24" stroke="<?= $c['line'] ?>" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="13" y1="31" x2="35" y2="31" stroke="<?= $c['line'] ?>" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="13" y1="38" x2="26" y2="38" stroke="<?= $c['line'] ?>" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- 背景 -->
+  <rect width="48" height="48" rx="6" fill="<?= $c['bg'] ?>"/>
+  <!-- クリップボード本体（余白2pxのみ） -->
+  <rect x="2" y="8" width="44" height="38" rx="4" fill="<?= $c['body'] ?>"/>
+  <!-- クリップ（上部タブ）-->
+  <rect x="14" y="2" width="20" height="13" rx="4" fill="<?= $c['clip'] ?>"/>
+  <!-- ライン3本 -->
+  <line x1="8"  y1="23" x2="40" y2="23" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="8"  y1="31" x2="40" y2="31" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="8"  y1="39" x2="28" y2="39" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
 </svg>
