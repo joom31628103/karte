@@ -12,9 +12,9 @@ if (!$_is_local) $env = 'sakura';
 
 $colors = [
     'work'   => '#2d6a10',
-    'home'   => '#1244a0',
-    'sakura' => '#a02050',
-    'local'  => '#444444',
+    'home'   => '#a02050',
+    'sakura' => '#1244a0',
+    'local'  => '#a02050',
 ];
 $bg = $colors[$env] ?? $colors['local'];
 ?>
