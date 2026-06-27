@@ -19,14 +19,14 @@ $colors = [
 $c = $colors[$env] ?? $colors['local'];
 ?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="<?= $size ?>" height="<?= $size ?>">
-  <!-- 背景 -->
-  <rect width="48" height="48" rx="6" fill="<?= $c['bg'] ?>"/>
-  <!-- クリップボード本体（余白2pxのみ） -->
-  <rect x="2" y="8" width="44" height="38" rx="4" fill="<?= $c['body'] ?>"/>
+  <!-- 背景（角丸なし・枠いっぱい） -->
+  <rect width="48" height="48" fill="<?= $c['bg'] ?>"/>
+  <!-- クリップボード本体（左右上下0px） -->
+  <rect x="0" y="7" width="48" height="41" fill="<?= $c['body'] ?>"/>
   <!-- クリップ（上部タブ）-->
-  <rect x="14" y="2" width="20" height="13" rx="4" fill="<?= $c['clip'] ?>"/>
+  <rect x="13" y="0" width="22" height="14" rx="3" fill="<?= $c['clip'] ?>"/>
   <!-- ライン3本 -->
-  <line x1="8"  y1="23" x2="40" y2="23" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
-  <line x1="8"  y1="31" x2="40" y2="31" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
-  <line x1="8"  y1="39" x2="28" y2="39" stroke="<?= $c['line'] ?>" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="6"  y1="22" x2="42" y2="22" stroke="<?= $c['line'] ?>" stroke-width="5" stroke-linecap="square"/>
+  <line x1="6"  y1="31" x2="42" y2="31" stroke="<?= $c['line'] ?>" stroke-width="5" stroke-linecap="square"/>
+  <line x1="6"  y1="40" x2="28" y2="40" stroke="<?= $c['line'] ?>" stroke-width="5" stroke-linecap="square"/>
 </svg>
