@@ -489,9 +489,10 @@ if ($prevId): ?>
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
         <button onclick="openHeaderList();toggleKebab(event)">📋 一覧表示</button>
-        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
-        <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/home.php">🏠 HOME</a>
+        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>">🖨 印刷・PDF</a>
+        <a href="/karte/gakuseki.php">📚 学籍管理</a>
+        <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
@@ -2591,10 +2592,10 @@ window.openHeaderList = async function() {
       <button class="kebab-btn" onclick="toggleListKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="listKebabDropdown">
         <a href="/karte/karte_detail.php?id=<?= urlencode($sid) ?>">🏫 生徒情報</a>
-        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>" target="_blank">🖨 個人カード</a>
+        <a href="/karte/home.php">🏠 HOME</a>
+        <a href="/karte/karte_card.php?id=<?= urlencode($sid) ?>">🖨 印刷・PDF</a>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
-        <a href="/karte/home.php">🏠 HOME</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
