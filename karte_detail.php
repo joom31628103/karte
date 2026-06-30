@@ -1886,8 +1886,50 @@ async function loadHistory(sid=SID) {
     else if (tab==='panel-history')           renderHistory(json);
   }
 
+  // 基本情報パネル表示中に生徒を切り替える前にサイレント自動保存
+  async function autoSaveBasicIfNeeded(currentSid) {
+    const activeTab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
+    if (activeTab !== 'panel-basic' && activeTab !== '') return;
+    const fd = new FormData();
+    fd.append('action','save_basic'); fd.append('csrf_token',CSRF); fd.append('student_id',currentSid);
+    fd.append('name',         document.getElementById('b-name')?.value || '');
+    fd.append('furigana',     document.getElementById('b-furi')?.value || '');
+    fd.append('class_name',   document.getElementById('b-class')?.value || '');
+    fd.append('seat_number',  document.getElementById('b-seat')?.value || '');
+    fd.append('gender',       document.getElementById('b-gender')?.value || '');
+    fd.append('birthday',     document.getElementById('b-bday')?.value || '');
+    fd.append('phone',        document.getElementById('b-phone')?.value || '');
+    fd.append('parent_name',  document.getElementById('b-parent')?.value || '');
+    fd.append('address',      document.getElementById('b-addr')?.value || '');
+    fd.append('notes',        document.getElementById('b-notes')?.value || '');
+    fd.append('school_from',        document.getElementById('b-school-from')?.value || '');
+    fd.append('student_phone',      document.getElementById('b-student-phone')?.value || '');
+    fd.append('primary_parent',     document.querySelector('input[name="pri_parent"]:checked')?.value || '1');
+    fd.append('parent1_name',       document.getElementById('b-p1-name')?.value || '');
+    fd.append('parent1_furi',       document.getElementById('b-p1-furi')?.value || '');
+    fd.append('parent1_phone',      document.getElementById('b-p1-phone')?.value || '');
+    fd.append('parent1_phone_note', document.getElementById('b-p1-phone-note')?.value || '');
+    fd.append('parent2_name',       document.getElementById('b-p2-name')?.value || '');
+    fd.append('parent2_furi',       document.getElementById('b-p2-furi')?.value || '');
+    fd.append('parent2_phone',      document.getElementById('b-p2-phone')?.value || '');
+    fd.append('parent2_phone_note', document.getElementById('b-p2-phone-note')?.value || '');
+    fd.append('parent1_work_name',  document.getElementById('b-p1-work-name')?.value || '');
+    fd.append('parent1_work_phone', document.getElementById('b-p1-work-phone')?.value || '');
+    fd.append('parent1_work_note',  document.getElementById('b-p1-work-note')?.value || '');
+    fd.append('parent2_work_name',  document.getElementById('b-p2-work-name')?.value || '');
+    fd.append('parent2_work_phone', document.getElementById('b-p2-work-phone')?.value || '');
+    fd.append('parent2_work_note',  document.getElementById('b-p2-work-note')?.value || '');
+    try {
+      await fetch('/karte/api/karte.php', {method:'POST', body:fd});
+      // 保存後にstudentCacheを破棄（戻ったとき最新データを再取得させる）
+      delete studentCache[currentSid];
+    } catch(e) {}
+  }
+
   async function go(id) {
     if (!id || busy) return;
+    // 切り替え前に現在の基本情報をサイレント保存
+    await autoSaveBasicIfNeeded(window.SID);
     busy = true;
     const realId = decodeURIComponent(id);
     const tab    = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
