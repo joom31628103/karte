@@ -302,16 +302,23 @@ tr:hover td{background:#eef1fb;}
   .func-grid-2{grid-template-columns:1fr;}
 }
 
-/* ── 4機能グリッド ── */
-.box4-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
-@media(max-width:1100px){.box4-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.box4-grid{grid-template-columns:1fr;}}
+/* ── 5機能グリッド ── */
+.box4-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;}
+@media(max-width:1300px){.box4-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.box4-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px){.box4-grid{grid-template-columns:1fr;}}
 .box4{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;}
 .box4-header{padding:10px 14px;font-size:.88rem;font-weight:900;letter-spacing:.03em;color:#fff;}
 .box4-hdr-green{background:linear-gradient(135deg,#276749,#38a169);}
 .box4-hdr-blue{background:linear-gradient(135deg,#2c5282,#4a7cc9);}
 .box4-hdr-excel{background:linear-gradient(135deg,#1a5c2a,#2e9148);}
 .box4-hdr-brown{background:linear-gradient(135deg,#744210,#c47a2a);}
+.box4-hdr-indigo{background:linear-gradient(135deg,#3730a3,#6d28d9);}
+/* 同期ログ */
+.sync-log{background:#1e2340;color:#a0f0b0;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:.75rem;min-height:60px;max-height:130px;overflow-y:auto;white-space:pre-wrap;margin-top:6px;}
+.sync-log .err{color:#ff8080;}.sync-log .ok{color:#7fffaa;}.sync-log .info{color:#80d0ff;}
+.sync-prog{height:4px;background:#e0e4f0;border-radius:2px;overflow:hidden;margin:4px 0;display:none;}
+.sync-prog-bar{height:100%;background:linear-gradient(90deg,#6d28d9,#8b5cf6);width:0;transition:width .4s;}
 .box4-section{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
 .box4-section+.box4-section{border-top:2px solid #e2e8f0;}
 .box4-out{background:#f6fff9;}
@@ -475,6 +482,36 @@ tr:hover td{background:#eef1fb;}
         <div style="margin-top:4px;font-size:.7rem;color:#8899cc;text-align:center;">ドラッグ＆ドロップも可</div>
         <div id="csvImportResult"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ⑤ サーバー同期 -->
+  <div class="box4">
+    <div class="box4-header box4-hdr-indigo">🔄 サーバーDB同期</div>
+    <div class="box4-section box4-out">
+      <div class="box4-section-label">⬇ ダウンロード</div>
+      <div class="box4-desc">
+        サーバーのデータで<br>ローカルを上書き。
+      </div>
+      <button class="func-btn func-btn-blue" id="syncBtnDown" onclick="doBackupSync('download')">⬇ サーバー→ローカル</button>
+    </div>
+    <div class="box4-section" style="background:#f5f3ff;">
+      <div class="box4-section-label" style="color:#5b21b6;">🔀 マージ</div>
+      <div class="box4-desc">
+        更新日時を比較して<br>新しいほうを両方に反映。
+      </div>
+      <button class="func-btn func-btn-purple" id="syncBtnMerge" onclick="doBackupSync('merge')">🔀 マージ同期</button>
+    </div>
+    <div class="box4-section box4-in">
+      <div class="box4-section-label">⬆ アップロード</div>
+      <div class="box4-desc">
+        ローカルのデータで<br>サーバーを上書き。
+      </div>
+      <button class="func-btn func-btn-brown" id="syncBtnUp" onclick="doBackupSync('upload')">⬆ ローカル→サーバー</button>
+    </div>
+    <div class="box4-section" style="background:#fafafa;padding-top:8px;padding-bottom:8px;">
+      <div class="sync-prog" id="syncProg"><div class="sync-prog-bar" id="syncProgBar"></div></div>
+      <div class="sync-log" id="syncLog">準備完了</div>
     </div>
   </div>
 
@@ -692,6 +729,102 @@ if (csvBox) {
     if (file) doCsvImport(file);
   });
 }
+
+// ── サーバー同期（backup.phpインライン版） ──────────────────
+(function(){
+const LOCAL_API  = '/karte/api/sync.php';
+const REMOTE_API = '<?= REMOTE_URL ?>/karte/api/sync.php';
+const TOKEN      = '<?= SYNC_TOKEN ?>';
+
+function slog(msg, cls='') {
+  const box = document.getElementById('syncLog');
+  const ts  = new Date().toLocaleTimeString('ja-JP');
+  box.innerHTML += (box.textContent==='準備完了' ? '' : '\n') +
+    `<span class="${cls}">[${ts}] ${msg}</span>`;
+  if (box.textContent==='準備完了') box.textContent = '';
+  box.innerHTML = box.innerHTML.replace('準備完了','');
+  box.scrollTop = box.scrollHeight;
+}
+function prog(pct) {
+  const p = document.getElementById('syncProg');
+  p.style.display = (pct > 0 && pct < 100) ? 'block' : 'none';
+  document.getElementById('syncProgBar').style.width = pct + '%';
+}
+function setBtns(dis) {
+  ['syncBtnDown','syncBtnMerge','syncBtnUp'].forEach(id => {
+    document.getElementById(id).disabled = dis;
+  });
+}
+
+window.doBackupSync = async function(dir) {
+  const msgs = {
+    download: '⬇ サーバー→ローカルに同期します。\nローカルのデータが上書きされます。よろしいですか？',
+    upload:   '⬆ ローカル→サーバーに同期します。\nサーバーのデータが上書きされます。よろしいですか？',
+    merge:    '🔀 マージ同期を実行します。\n更新日時を比較して新しいほうを両方に反映します。よろしいですか？',
+  };
+  if (!confirm(msgs[dir])) return;
+
+  document.getElementById('syncLog').textContent = '';
+  setBtns(true); prog(10);
+
+  try {
+    if (dir === 'download' || dir === 'upload') {
+      const srcApi = dir==='download' ? REMOTE_API : LOCAL_API;
+      const dstApi = dir==='download' ? LOCAL_API  : REMOTE_API;
+      const srcLbl = dir==='download' ? 'サーバー' : 'ローカル';
+      const dstLbl = dir==='download' ? 'ローカル' : 'サーバー';
+      slog(`${srcLbl}からエクスポート中…`, 'info');
+      const expRes = await fetch(`${srcApi}?action=export&token=${TOKEN}`);
+      if (!expRes.ok) throw new Error(`エクスポート失敗 (${expRes.status})`);
+      const expData = await expRes.json();
+      const total = Object.values(expData.tables||{}).reduce((s,r)=>s+r.length,0);
+      slog(`取得: ${total}件`, 'ok'); prog(50);
+      slog(`${dstLbl}へインポート中…`, 'info');
+      const impRes = await fetch(`${dstApi}?action=import&token=${TOKEN}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(expData),
+      });
+      if (!impRes.ok) throw new Error(`インポート失敗 (${impRes.status})`);
+      const impData = await impRes.json();
+      if (!impData.success) throw new Error(impData.error||'インポートエラー');
+      prog(100);
+      slog(`✅ 完了（${srcLbl}→${dstLbl}）`, 'ok');
+
+    } else { // merge
+      slog('両方からエクスポート中…', 'info');
+      const [locExp, remExp] = await Promise.all([
+        fetch(`${LOCAL_API}?action=export&token=${TOKEN}`).then(r=>{ if(!r.ok) throw new Error('ローカルexport失敗'); return r.json(); }),
+        fetch(`${REMOTE_API}?action=export&token=${TOKEN}`).then(r=>{ if(!r.ok) throw new Error('サーバーexport失敗'); return r.json(); }),
+      ]);
+      prog(35); slog('マージ計算中…', 'info');
+      const mergeRes = await fetch(`${LOCAL_API}?action=merge&token=${TOKEN}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({local: locExp, remote: remExp}),
+      });
+      if (!mergeRes.ok) throw new Error('マージ失敗');
+      const mergeData = await mergeRes.json();
+      if (!mergeData.success) throw new Error(mergeData.error||'マージエラー');
+      prog(60); slog('両方にインポート中…', 'info');
+      const [lImp, rImp] = await Promise.all([
+        fetch(`${LOCAL_API}?action=import&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(mergeData.merged)}).then(r=>r.json()),
+        fetch(`${REMOTE_API}?action=import&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(mergeData.merged)}).then(r=>r.json()),
+      ]);
+      if (!lImp.success) throw new Error('ローカルimport: '+(lImp.error||''));
+      if (!rImp.success) throw new Error('サーバーimport: '+(rImp.error||''));
+      prog(100);
+      const stats = mergeData.stats||{};
+      const added = Object.values(stats).reduce((s,v)=>s+(v.local_only||0)+(v.remote_only||0),0);
+      const upd   = Object.values(stats).reduce((s,v)=>s+(v.local_wins||0)+(v.remote_wins||0),0);
+      slog(`✅ マージ完了（追加:${added}件 更新:${upd}件）`, 'ok');
+    }
+  } catch(e) {
+    slog('❌ '+e.message, 'err'); prog(0);
+  } finally {
+    setBtns(false);
+    setTimeout(()=>prog(0), 2000);
+  }
+};
+})();
 
 function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
 document.addEventListener('click',function(){const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');});
