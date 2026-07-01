@@ -28,14 +28,22 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 .status-table td{padding:3px 6px;border-bottom:1px solid #e8eaf0;}
 .status-table td:last-child{text-align:right;font-weight:700;color:#3b4f8a;}
 .status-footer{font-size:.75rem;color:#888;margin-top:8px;}
-.sync-btns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 8px;}
+.sync-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:20px 0 8px;}
 .sync-btn{padding:18px;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:700;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px;}
 .sync-btn .icon{font-size:2rem;}
 .sync-btn .sub{font-size:.75rem;font-weight:400;opacity:.85;}
 .btn-download{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;}
 .btn-download:hover{background:linear-gradient(135deg,#60a5fa,#3b82f6);}
+.btn-merge   {background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;}
+.btn-merge:hover {background:linear-gradient(135deg,#8b5cf6,#7c3aed);}
 .btn-upload  {background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;}
-.btn-upload:hover  {background:linear-gradient(135deg,#fbbf24,#f59e0b);}
+.btn-upload:hover{background:linear-gradient(135deg,#fbbf24,#f59e0b);}
+.merge-stats{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:14px 18px;margin-top:12px;display:none;}
+.merge-stats h4{font-size:.88rem;font-weight:700;color:#5b21b6;margin-bottom:10px;}
+.merge-stats table{width:100%;font-size:.8rem;border-collapse:collapse;}
+.merge-stats td{padding:3px 8px;border-bottom:1px solid #ede9fe;}
+.merge-stats td:not(:first-child){text-align:right;}
+.merge-stats .col-h{font-weight:700;color:#555;font-size:.75rem;}
 .sync-btn:disabled{opacity:.5;cursor:not-allowed;}
 .warn-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:12px 16px;font-size:.82rem;color:#9a3412;margin-bottom:16px;}
 .log-box{background:#1e2340;color:#a0f0b0;border-radius:8px;padding:16px;font-family:monospace;font-size:.82rem;min-height:120px;max-height:260px;overflow-y:auto;white-space:pre-wrap;}
@@ -89,15 +97,24 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
       <button class="sync-btn btn-download" id="btnDownload" onclick="confirmSync('download')">
         <span class="icon">⬇️</span>
         <span>サーバー → ローカル</span>
-        <span class="sub">本番データを家のPCに取り込む</span>
+        <span class="sub">本番データで家のPCを上書き</span>
+      </button>
+      <button class="sync-btn btn-merge" id="btnMerge" onclick="confirmSync('merge')">
+        <span class="icon">🔀</span>
+        <span>マージ同期</span>
+        <span class="sub">更新日時を比較して新しいほうを残す</span>
       </button>
       <button class="sync-btn btn-upload" id="btnUpload" onclick="confirmSync('upload')">
         <span class="icon">⬆️</span>
         <span>ローカル → サーバー</span>
-        <span class="sub">家で入力したデータを本番に反映</span>
+        <span class="sub">家のデータで本番を上書き</span>
       </button>
     </div>
     <div class="progress" id="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="merge-stats" id="mergeStats">
+      <h4>🔀 マージ結果</h4>
+      <table id="mergeStatsTable"></table>
+    </div>
     <div class="last-sync" id="lastSyncInfo"></div>
   </div>
 
@@ -191,11 +208,15 @@ async function loadStatus() {
 }
 
 async function confirmSync(dir) {
-  const msg = dir==='download'
-    ? '⬇️ サーバー → ローカルに同期します。\nローカルのデータが上書きされます。よろしいですか？'
-    : '⬆️ ローカル → サーバーに同期します。\nサーバーのデータが上書きされます。よろしいですか？';
-  if (!confirm(msg)) return;
-  await doSync(dir);
+  const msgs = {
+    download: '⬇️ サーバー → ローカルに同期します。\nローカルのデータが上書きされます。よろしいですか？',
+    upload:   '⬆️ ローカル → サーバーに同期します。\nサーバーのデータが上書きされます。よろしいですか？',
+    merge:    '🔀 マージ同期を実行します。\n更新日時を比較して新しいほうのデータを両方に反映します。\nよろしいですか？',
+  };
+  if (!confirm(msgs[dir])) return;
+  document.getElementById('mergeStats').style.display = 'none';
+  if (dir === 'merge') await doMerge();
+  else await doSync(dir);
 }
 
 async function doSync(dir) {
@@ -237,6 +258,84 @@ async function doSync(dir) {
       log(`  ${tableLabels[k]||k}：${v} 件`, 'ok');
     });
     log(`✅ 同期完了！（${srcLabel} → ${dstLabel}）`, 'ok');
+
+    const now = new Date().toLocaleString('ja-JP');
+    localStorage.setItem('karte_last_sync', now);
+    document.getElementById('lastSyncInfo').textContent = `最終同期：${now}`;
+    await loadStatus();
+
+  } catch(e) {
+    log('❌ エラー：'+e.message, 'err');
+    setProgress(0);
+  } finally {
+    btn.disabled = false;
+    setTimeout(()=>setProgress(0), 1500);
+  }
+}
+
+async function doMerge() {
+  const btn = document.getElementById('btnMerge');
+  btn.disabled = true;
+  setProgress(10);
+  document.getElementById('logBox').textContent = '';
+
+  try {
+    // ① 両方からエクスポート
+    log('ローカルからエクスポート中…', 'info');
+    const [locExp, remExp] = await Promise.all([
+      fetch(`${LOCAL_API}?action=export&token=${TOKEN}`).then(r=>{ if(!r.ok) throw new Error('ローカルexport失敗'); return r.json(); }),
+      fetch(`${REMOTE_API}?action=export&token=${TOKEN}`).then(r=>{ if(!r.ok) throw new Error('サーバーexport失敗'); return r.json(); }),
+    ]);
+    log(`エクスポート完了（ローカル: ${Object.values(locExp.tables).reduce((s,r)=>s+r.length,0)}件 / サーバー: ${Object.values(remExp.tables).reduce((s,r)=>s+r.length,0)}件）`, 'ok');
+    setProgress(35);
+
+    // ② マージ（ローカルAPIで計算）
+    log('マージ計算中…', 'info');
+    const mergeRes = await fetch(`${LOCAL_API}?action=merge&token=${TOKEN}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ local: locExp, remote: remExp }),
+    });
+    if (!mergeRes.ok) throw new Error('マージ計算失敗');
+    const mergeData = await mergeRes.json();
+    if (!mergeData.success) throw new Error(mergeData.error || 'マージエラー');
+
+    const totalMerged = Object.values(mergeData.merged.tables).reduce((s,r)=>s+r.length,0);
+    log(`マージ完了：合計 ${totalMerged} 件`, 'ok');
+    setProgress(55);
+
+    // ③ 両方にインポート
+    log('ローカルにインポート中…', 'info');
+    const [locImp, remImp] = await Promise.all([
+      fetch(`${LOCAL_API}?action=import&token=${TOKEN}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(mergeData.merged),
+      }).then(r=>r.json()),
+      fetch(`${REMOTE_API}?action=import&token=${TOKEN}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(mergeData.merged),
+      }).then(r=>r.json()),
+    ]);
+    if (!locImp.success) throw new Error('ローカルimport失敗: ' + (locImp.error||''));
+    if (!remImp.success) throw new Error('サーバーimport失敗: ' + (remImp.error||''));
+
+    setProgress(100);
+    log('✅ マージ同期完了！', 'ok');
+
+    // マージ統計を表示
+    const stats = mergeData.stats || {};
+    const labels = {students:'生徒', karte_records:'面談記録', karte_attendance:'出欠',
+                    karte_interviews:'面談', gakuseki:'学籍台帳', student_nendo:'年度情報', teachers:'教師'};
+    let html = `<tr class="col-h"><td>テーブル</td><td>合計</td><td>ローカル優先</td><td>サーバー優先</td><td>ローカルのみ</td><td>サーバーのみ</td></tr>`;
+    for (const [tbl, s] of Object.entries(stats)) {
+      const changed = s.local_wins + s.remote_wins + s.local_only + s.remote_only;
+      if (changed === 0) continue;
+      html += `<tr><td>${labels[tbl]||tbl}</td><td>${s.total}</td><td>${s.local_wins}</td><td>${s.remote_wins}</td><td>${s.local_only}</td><td>${s.remote_only}</td></tr>`;
+    }
+    const noChange = Object.values(stats).every(s=>s.local_wins+s.remote_wins+s.local_only+s.remote_only===0);
+    if (noChange) html += `<tr><td colspan="6" style="color:#666;text-align:center;padding:8px">差分なし（両方とも同じデータ）</td></tr>`;
+    document.getElementById('mergeStatsTable').innerHTML = html;
+    document.getElementById('mergeStats').style.display = 'block';
 
     const now = new Date().toLocaleString('ja-JP');
     localStorage.setItem('karte_last_sync', now);

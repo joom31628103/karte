@@ -135,5 +135,117 @@ if ($action === 'status') {
     exit;
 }
 
+// ── マージ（新しいほう優先） ──────────────────────────────
+if ($action === 'merge' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    if (!$data || !isset($data['local']['tables']) || !isset($data['remote']['tables'])) {
+        http_response_code(400);
+        die(json_encode(['success'=>false,'error'=>'不正なデータ形式']));
+    }
+
+    // テーブルごとのマージ設定
+    // key: 同一レコードを識別するキー列（配列可）
+    // ts:  新旧比較に使うタイムスタンプ列
+    // append: true = 両方の和集合を取る（追記型テーブル）
+    $MERGE_CFG = [
+        'students'         => ['key'=>['student_id'],      'ts'=>'updated_at'],
+        'karte_records'    => ['key'=>['id'],               'ts'=>'created_at', 'append'=>true],
+        'karte_attendance' => ['key'=>['id'],               'ts'=>'created_at', 'append'=>true],
+        'karte_interviews' => ['key'=>['id'],               'ts'=>'created_at', 'append'=>true],
+        'gakuseki'         => ['key'=>['gakno'],            'ts'=>'updated_at'],
+        'student_nendo'    => ['key'=>['gakno','nendo'],    'ts'=>'created_at', 'append'=>true],
+        'teachers'         => ['key'=>['username'],         'ts'=>'created_at'],
+    ];
+
+    $merged  = [];
+    $stats   = [];
+
+    foreach ($SYNC_TABLES as $tbl) {
+        $cfg     = $MERGE_CFG[$tbl] ?? ['key'=>['id'],'ts'=>'created_at'];
+        $keys    = $cfg['key'];
+        $tsCol   = $cfg['ts'];
+        $append  = $cfg['append'] ?? false;
+
+        $localRows  = $data['local']['tables'][$tbl]  ?? [];
+        $remoteRows = $data['remote']['tables'][$tbl] ?? [];
+
+        // 行をキーでインデックス化
+        $makeIdx = function(array $rows) use ($keys): array {
+            $idx = [];
+            foreach ($rows as $row) {
+                $k = implode('|', array_map(fn($f) => $row[$f] ?? '', $keys));
+                $idx[$k] = $row;
+            }
+            return $idx;
+        };
+
+        $localIdx  = $makeIdx($localRows);
+        $remoteIdx = $makeIdx($remoteRows);
+
+        $result       = [];
+        $localWins    = 0;
+        $remoteWins   = 0;
+        $localOnly    = 0;
+        $remoteOnly   = 0;
+
+        if ($append) {
+            // 追記型：両方の和集合。同じキーが衝突したら新しいほう
+            $allKeys = array_unique(array_merge(array_keys($localIdx), array_keys($remoteIdx)));
+            foreach ($allKeys as $k) {
+                $hasL = isset($localIdx[$k]);
+                $hasR = isset($remoteIdx[$k]);
+                if ($hasL && $hasR) {
+                    $lt = $localIdx[$k][$tsCol]  ?? '0';
+                    $rt = $remoteIdx[$k][$tsCol] ?? '0';
+                    $result[] = ($lt >= $rt) ? $localIdx[$k] : $remoteIdx[$k];
+                    if ($lt >= $rt) $localWins++; else $remoteWins++;
+                } elseif ($hasL) {
+                    $result[] = $localIdx[$k];
+                    $localOnly++;
+                } else {
+                    $result[] = $remoteIdx[$k];
+                    $remoteOnly++;
+                }
+            }
+        } else {
+            // 更新型：同じキーは新しいほう優先
+            $allKeys = array_unique(array_merge(array_keys($localIdx), array_keys($remoteIdx)));
+            foreach ($allKeys as $k) {
+                $hasL = isset($localIdx[$k]);
+                $hasR = isset($remoteIdx[$k]);
+                if ($hasL && $hasR) {
+                    $lt = $localIdx[$k][$tsCol]  ?? '0';
+                    $rt = $remoteIdx[$k][$tsCol] ?? '0';
+                    $result[] = ($lt >= $rt) ? $localIdx[$k] : $remoteIdx[$k];
+                    if ($lt >= $rt) $localWins++; else $remoteWins++;
+                } elseif ($hasL) {
+                    $result[] = $localIdx[$k];
+                    $localOnly++;
+                } else {
+                    $result[] = $remoteIdx[$k];
+                    $remoteOnly++;
+                }
+            }
+        }
+
+        $merged[$tbl] = $result;
+        $stats[$tbl]  = [
+            'total'       => count($result),
+            'local_wins'  => $localWins,
+            'remote_wins' => $remoteWins,
+            'local_only'  => $localOnly,
+            'remote_only' => $remoteOnly,
+        ];
+    }
+
+    echo json_encode([
+        'success' => true,
+        'merged'  => ['tables' => $merged],
+        'stats'   => $stats,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 http_response_code(400);
 echo json_encode(['success'=>false,'error'=>'不明なアクション']);
