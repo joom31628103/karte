@@ -147,6 +147,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
+      <a href="/karte/sync.php">🔄 DB同期</a>
         <a class="current-page">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>

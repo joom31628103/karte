@@ -168,6 +168,7 @@ input[type=checkbox].row-chk{width:14px;height:14px;cursor:pointer;accent-color:
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a class="current-page">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
+      <a href="/karte/sync.php">🔄 DB同期</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>

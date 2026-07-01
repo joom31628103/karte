@@ -124,6 +124,7 @@ table.rec td{border:1px solid #333;padding:1.5mm 2mm;vertical-align:top;}
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
         <a href="/karte/backup.php">🗄️ バックアップ</a>
+      <a href="/karte/sync.php">🔄 DB同期</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
       </div>
