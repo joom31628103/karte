@@ -7,6 +7,18 @@
  */
 require_once '../config.php';
 
+// CORS（localhost ↔ サーバー間の同期を許可）
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed = ['http://localhost', 'http://127.0.0.1', 'http://localhost:80'];
+if (in_array($origin, $allowed) || preg_match('#^https?://localhost(:\d+)?$#', $origin)) {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+
 // トークン認証（ログイン不要・専用トークンで保護）
 $provided = $_REQUEST['token'] ?? '';
 if (!defined('SYNC_TOKEN') || !hash_equals(SYNC_TOKEN, $provided)) {
