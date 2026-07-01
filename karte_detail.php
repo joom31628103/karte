@@ -246,6 +246,11 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-save-btn{padding:7px 18px;background:linear-gradient(180deg,#546099 0%,#3b4f8a 100%);border:1px solid #263570;border-radius:5px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .fm-save-btn:hover{background:linear-gradient(180deg,#7b90d4 0%,#546099 100%);}
 .save-ok{color:#15803d;font-size:.82rem;font-weight:700;display:none;}
+/* 自動保存インジケーター */
+.autosave-indicator{font-size:.78rem;color:#888;display:none;transition:opacity .3s;}
+.autosave-indicator.saving{display:inline;color:#3b4f8a;}
+.autosave-indicator.saved {display:inline;color:#15803d;}
+.fm-info-input.autosaved{border-color:#86efac !important;transition:border-color .5s;}
 
 /* 学籍参照エリア */
 .gak-ref-box{background:#fff;border:1px solid #aab0cc;border-radius:6px;padding:12px;margin-bottom:14px;}
@@ -881,7 +886,8 @@ if ($prevId): ?>
         <textarea class="fm-info-textarea" id="b-notes"><?= htmlspecialchars($s['notes']??'') ?></textarea></div>
     </div>
     <div class="fm-save-row">
-      <button class="fm-save-btn" id="btnSaveBasic">保存する</button>
+      <button class="fm-save-btn" id="btnSaveBasic">学籍台帳にも反映する</button>
+      <span class="autosave-indicator" id="autoSaveIndicator"></span>
       <span class="save-ok" id="saveOk">✓ 保存しました</span>
     </div>
   </div>
@@ -1343,9 +1349,10 @@ document.getElementById('btnSaveFamily').onclick = async () => {
 };
 
 /* ── 基本情報保存 ── */
-document.getElementById('btnSaveBasic').onclick = async () => {
+/* ── 基本情報保存（共通関数） ── */
+function buildBasicFormData(sid) {
   const fd = new FormData();
-  fd.append('action','save_basic'); fd.append('csrf_token',CSRF); fd.append('student_id',SID);
+  fd.append('action','save_basic'); fd.append('csrf_token',CSRF); fd.append('student_id', sid||SID);
   fd.append('name',        document.getElementById('b-name').value);
   fd.append('furigana',    document.getElementById('b-furi').value);
   fd.append('class_name',  document.getElementById('b-class').value);
@@ -1356,32 +1363,72 @@ document.getElementById('btnSaveBasic').onclick = async () => {
   fd.append('parent_name', document.getElementById('b-parent').value);
   fd.append('address',     document.getElementById('b-addr').value);
   fd.append('notes',       document.getElementById('b-notes').value);
-  fd.append('school_from',       document.getElementById('b-school-from').value);
-  fd.append('student_phone',     document.getElementById('b-student-phone').value);
-  fd.append('primary_parent',    document.querySelector('input[name="pri_parent"]:checked')?.value || '1');
-  fd.append('parent1_name',      document.getElementById('b-p1-name').value);
-  fd.append('parent1_furi',      document.getElementById('b-p1-furi').value);
-  fd.append('parent1_phone',     document.getElementById('b-p1-phone').value);
-  fd.append('parent1_phone_note',document.getElementById('b-p1-phone-note').value);
-  fd.append('parent2_name',      document.getElementById('b-p2-name').value);
-  fd.append('parent2_furi',      document.getElementById('b-p2-furi').value);
-  fd.append('parent2_phone',     document.getElementById('b-p2-phone').value);
-  fd.append('parent2_phone_note',document.getElementById('b-p2-phone-note').value);
-  fd.append('parent1_work_name', document.getElementById('b-p1-work-name').value);
-  fd.append('parent1_work_phone',document.getElementById('b-p1-work-phone').value);
-  fd.append('parent1_work_note', document.getElementById('b-p1-work-note').value);
-  fd.append('parent2_work_name', document.getElementById('b-p2-work-name').value);
-  fd.append('parent2_work_phone',document.getElementById('b-p2-work-phone').value);
-  fd.append('parent2_work_note', document.getElementById('b-p2-work-note').value);
-  const res = await fetch('/karte/api/karte.php',{method:'POST',body:fd});
-  const data = await res.json();
-  if (!data.success) { alert(data.error||'エラー'); return; }
-  const ok = document.getElementById('saveOk');
-  ok.style.display='inline'; setTimeout(()=>ok.style.display='none',2500);
-  // 学籍リンク済みの場合、学籍への反映を確認
-  if (GAKNO && confirm('学籍台帳にも反映しますか？')) {
-    await syncToGakuseki();
+  fd.append('school_from',        document.getElementById('b-school-from').value);
+  fd.append('student_phone',      document.getElementById('b-student-phone').value);
+  fd.append('primary_parent',     document.querySelector('input[name="pri_parent"]:checked')?.value || '1');
+  fd.append('parent1_name',       document.getElementById('b-p1-name').value);
+  fd.append('parent1_furi',       document.getElementById('b-p1-furi').value);
+  fd.append('parent1_phone',      document.getElementById('b-p1-phone').value);
+  fd.append('parent1_phone_note', document.getElementById('b-p1-phone-note').value);
+  fd.append('parent2_name',       document.getElementById('b-p2-name').value);
+  fd.append('parent2_furi',       document.getElementById('b-p2-furi').value);
+  fd.append('parent2_phone',      document.getElementById('b-p2-phone').value);
+  fd.append('parent2_phone_note', document.getElementById('b-p2-phone-note').value);
+  fd.append('parent1_work_name',  document.getElementById('b-p1-work-name').value);
+  fd.append('parent1_work_phone', document.getElementById('b-p1-work-phone').value);
+  fd.append('parent1_work_note',  document.getElementById('b-p1-work-note').value);
+  fd.append('parent2_work_name',  document.getElementById('b-p2-work-name').value);
+  fd.append('parent2_work_phone', document.getElementById('b-p2-work-phone').value);
+  fd.append('parent2_work_note',  document.getElementById('b-p2-work-note').value);
+  return fd;
+}
+
+async function saveBasic(sid, showIndicator = true) {
+  sid = sid || SID;
+  const ind = document.getElementById('autoSaveIndicator');
+  if (showIndicator && ind) { ind.textContent = '保存中…'; ind.className = 'autosave-indicator saving'; }
+  try {
+    const res  = await fetch('/karte/api/karte.php', {method:'POST', body: buildBasicFormData(sid)});
+    const data = await res.json();
+    if (!data.success) {
+      if (showIndicator) alert(data.error || 'エラー');
+      if (ind) ind.className = 'autosave-indicator';
+      return false;
+    }
+    // キャッシュ破棄（最新データを再取得させる）
+    if (typeof studentCache !== 'undefined') delete studentCache[sid];
+    if (showIndicator && ind) {
+      ind.textContent = '✓ 保存しました';
+      ind.className = 'autosave-indicator saved';
+      setTimeout(() => { ind.textContent = ''; ind.className = 'autosave-indicator'; }, 2500);
+    }
+    return true;
+  } catch(e) {
+    if (ind) ind.className = 'autosave-indicator';
+    return false;
   }
+}
+
+/* ── blur自動保存（フィールドから離れたとき） ── */
+let _basicSaveTimer = null;
+function scheduleBasicSave() {
+  clearTimeout(_basicSaveTimer);
+  _basicSaveTimer = setTimeout(() => saveBasic(SID, true), 400);
+}
+document.querySelectorAll('#panel-basic .fm-info-input:not([readonly]), #panel-basic .fm-info-textarea, #panel-basic select.fm-info-input').forEach(el => {
+  el.addEventListener('blur',   scheduleBasicSave);
+});
+document.querySelectorAll('input[name="pri_parent"]').forEach(el => {
+  el.addEventListener('change', scheduleBasicSave);
+});
+
+/* ── 学籍台帳への反映ボタン ── */
+document.getElementById('btnSaveBasic').onclick = async () => {
+  const ok = await saveBasic(SID, true);
+  if (!ok) return;
+  const saveOkEl = document.getElementById('saveOk');
+  if (saveOkEl) { saveOkEl.style.display='inline'; setTimeout(()=>saveOkEl.style.display='none',2500); }
+  if (GAKNO) await syncToGakuseki();
 };
 
 async function syncToGakuseki() {
@@ -1901,40 +1948,8 @@ async function loadHistory(sid=SID) {
   async function autoSaveBasicIfNeeded(currentSid) {
     const activeTab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
     if (activeTab !== 'panel-basic' && activeTab !== '') return;
-    const fd = new FormData();
-    fd.append('action','save_basic'); fd.append('csrf_token',CSRF); fd.append('student_id',currentSid);
-    fd.append('name',         document.getElementById('b-name')?.value || '');
-    fd.append('furigana',     document.getElementById('b-furi')?.value || '');
-    fd.append('class_name',   document.getElementById('b-class')?.value || '');
-    fd.append('seat_number',  document.getElementById('b-seat')?.value || '');
-    fd.append('gender',       document.getElementById('b-gender')?.value || '');
-    fd.append('birthday',     document.getElementById('b-bday')?.value || '');
-    fd.append('phone',        document.getElementById('b-phone')?.value || '');
-    fd.append('parent_name',  document.getElementById('b-parent')?.value || '');
-    fd.append('address',      document.getElementById('b-addr')?.value || '');
-    fd.append('notes',        document.getElementById('b-notes')?.value || '');
-    fd.append('school_from',        document.getElementById('b-school-from')?.value || '');
-    fd.append('student_phone',      document.getElementById('b-student-phone')?.value || '');
-    fd.append('primary_parent',     document.querySelector('input[name="pri_parent"]:checked')?.value || '1');
-    fd.append('parent1_name',       document.getElementById('b-p1-name')?.value || '');
-    fd.append('parent1_furi',       document.getElementById('b-p1-furi')?.value || '');
-    fd.append('parent1_phone',      document.getElementById('b-p1-phone')?.value || '');
-    fd.append('parent1_phone_note', document.getElementById('b-p1-phone-note')?.value || '');
-    fd.append('parent2_name',       document.getElementById('b-p2-name')?.value || '');
-    fd.append('parent2_furi',       document.getElementById('b-p2-furi')?.value || '');
-    fd.append('parent2_phone',      document.getElementById('b-p2-phone')?.value || '');
-    fd.append('parent2_phone_note', document.getElementById('b-p2-phone-note')?.value || '');
-    fd.append('parent1_work_name',  document.getElementById('b-p1-work-name')?.value || '');
-    fd.append('parent1_work_phone', document.getElementById('b-p1-work-phone')?.value || '');
-    fd.append('parent1_work_note',  document.getElementById('b-p1-work-note')?.value || '');
-    fd.append('parent2_work_name',  document.getElementById('b-p2-work-name')?.value || '');
-    fd.append('parent2_work_phone', document.getElementById('b-p2-work-phone')?.value || '');
-    fd.append('parent2_work_note',  document.getElementById('b-p2-work-note')?.value || '');
-    try {
-      await fetch('/karte/api/karte.php', {method:'POST', body:fd});
-      // 保存後にstudentCacheを破棄（戻ったとき最新データを再取得させる）
-      delete studentCache[currentSid];
-    } catch(e) {}
+    // 共通のsaveBasic()を使ってサイレント保存
+    await saveBasic(currentSid, false);
   }
 
   async function go(id) {
