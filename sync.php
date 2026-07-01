@@ -15,6 +15,17 @@ body{font-family:'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;background:#f0f2f
 .topbar a{color:#ccd3f0;text-decoration:none;font-size:.88rem;}
 .topbar a:hover{color:#fff;}
 .topbar-title{font-size:1.1rem;font-weight:700;}
+.kebab-menu{position:relative;margin-left:auto;}
+.kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
+.kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
+.kebab-btn:hover{background:rgba(255,255,255,.25);}
+.kebab-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.kebab-dropdown.open{display:block;}
+.kebab-dropdown a{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.08);}
+.kebab-dropdown a:last-child{border-bottom:none;}
+.kebab-dropdown a:hover{background:rgba(255,255,255,.15);}
+.kebab-dropdown .current-page{color:#6a7a99;cursor:default;pointer-events:none;}
+.kebab-dropdown .current-page:hover{background:none;}
 .container{max-width:860px;margin:32px auto;padding:0 16px;}
 h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #c8d0ea;}
 .card{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(60,80,140,.10);padding:24px;margin-bottom:24px;}
@@ -62,8 +73,20 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 </head>
 <body>
 <div class="topbar">
-  <a href="/karte/">← カルテ一覧</a>
   <span class="topbar-title">🔄 データベース同期</span>
+  <div class="kebab-menu">
+    <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
+    <div class="kebab-dropdown" id="kebabDropdown">
+      <a href="/karte/home.php">🏠 HOME</a>
+      <a href="/karte/karte_detail.php">🏫 生徒情報</a>
+      <a href="/karte/gakuseki.php">📚 学籍管理</a>
+      <a href="/karte/student_manager.php">👥 生徒管理</a>
+      <a href="/karte/backup.php">🗄️ バックアップ</a>
+      <a class="current-page">🔄 DB同期</a>
+      <a href="/karte/account.php">⚙ アカウント</a>
+      <a href="/karte/logout.php">🚪 ログアウト</a>
+    </div>
+  </div>
 </div>
 
 <div class="container">
@@ -350,6 +373,9 @@ async function doMerge() {
     setTimeout(()=>setProgress(0), 1500);
   }
 }
+
+function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
+document.addEventListener('click',function(){const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');});
 
 // 初期化
 const ls = localStorage.getItem('karte_last_sync');
