@@ -1,0 +1,41 @@
+{
+  "name": "カルテ — 生徒指導管理",
+  "short_name": "カルテ",
+  "description": "生徒指導記録・出欠・面談管理システム",
+  "start_url": "/karte/home.php",
+  "display": "standalone",
+  "background_color": "#1a2a55",
+  "theme_color": "#1a2a55",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/karte/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/karte/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "HOME",
+      "url": "/karte/home.php",
+      "icons": [{ "src": "/karte/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "DB同期",
+      "url": "/karte/sync.php",
+      "icons": [{ "src": "/karte/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "バックアップ",
+      "url": "/karte/backup.php",
+      "icons": [{ "src": "/karte/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
