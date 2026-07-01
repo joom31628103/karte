@@ -125,13 +125,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             jout(['success'=>true,'rows'=>$rows]);
 
         case 'student_summary':
-            $result = ps($conn, "
-                SELECT s.student_id, s.name, s.furigana, s.class_name, s.seat_number,
+            $result = $conn->query("
+                SELECT s.student_id, s.name,
+                    COALESCE(NULLIF(g.furigana,''), NULLIF(s.furigana,'')) AS furigana,
+                    s.class_name, s.seat_number,
+                    COALESCE(sn.gakunen, '') AS gakunen,
+                    COALESCE(sn.class_no, s.class_name, '') AS class_no,
+                    COALESCE(sn.bango, s.seat_number, 9999) AS bango,
                     (SELECT COUNT(*) FROM karte_records   kr WHERE kr.student_id=s.student_id) AS rec_count,
                     (SELECT COUNT(*) FROM karte_attendance ka WHERE ka.student_id=s.student_id) AS att_count,
                     (SELECT MAX(record_date) FROM karte_records kr2 WHERE kr2.student_id=s.student_id) AS last_record
                 FROM students s
-                ORDER BY s.class_name, s.seat_number, s.student_id
+                LEFT JOIN gakuseki g ON s.gakno = g.gakno
+                LEFT JOIN (
+                    SELECT sn2.gakno, sn2.nendo, sn2.gakunen, sn2.class_no, sn2.bango
+                    FROM student_nendo sn2
+                    INNER JOIN (SELECT gakno, MAX(nendo) AS mn FROM student_nendo GROUP BY gakno) m
+                    ON sn2.gakno = m.gakno AND sn2.nendo = m.mn
+                ) sn ON s.gakno = sn.gakno
+                ORDER BY gakunen, class_no, CAST(bango AS UNSIGNED), s.student_id
             ");
             $rows = [];
             while ($row = $result->fetch_assoc()) $rows[] = $row;
