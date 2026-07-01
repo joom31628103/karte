@@ -149,7 +149,10 @@ td:last-child{border-right:none;}
         <?php if($firstSid):?><a href="/karte/karte_card.php?id=<?= urlencode($firstSid) ?>">🖨 印刷・PDF</a><?php endif;?>
         <a class="current-page">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
-        <a href="/karte/backup.php">🗄️ バックアップ</a>
+        <a href="/karte/photo_import.php">📸 写真取込</a>
+      <a href="/karte/survey_import.php">📋 調査票取込</a>
+      <a href="/karte/structure.php">🗺 構造図</a>
+      <a href="/karte/backup.php">🗄️ バックアップ</a>
       <a href="/karte/sync.php">🔄 DB同期</a>
         <a href="/karte/account.php">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>

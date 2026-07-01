@@ -2,6 +2,9 @@
 require_once 'config.php';
 requireLogin();
 sendSecurityHeaders();
+$conn = getDB();
+$firstSid = $conn->query("SELECT student_id FROM students ORDER BY class_name,seat_number,student_id LIMIT 1")->fetch_assoc()['student_id'] ?? '';
+$conn->close();
 ?><!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -77,10 +80,15 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
   <div class="kebab-menu">
     <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
     <div class="kebab-dropdown" id="kebabDropdown">
+      <?php if($firstSid):?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>">🏫 生徒情報</a><?php endif;?>
+      <?php if($firstSid):?><a href="/karte/karte_detail.php?id=<?= urlencode($firstSid) ?>&list=1">📋 一覧表示</a><?php endif;?>
       <a href="/karte/home.php">🏠 HOME</a>
-      <a href="/karte/karte_detail.php">🏫 生徒情報</a>
+      <?php if($firstSid):?><a href="/karte/karte_card.php?id=<?= urlencode($firstSid) ?>">🖨 印刷・PDF</a><?php endif;?>
       <a href="/karte/gakuseki.php">📚 学籍管理</a>
       <a href="/karte/student_manager.php">👥 生徒管理</a>
+      <a href="/karte/photo_import.php">📸 写真取込</a>
+      <a href="/karte/survey_import.php">📋 調査票取込</a>
+      <a href="/karte/structure.php">🗺 構造図</a>
       <a href="/karte/backup.php">🗄️ バックアップ</a>
       <a class="current-page">🔄 DB同期</a>
       <a href="/karte/account.php">⚙ アカウント</a>

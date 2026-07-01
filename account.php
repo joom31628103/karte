@@ -146,7 +146,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
         <?php if($firstSid):?><a href="/karte/karte_card.php?id=<?= urlencode($firstSid) ?>">🖨 印刷・PDF</a><?php endif;?>
         <a href="/karte/gakuseki.php">📚 学籍管理</a>
         <a href="/karte/student_manager.php">👥 生徒管理</a>
-        <a href="/karte/backup.php">🗄️ バックアップ</a>
+        <a href="/karte/photo_import.php">📸 写真取込</a>
+      <a href="/karte/survey_import.php">📋 調査票取込</a>
+      <a href="/karte/structure.php">🗺 構造図</a>
+      <a href="/karte/backup.php">🗄️ バックアップ</a>
       <a href="/karte/sync.php">🔄 DB同期</a>
         <a class="current-page">⚙ アカウント</a>
         <a href="/karte/logout.php">🚪 ログアウト</a>
