@@ -95,7 +95,7 @@ if ($action === 'import' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     $v === null ? 'NULL' : "'" . $conn->real_escape_string((string)$v) . "'",
                     array_values($filteredRow)
                 ));
-                $conn->query("INSERT INTO `$tbl` ($colList) VALUES ($vals)");
+                $conn->query("INSERT IGNORE INTO `$tbl` ($colList) VALUES ($vals)");
                 $imported[$tbl]++;
             }
         }
@@ -244,6 +244,158 @@ if ($action === 'merge' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'merged'  => ['tables' => $merged],
         'stats'   => $stats,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+// ── スキーマ取得 ──────────────────────────────────────────
+if ($action === 'schema') {
+    $schema = [];
+    foreach ($SYNC_TABLES as $tbl) {
+        $r = $conn->query("SHOW COLUMNS FROM `$tbl`");
+        if (!$r) { $schema[$tbl] = []; continue; }
+        $cols = [];
+        while ($c = $r->fetch_assoc()) {
+            $cols[$c['Field']] = [
+                'type'    => $c['Type'],
+                'null'    => $c['Null'],
+                'default' => $c['Default'],
+                'extra'   => $c['Extra'],
+            ];
+        }
+        $schema[$tbl] = $cols;
+    }
+    echo json_encode(['success'=>true,'env'=>ENV_NAME,'schema'=>$schema], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ── スキーマ適用（ADD COLUMN / MODIFY COLUMN のみ） ────────
+if ($action === 'schema_apply' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!$data || !isset($data['alters'])) {
+        http_response_code(400);
+        die(json_encode(['success'=>false,'error'=>'不正なデータ形式']));
+    }
+    $results = [];
+    foreach ($data['alters'] as $sql) {
+        if (!preg_match('/^ALTER\s+TABLE\s+`?\w+`?\s+(ADD\s+COLUMN|MODIFY\s+COLUMN)/i', $sql)) {
+            $results[] = ['sql'=>$sql,'ok'=>false,'error'=>'ADD COLUMN / MODIFY COLUMN のみ許可されています'];
+            continue;
+        }
+        $ok = $conn->query($sql);
+        $results[] = ['sql'=>$sql,'ok'=>(bool)$ok,'error'=>$ok ? null : $conn->error];
+    }
+    echo json_encode(['success'=>true,'results'=>$results], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ── Git同期（localhostのみ） ──────────────────────────────────
+if (in_array($action, ['git_status','git_push','git_pull'])) {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!in_array($ip, ['127.0.0.1','::1'])) {
+        http_response_code(403);
+        die(json_encode(['success'=>false,'error'=>'Git操作はローカルからのみ実行できます']));
+    }
+    $root    = realpath(dirname(__DIR__));
+    $safeDir = str_replace('\\', '/', $root);
+    shell_exec('git config --global --add safe.directory ' . escapeshellarg($safeDir) . ' 2>&1');
+    $g = 'git -C ' . escapeshellarg($root);
+
+    $gitEnv = array_merge(getenv() ?: [], [
+        'GIT_TERMINAL_PROMPT' => '0',
+        'GIT_ASKPASS'         => 'echo',
+        'HOME'                => getenv('USERPROFILE') ?: 'C:/Users/hi',
+    ]);
+    $gitRun = function(string $cmd, int $timeout = 30) use ($gitEnv): string {
+        $desc = [0 => ['pipe','r'], 1 => ['pipe','w'], 2 => ['pipe','w']];
+        $proc = @proc_open($cmd, $desc, $pipes, null, $gitEnv);
+        if (!is_resource($proc)) return "[エラー: プロセスを起動できませんでした]";
+        fclose($pipes[0]);
+        $out = stream_get_contents($pipes[1]);
+        $err = stream_get_contents($pipes[2]);
+        fclose($pipes[1]); fclose($pipes[2]);
+        proc_close($proc);
+        return trim(($out ?: '') . ($err ? "\n" . $err : ''));
+    };
+
+    if ($action === 'git_status') {
+        $isRepo = $gitRun("$g rev-parse --is-inside-work-tree", 5) === 'true';
+        if (!$isRepo) {
+            echo json_encode(['success'=>true,'initialized'=>false], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        $branch = $gitRun("$g branch --show-current", 5);
+        $status = $gitRun("$g status --porcelain", 5);
+        $log5   = $gitRun("$g log --oneline -5", 5);
+        $remote = $gitRun("$g remote get-url origin", 5);
+        echo json_encode([
+            'success'     => true,
+            'initialized' => true,
+            'branch'      => $branch,
+            'changes'     => $status ? array_values(array_filter(explode("\n", $status))) : [],
+            'log'         => $log5   ? array_values(array_filter(explode("\n", $log5)))   : [],
+            'remote'      => $remote,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($action === 'git_push' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $body   = json_decode(file_get_contents('php://input'), true);
+        $msg    = trim($body['message'] ?? '') ?: ('Update ' . date('Y-m-d H:i'));
+        $gc     = $g . ' -c user.email=joom31628103@gmail.com -c user.name=hide';
+        $add    = $gitRun("$g add -A");
+        $commit = $gitRun("$gc commit -m " . escapeshellarg($msg));
+        $push   = $gitRun("$g push", 30);
+        $lower  = strtolower($push);
+        $ok     = strpos($lower,'タイムアウト')===false && strpos($lower,'error')===false && strpos($lower,'fatal')===false;
+        echo json_encode([
+            'success' => $ok,
+            'steps'   => [
+                ['label'=>'git add -A',  'out'=>$add],
+                ['label'=>'git commit',  'out'=>$commit],
+                ['label'=>'git push',    'out'=>$push],
+            ],
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($action === 'git_pull' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $pull  = $gitRun("$g pull", 30);
+        $lower = strtolower($pull);
+        $ok    = strpos($lower,'タイムアウト')===false && strpos($lower,'error')===false && strpos($lower,'fatal')===false;
+        echo json_encode(['success'=>$ok,'output'=>$pull], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
+// ── ファイル一覧（MD5付き） ──────────────────────────────────
+if ($action === 'files') {
+    $root = realpath(dirname(__DIR__));
+    $excludeDirs  = ['photos','uploads','sync','.git','node_modules','cache','tmp'];
+    $excludeFiles = ['config.local.php','config.php','deploy.php'];
+    $includeExts  = ['php','js','css','html'];
+    $files = [];
+    try {
+        $rii = new RecursiveIteratorIterator(
+            new RecursiveCallbackFilterIterator(
+                new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+                function($cur, $key, $iter) use ($excludeDirs) {
+                    if ($iter->hasChildren()) return !in_array($cur->getFilename(), $excludeDirs);
+                    return true;
+                }
+            )
+        );
+        foreach ($rii as $f) {
+            if (!$f->isFile()) continue;
+            if (!in_array(strtolower($f->getExtension()), $includeExts)) continue;
+            if (in_array($f->getFilename(), $excludeFiles)) continue;
+            $abs = $f->getPathname();
+            $rel = ltrim(str_replace([$root . DIRECTORY_SEPARATOR, $root . '/'], '', $abs), '/\\');
+            $rel = str_replace('\\', '/', $rel);
+            $files[$rel] = ['md5' => md5_file($abs), 'size' => $f->getSize(), 'mtime' => $f->getMTime()];
+        }
+        ksort($files);
+    } catch (Exception $e) { /* ignore */ }
+    echo json_encode(['success' => true, 'env' => ENV_NAME, 'files' => $files], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

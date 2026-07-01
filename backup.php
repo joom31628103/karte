@@ -306,8 +306,8 @@ tr:hover td{background:#eef1fb;}
 }
 
 /* ── 5機能グリッド ── */
-.box4-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;}
-@media(max-width:1300px){.box4-grid{grid-template-columns:repeat(3,1fr);}}
+.box4-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+@media(max-width:1300px){.box4-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:800px){.box4-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:500px){.box4-grid{grid-template-columns:1fr;}}
 .box4{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.14);overflow:hidden;display:flex;flex-direction:column;}
@@ -492,7 +492,8 @@ tr:hover td{background:#eef1fb;}
     </div>
   </div>
 
-  <!-- ⑤ サーバー同期 -->
+  <!-- ⑤ サーバー同期（ローカルのみ表示） -->
+  <?php if (ENV_NAME === 'local'): ?>
   <div class="box4">
     <div class="box4-header box4-hdr-indigo">🔄 サーバーDB同期</div>
     <div class="box4-section box4-out">
@@ -521,6 +522,7 @@ tr:hover td{background:#eef1fb;}
       <div class="sync-log" id="syncLog">準備完了</div>
     </div>
   </div>
+  <?php endif; ?>
 
 </div><!-- /box4-grid -->
 
@@ -763,7 +765,22 @@ function setBtns(dis) {
   });
 }
 
+// サーバー上での警告・ブロック
+(function(){
+  const isRemote=location.hostname!=='localhost'&&location.hostname!=='127.0.0.1';
+  if(isRemote){
+    document.getElementById('syncRemoteWarning').style.display='block';
+    ['syncBtnDown','syncBtnMerge','syncBtnUp'].forEach(id=>{
+      const b=document.getElementById(id);
+      if(b){b.disabled=true;b.style.opacity='0.4';b.style.cursor='not-allowed';}
+    });
+  }
+})();
+
 window.doBackupSync = async function(dir) {
+  if(location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
+    alert('データ同期はローカルPC（localhost）から実行してください。');return;
+  }
   const msgs = {
     download: '⬇ サーバー→ローカルに同期します。\nローカルのデータが上書きされます。よろしいですか？',
     upload:   '⬆ ローカル→サーバーに同期します。\nサーバーのデータが上書きされます。よろしいですか？',
@@ -830,6 +847,179 @@ window.doBackupSync = async function(dir) {
     setBtns(false);
     setTimeout(()=>prog(0), 2000);
   }
+};
+
+function normalizeType(t){
+  return t.replace(/\b(int|bigint|smallint|mediumint)\(\d+\)/gi,'$1')
+          .replace(/\btinyint\((?!1\b)\d+\)/gi,'tinyint')
+          .toLowerCase().trim();
+}
+let _showVerDiff=true;
+window.toggleVerDiff=function(){
+  _showVerDiff=!_showVerDiff;
+  const btn=document.getElementById('verDiffToggle');
+  if(btn)btn.textContent=_showVerDiff?'🔽 バージョン差の違いを表示しない':'🔼 バージョン差の違いを表示する';
+  window._redrawSchema&&window._redrawSchema();
+};
+
+window.doSchemaSync=async function(){
+  if(location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
+    alert('スキーマ同期はローカルPC（localhost）から実行してください。');return;
+  }
+  const schemaRes=document.getElementById('schemaRes');
+  const detail=document.getElementById('schemaDetail');
+  schemaRes.style.display='none';
+  slog('スキーマ取得中…','info');
+  try{
+    const[lS,rS]=await Promise.all([
+      fetch(`${LOCAL_API}?action=schema&token=${TOKEN}`).then(r=>r.json()),
+      fetch(`${REMOTE_API}?action=schema&token=${TOKEN}`).then(r=>r.json()),
+    ]);
+    if(!lS.success||!rS.success) throw new Error('スキーマ取得失敗');
+
+    const sqlDef=(v)=>{
+      if(v===null) return '';
+      if(/^(CURRENT_TIMESTAMP|NOW\(\)|NULL|CURRENT_DATE|CURRENT_TIME)$/i.test(v.trim())) return ` DEFAULT ${v}`;
+      return ` DEFAULT '${v}'`;
+    };
+    const buildSql=(tbl,verb,col,info)=>{
+      const nullable=info.null==='YES';
+      const def=info.default!==null?sqlDef(info.default):(nullable?' DEFAULT NULL':'');
+      const nullStr=nullable?' NULL':' NOT NULL';
+      const extra=(info.extra||'').replace(/DEFAULT_GENERATED\s*/gi,'').trim();
+      return `ALTER TABLE \`${tbl}\` ${verb} \`${col}\` ${info.type}${nullStr}${def}${extra?` ${extra}`:''}`;
+    };
+
+    const alters=[],diffRows=[],typeDiffLocal=[],typeDiffLocalAlters=[];
+    for(const[tbl,rCols] of Object.entries(rS.schema)){
+      const lCols=lS.schema[tbl]||{};
+      for(const[col,info] of Object.entries(rCols)){
+        if(!(col in lCols)){
+          alters.push(buildSql(tbl,'ADD COLUMN',col,info));
+          diffRows.push({tbl,col,type:info.type});
+        } else if(lCols[col].type!==info.type){
+          const verOnly=(normalizeType(lCols[col].type)===normalizeType(info.type));
+          typeDiffLocal.push({tbl,col,localType:lCols[col].type,remoteType:info.type,verOnly});
+          typeDiffLocalAlters.push({sql:buildSql(tbl,'MODIFY COLUMN',col,info),verOnly});
+        }
+      }
+    }
+    const svrMissing=[],svrAlters=[],typeDiffRemote=[],typeDiffRemoteAlters=[];
+    for(const[tbl,lCols] of Object.entries(lS.schema)){
+      const rCols=rS.schema[tbl]||{};
+      for(const[col,info] of Object.entries(lCols)){
+        if(!(col in rCols)){
+          svrMissing.push({tbl,col,type:info.type});
+          svrAlters.push(buildSql(tbl,'ADD COLUMN',col,info));
+        } else if(rCols[col].type!==info.type&&!typeDiffLocal.find(d=>d.tbl===tbl&&d.col===col)){
+          const verOnly=(normalizeType(info.type)===normalizeType(rCols[col].type));
+          typeDiffRemote.push({tbl,col,localType:info.type,remoteType:rCols[col].type,verOnly});
+          typeDiffRemoteAlters.push({sql:buildSql(tbl,'MODIFY COLUMN',col,info),verOnly});
+        }
+      }
+    }
+
+    const wBox=(msg)=>`<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:5px;padding:7px 10px;font-size:.72rem;color:#92400e;margin-bottom:7px;">⚠️ <strong>警告：</strong>${msg}</div>`;
+    const dBox=(msg)=>`<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;padding:7px 10px;font-size:.72rem;color:#991b1b;margin-bottom:7px;">🚨 <strong>危険：</strong>${msg}</div>`;
+    const th=(cols)=>`<table style="width:100%;border-collapse:collapse;font-size:.71rem;margin-bottom:7px;"><tr style="font-weight:700;color:#555;">${cols.map(c=>`<td>${c}</td>`).join('')}</tr>`;
+    const verBadge='<span style="font-size:.65rem;background:#e0e7ff;color:#3730a3;padding:1px 4px;border-radius:3px;">バージョン差</span>';
+
+    async function fetchJson(url,opts){
+      const r=await fetch(url,opts);const txt=await r.text();
+      try{return JSON.parse(txt);}catch(e){throw new Error('APIエラー:\n'+txt.replace(/<[^>]+>/g,'').trim().substring(0,200));}
+    }
+    window._pendingLocalAlters=null; window._pendingRemoteAlters=null;
+
+    window._redrawSchema=function(){
+      const showVer=_showVerDiff;
+      const visLT=typeDiffLocal.filter(r=>showVer||!r.verOnly);
+      const visRT=typeDiffRemote.filter(r=>showVer||!r.verOnly);
+      const visLA=typeDiffLocalAlters.filter(r=>showVer||!r.verOnly).map(r=>r.sql);
+      const visRA=typeDiffRemoteAlters.filter(r=>showVer||!r.verOnly).map(r=>r.sql);
+      window._pendingLocalAlters=visLA; window._pendingRemoteAlters=visRA;
+      const verCnt=typeDiffLocal.filter(r=>r.verOnly).length+typeDiffRemote.filter(r=>r.verOnly).length;
+      const total=alters.length+svrMissing.length+visLT.length+visRT.length;
+      let h='';
+      if(verCnt>0){
+        h+=`<div style="margin-bottom:8px;text-align:right;">`;
+        h+=`<button id="verDiffToggle" onclick="toggleVerDiff()" style="background:#e2e8f0;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:.7rem;color:#475569;">${showVer?'🔽 バージョン差の違いを表示しない':'🔼 バージョン差の違いを表示する'}</button>`;
+        if(!showVer) h+=`<span style="font-size:.68rem;color:#94a3b8;margin-left:6px;">(バージョン差 ${verCnt}件 を非表示中)</span>`;
+        h+=`</div>`;
+      }
+      if(total===0){
+        const msg=verCnt>0&&!showVer?'実質的な差分はありません。':'ローカルとサーバーのテーブル構造は同じです。';
+        detail.innerHTML=h+`<span style="color:#059669;">${msg}</span>`;
+        schemaRes.style.display='block';slog('✅ スキーマ確認完了','ok');return;
+      }
+      if(alters.length>0){
+        h+=`<p style="margin:0 0 4px;color:#0f766e;font-weight:700;">① ローカルに不足しているカラム（${alters.length}件）</p>`;
+        h+=th(['テーブル','カラム名','型']);
+        diffRows.forEach(r=>{h+=`<tr><td>${r.tbl}</td><td style="color:#0f766e">${r.col}</td><td>${r.type}</td></tr>`;});
+        h+=`</table><button onclick="applySchemaLocal()" style="background:#0f766e;color:#fff;border:none;border-radius:5px;padding:5px 14px;cursor:pointer;font-size:.76rem;margin-bottom:12px;">🗂️ ローカルに追加する</button>`;
+      }
+      if(svrMissing.length>0){
+        h+=`<p style="margin:4px 0 4px;color:#b45309;font-weight:700;">② サーバーに不足しているカラム（${svrMissing.length}件）</p>`;
+        h+=th(['テーブル','カラム名','型']);
+        svrMissing.forEach(r=>{h+=`<tr><td>${r.tbl}</td><td style="color:#b45309">${r.col}</td><td>${r.type}</td></tr>`;});
+        h+=`</table>`+wBox('サーバーのテーブル構造を変更します。実行前にバックアップを推奨します。');
+        h+=`<button onclick="applySchemaRemote()" style="background:#b45309;color:#fff;border:none;border-radius:5px;padding:5px 14px;cursor:pointer;font-size:.76rem;margin-bottom:12px;">⚠️ サーバーに追加する</button>`;
+      }
+      if(visLT.length>0){
+        h+=`<p style="margin:4px 0 4px;color:#7c3aed;font-weight:700;">③ 型が異なるカラム（ローカルをサーバーに合わせる：${visLT.length}件）</p>`;
+        h+=th(['テーブル','カラム名','ローカル現在','→ サーバー基準','']);
+        visLT.forEach(r=>{h+=`<tr><td>${r.tbl}</td><td>${r.col}</td><td style="color:#dc2626">${r.localType}</td><td style="color:#7c3aed">${r.remoteType}</td><td>${r.verOnly?verBadge:''}</td></tr>`;});
+        h+=`</table>`+dBox('型を変更するとデータが変換・切り捨てられる場合があります。必ずバックアップを取ってから実行してください。');
+        h+=`<button onclick="applyTypeLocal(window._pendingLocalAlters)" style="background:#7c3aed;color:#fff;border:none;border-radius:5px;padding:5px 14px;cursor:pointer;font-size:.76rem;margin-bottom:12px;">🚨 ローカルの型を変更する</button>`;
+      }
+      if(visRT.length>0){
+        h+=`<p style="margin:4px 0 4px;color:#dc2626;font-weight:700;">④ 型が異なるカラム（サーバーをローカルに合わせる：${visRT.length}件）</p>`;
+        h+=th(['テーブル','カラム名','サーバー現在','→ ローカル基準','']);
+        visRT.forEach(r=>{h+=`<tr><td>${r.tbl}</td><td>${r.col}</td><td style="color:#dc2626">${r.remoteType}</td><td style="color:#7c3aed">${r.localType}</td><td>${r.verOnly?verBadge:''}</td></tr>`;});
+        h+=`</table>`+dBox('型を変更するとデータが変換・切り捨てられる場合があります。必ずバックアップを取ってから実行してください。');
+        h+=`<button onclick="applyTypeRemote(window._pendingRemoteAlters)" style="background:#dc2626;color:#fff;border:none;border-radius:5px;padding:5px 14px;cursor:pointer;font-size:.76rem;margin-bottom:4px;">🚨 サーバーの型を変更する</button>`;
+      }
+      detail.innerHTML=h; schemaRes.style.display='block';
+      slog('✅ スキーマ確認完了','ok');
+    };
+    window._redrawSchema();
+
+    window.applySchemaLocal=async function(){
+      if(!confirm(`ローカルDB に ${alters.length} 件のカラムを追加します。よろしいですか？`))return;
+      slog('ローカルにカラム追加中…','info');
+      try{const res=await fetchJson(`${LOCAL_API}?action=schema_apply&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alters})});
+        const ok=res.results.filter(r=>r.ok).length,ng=res.results.filter(r=>!r.ok);
+        slog(`✅ ローカル：${ok}件追加完了`+(ng.length?` / ❌ ${ng.length}件失敗`:''),'ok');
+        ng.forEach(r=>slog(`  ❌ ${r.sql}: ${r.error}`,'err'));
+      }catch(e){slog('❌ '+e.message,'err');}
+    };
+    window.applySchemaRemote=async function(){
+      if(!confirm(`サーバーDB に ${svrMissing.length} 件のカラムを追加します。\nバックアップ推奨。よろしいですか？`))return;
+      slog('サーバーにカラム追加中…','info');
+      try{const res=await fetchJson(`${REMOTE_API}?action=schema_apply&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alters:svrAlters})});
+        const ok=res.results.filter(r=>r.ok).length,ng=res.results.filter(r=>!r.ok);
+        slog(`✅ サーバー：${ok}件追加完了`+(ng.length?` / ❌ ${ng.length}件失敗`:''),'ok');
+        ng.forEach(r=>slog(`  ❌ ${r.sql}: ${r.error}`,'err'));
+      }catch(e){slog('❌ '+e.message,'err');}
+    };
+    window.applyTypeLocal=async function(sqls){
+      if(!confirm(`【危険】ローカルDB の ${sqls.length} 件の型を変更します。\nデータが変換・切り捨てされる可能性があります。\nバックアップを強く推奨します。\n本当に実行しますか？`))return;
+      slog('ローカルの型変更中…','info');slog('実行SQL: '+sqls.join(' / '),'info');
+      try{const res=await fetchJson(`${LOCAL_API}?action=schema_apply&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alters:sqls})});
+        const ok=res.results.filter(r=>r.ok).length,ng=res.results.filter(r=>!r.ok);
+        slog(`✅ ローカル型変更：${ok}件完了`+(ng.length?` / ❌ ${ng.length}件失敗`:''),'ok');
+        ng.forEach(r=>slog(`  ❌ ${r.sql}: ${r.error}`,'err'));
+      }catch(e){slog('❌ '+e.message,'err');}
+    };
+    window.applyTypeRemote=async function(sqls){
+      if(!confirm(`【危険】サーバーDB の ${sqls.length} 件の型を変更します。\nデータが変換・切り捨てされる可能性があります。\nバックアップを強く推奨します。\n本当に実行しますか？`))return;
+      slog('サーバーの型変更中…','info');slog('実行SQL: '+sqls.join(' / '),'info');
+      try{const res=await fetchJson(`${REMOTE_API}?action=schema_apply&token=${TOKEN}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alters:sqls})});
+        const ok=res.results.filter(r=>r.ok).length,ng=res.results.filter(r=>!r.ok);
+        slog(`✅ サーバー型変更：${ok}件完了`+(ng.length?` / ❌ ${ng.length}件失敗`:''),'ok');
+        ng.forEach(r=>slog(`  ❌ ${r.sql}: ${r.error}`,'err'));
+      }catch(e){slog('❌ '+e.message,'err');}
+    };
+  }catch(e){slog('❌ '+e.message,'err');}
 };
 })();
 
