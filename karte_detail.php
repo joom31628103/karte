@@ -43,7 +43,18 @@ $latestNendo = end($nendo_list) ?: null;
 reset($nendo_list);
 
 // 前後の生徒
-$prevNext = $conn->query("SELECT student_id FROM students ORDER BY class_name, seat_number, student_id");
+$prevNext = $conn->query("
+    SELECT s.student_id
+    FROM students s
+    LEFT JOIN gakuseki g ON s.gakno = g.gakno
+    LEFT JOIN (
+        SELECT sn2.gakno, sn2.gakunen, sn2.class_no, sn2.bango
+        FROM student_nendo sn2
+        INNER JOIN (SELECT gakno, MAX(nendo) AS mn FROM student_nendo GROUP BY gakno) m
+        ON sn2.gakno = m.gakno AND sn2.nendo = m.mn
+    ) sn ON s.gakno = sn.gakno
+    ORDER BY COALESCE(sn.gakunen,''), COALESCE(sn.class_no, s.class_name,''), CAST(COALESCE(sn.bango, s.seat_number, 9999) AS UNSIGNED), s.student_id
+");
 $idList = [];
 while ($r=$prevNext->fetch_assoc()) $idList[]=$r['student_id'];
 $pos        = array_search($sid, $idList);
