@@ -20,6 +20,12 @@ if ($_is_local) {
     define('DB_NAME', 'opened_karte_db');
 }
 
+/* ── DB同期トークン（両環境で同じ値を使用） ── */
+define('SYNC_TOKEN', 'karte_sync_opened_2026_mKGG');
+
+/* ── リモートサーバーURL（ローカルから同期する際に使用） ── */
+define('REMOTE_URL', 'https://opened.sakura.ne.jp');
+
 /* ── ローカル設定（APIキー・環境名など、gitignore済み） ── */
 if (file_exists(__DIR__.'/config.local.php')) {
     require_once __DIR__.'/config.local.php';
