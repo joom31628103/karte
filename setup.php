@@ -190,6 +190,7 @@ $alters = [
     ['karte_attendance', 'nendo',    'INT DEFAULT NULL'],
     ['karte_interviews', 'nendo',    'INT DEFAULT NULL'],
     ['students',         'photo',    'VARCHAR(255) DEFAULT NULL'],
+    ['gakuseki',         'photo',    'VARCHAR(255) DEFAULT NULL'],
 ];
 $alterResults = [];
 foreach ($alters as [$tbl, $col, $def]) {
