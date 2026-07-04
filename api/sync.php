@@ -291,10 +291,10 @@ if ($action === 'schema_apply' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Git同期 ──────────────────────────────────────────
 // git_status / git_pull / github_data_status はサーバー自身（さくら）からの実行＝デプロイ用途も許可する。
 // git_push / git_merge は誤って本番からpushしないよう、ローカルPC（loopback）からのみ許可。
-if (in_array($action, ['git_status','git_push','git_pull','git_merge','github_data_status'])) {
+if (in_array($action, ['git_status','git_push','git_pull','git_merge','github_data_status','git_file_diff','schema_github'])) {
     $ip         = $_SERVER['REMOTE_ADDR'] ?? '';
     $isLoopback = in_array($ip, ['127.0.0.1','::1']);
-    if (in_array($action, ['git_push','git_merge']) && !$isLoopback) {
+    if (in_array($action, ['git_push','git_merge','git_file_diff','schema_github']) && !$isLoopback) {
         http_response_code(403);
         die(json_encode(['success'=>false,'error'=>'この操作はローカルPCからのみ実行できます']));
     }
@@ -477,6 +477,68 @@ if (in_array($action, ['git_status','git_push','git_pull','git_merge','github_da
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
+
+    // ローカルの作業ツリー（未コミット含む）とGitHub（origin/branch）で
+    // 内容が異なるPHP/JS/CSS/HTMLファイルの一覧を返す。
+    if ($action === 'git_file_diff') {
+        $branch = $gitRun("$g branch --show-current", 5) ?: 'master';
+        $gitRun("$g fetch --quiet origin", 15);
+        $pathspec = "-- '*.php' '*.js' '*.css' '*.html'";
+        $diffOut = $gitRun("$g diff --name-status origin/" . escapeshellarg($branch) . " $pathspec", 15);
+        $files = [];
+        foreach (($diffOut ? explode("\n", $diffOut) : []) as $line) {
+            $line = trim($line);
+            if ($line === '') continue;
+            if (!preg_match('/^([AMD])\s+(.+)$/', $line, $m)) continue;
+            $files[] = ['path' => $m[2], 'status' => $m[1]];
+        }
+        echo json_encode(['success'=>true,'branch'=>$branch,'files'=>$files], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // GitHub（origin/branch）にコミット済みのschema.jsonを読み、
+    // ローカルの現在のDBスキーマと比較できるようにする。
+    if ($action === 'schema_github') {
+        $branch = $gitRun("$g branch --show-current", 5) ?: 'master';
+        $gitRun("$g fetch --quiet origin", 15);
+        $content = $gitRun("$g show " . escapeshellarg("origin/$branch:schema.json"), 5);
+        $data = json_decode($content, true);
+        if (!$data) {
+            echo json_encode(['success'=>true,'exists'=>false,'branch'=>$branch], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        echo json_encode(['success'=>true,'exists'=>true,'branch'=>$branch,'schema'=>$data['schema'] ?? $data,'exported_at'=>$data['exported_at'] ?? null], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+}
+
+// ── ローカルの現在のDBスキーマをschema.jsonとして書き出す（GitHubへコミットするため） ──
+if ($action === 'schema_export_json' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!in_array($ip, ['127.0.0.1','::1'])) {
+        http_response_code(403);
+        die(json_encode(['success'=>false,'error'=>'この操作はローカルPCからのみ実行できます']));
+    }
+    $schema = [];
+    foreach ($SYNC_TABLES as $tbl) {
+        $r = $conn->query("SHOW COLUMNS FROM `$tbl`");
+        if (!$r) { $schema[$tbl] = []; continue; }
+        $cols = [];
+        while ($c = $r->fetch_assoc()) {
+            $cols[$c['Field']] = [
+                'type'    => $c['Type'],
+                'null'    => $c['Null'],
+                'default' => $c['Default'],
+                'extra'   => $c['Extra'],
+            ];
+        }
+        $schema[$tbl] = $cols;
+    }
+    $root = realpath(dirname(__DIR__));
+    $out  = ['exported_at' => date('c'), 'env' => ENV_NAME, 'schema' => $schema];
+    $written = file_put_contents($root . DIRECTORY_SEPARATOR . 'schema.json', json_encode($out, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    echo json_encode(['success' => $written !== false], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 // ── ファイル一覧（MD5付き） ──────────────────────────────────

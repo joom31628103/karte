@@ -1,0 +1,650 @@
+{
+    "exported_at": "2026-07-04T10:44:15+02:00",
+    "env": "home",
+    "schema": {
+        "students": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "student_id": {
+                "type": "varchar(10)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "name": {
+                "type": "varchar(100)",
+                "null": "NO",
+                "default": "",
+                "extra": ""
+            },
+            "furigana": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "class_name": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "seat_number": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "gender": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "birthday": {
+                "type": "date",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "address": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "notes": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            },
+            "updated_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": "on update current_timestamp()"
+            },
+            "gakno": {
+                "type": "varchar(20)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "memo_posi": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "memo_nega": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "memo_main": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "photo": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "family_scan": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "student_phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_furi": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_phone_note": {
+                "type": "varchar(200)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_work_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_work_phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent1_work_note": {
+                "type": "varchar(200)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_furi": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_phone_note": {
+                "type": "varchar(200)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_work_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_work_phone": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent2_work_note": {
+                "type": "varchar(200)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "primary_parent": {
+                "type": "char(1)",
+                "null": "YES",
+                "default": "1",
+                "extra": ""
+            },
+            "school_from": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            }
+        },
+        "karte_records": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "student_id": {
+                "type": "varchar(10)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "record_date": {
+                "type": "date",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "record_type": {
+                "type": "varchar(30)",
+                "null": "NO",
+                "default": "",
+                "extra": ""
+            },
+            "content": {
+                "type": "text",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "teacher": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "next_action": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            },
+            "nendo": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            }
+        },
+        "karte_attendance": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "student_id": {
+                "type": "varchar(10)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "att_date": {
+                "type": "date",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "att_type": {
+                "type": "varchar(20)",
+                "null": "NO",
+                "default": "",
+                "extra": ""
+            },
+            "reason": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "parent_contacted": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "未",
+                "extra": ""
+            },
+            "notes": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            },
+            "nendo": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            }
+        },
+        "karte_interviews": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "student_id": {
+                "type": "varchar(10)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "interview_date": {
+                "type": "date",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "interview_type": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "participants": {
+                "type": "varchar(200)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "content": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "next_action": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            },
+            "nendo": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            }
+        },
+        "gakuseki": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "gakno": {
+                "type": "varchar(20)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "name": {
+                "type": "varchar(100)",
+                "null": "NO",
+                "default": "",
+                "extra": ""
+            },
+            "furigana": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "seibetu": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "birthday": {
+                "type": "date",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "yuubin": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "jyusyo": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "hogosya": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "hogokana": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "zokugara": {
+                "type": "varchar(20)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "tel1": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "tel2": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "nyunendo": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "nyugaku": {
+                "type": "date",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "sotsugyo": {
+                "type": "date",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "gakuseki_status": {
+                "type": "varchar(20)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "notes": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            },
+            "updated_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": "on update current_timestamp()"
+            },
+            "photo": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "family_scan": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "shusshin_chugaku": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "hogosya_yuubin": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "hogosya_jyusyo": {
+                "type": "text",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "hogosya_addr1": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "hogosya_addr2": {
+                "type": "varchar(255)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            }
+        },
+        "student_nendo": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "gakno": {
+                "type": "varchar(20)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "nendo": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "gakunen": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "class_no": {
+                "type": "varchar(10)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "bango": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "teacher_id": {
+                "type": "int(11)",
+                "null": "YES",
+                "default": null,
+                "extra": ""
+            },
+            "sinkyu": {
+                "type": "varchar(20)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            }
+        },
+        "teachers": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "default": null,
+                "extra": "auto_increment"
+            },
+            "username": {
+                "type": "varchar(50)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "password": {
+                "type": "varchar(255)",
+                "null": "NO",
+                "default": null,
+                "extra": ""
+            },
+            "display_name": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "default": "",
+                "extra": ""
+            },
+            "created_at": {
+                "type": "timestamp",
+                "null": "NO",
+                "default": "current_timestamp()",
+                "extra": ""
+            }
+        }
+    }
+}

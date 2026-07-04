@@ -47,7 +47,7 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 .map-btn-upload{background:linear-gradient(135deg,#f59e0b,#d97706);}
 .map-btn-upload:hover{background:linear-gradient(135deg,#fbbf24,#f59e0b);}
 .map-btn:disabled{opacity:.5;cursor:not-allowed;}
-.triangle-wrap{position:relative;width:100%;max-width:720px;height:480px;margin:8px auto 4px;}
+.triangle-wrap{position:relative;width:100%;max-width:720px;height:640px;margin:8px auto 4px;}
 .triangle-svg{position:absolute;top:0;left:0;width:100%;height:100%;}
 .tri-line{stroke:#c8d0ea;stroke-width:1.5;stroke-dasharray:4 3;vector-effect:non-scaling-stroke;}
 .tri-node{position:absolute;transform:translate(-50%,-50%);z-index:2;}
@@ -61,8 +61,14 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 .tri-panel-sub{display:block;font-size:.65rem;color:#999;font-weight:400;}
 .tri-panel-note{font-size:.68rem;color:#888;text-align:center;background:#f5f7ff;border-radius:5px;padding:4px 6px;}
 .tri-panel-warn{font-size:.65rem;color:#b91c1c;text-align:center;background:#fef2f2;border-radius:5px;padding:5px 6px;line-height:1.4;}
+.tri-panel-group-label{font-size:.66rem;color:#94a3b8;font-weight:700;text-align:center;margin-top:2px;}
+.tri-panel-divider{border-top:1px dashed #e0e4f0;margin:2px 0;}
+.map-btn-file{background:linear-gradient(135deg,#0369a1,#0284c7);}
+.map-btn-file:hover{background:linear-gradient(135deg,#0284c7,#0369a1);}
+.map-btn-schema{background:linear-gradient(135deg,#0f766e,#0d9488);}
+.map-btn-schema:hover{background:linear-gradient(135deg,#0d9488,#0f766e);}
 @media (max-width:640px){
-  .triangle-wrap{height:560px;max-width:100%;}
+  .triangle-wrap{height:820px;max-width:100%;}
   .tri-panel{width:150px;padding:8px;}
   .tri-node-badge{width:58px;height:58px;font-size:.62rem;}
 }
@@ -160,8 +166,12 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
   <div class="card">
     <h2>🔄 同期操作マップ</h2>
     <p style="font-size:.83rem;color:#555;margin-bottom:16px;">
-      家PC ⇄ サーバー ⇄ GitHub の3つの経路について、⬇ ダウン（相手から取得）・🔀 マージ（新しいほうを残す）・⬆ アップ（相手に送る）を一覧にしています。
+      ローカル ⇄ サーバー ⇄ GitHub の3つの経路について、⬇ ダウン（相手から取得）・🔀 マージ（新しいほうを残す）・⬆ アップ（相手に送る）を一覧にしています。
     </p>
+    <div class="warn-box">
+      ⚠️ 同期すると<strong>相手側のデータが完全に上書き</strong>されます。<br>
+      どちらか一方で作業してから同期してください。
+    </div>
     <div class="triangle-wrap">
       <svg class="triangle-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <line x1="13" y1="11" x2="87" y2="11" class="tri-line"/>
@@ -176,7 +186,7 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
         <div class="tri-node-badge node-github">🐙<br>GitHub</div>
       </div>
       <div class="tri-node" style="left:50%;top:88%;">
-        <div class="tri-node-badge node-local">🏠<br>家PC</div>
+        <div class="tri-node-badge node-local">🏠<br>ローカル</div>
       </div>
 
       <!-- サーバー ⇄ GitHub（上辺） -->
@@ -187,119 +197,78 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
         <div class="tri-panel-warn">⚠️ ⬆ 無効化（安全のためサーバーからのpush不可。ローカルからPushしてください）</div>
       </div>
 
-      <!-- 家PC ⇄ サーバー（左辺） -->
+      <!-- ローカル ⇄ サーバー（左辺） -->
       <div class="tri-panel" style="left:23%;top:52%;">
-        <div class="tri-panel-title">家PC ⇄ サーバー<span class="tri-panel-sub">（DBデータ）</span></div>
-        <button id="mapBtnDownload" class="map-btn map-btn-download" onclick="confirmSync('download')">⬇ サーバー→家PC</button>
+        <div class="tri-panel-title">ローカル ⇄ サーバー<span class="tri-panel-sub">（DB・ファイル・スキーマ）</span></div>
+        <div class="tri-panel-group-label">DBデータ</div>
+        <button id="mapBtnDownload" class="map-btn map-btn-download" onclick="confirmSync('download')">⬇ サーバー→ローカル</button>
         <button id="mapBtnMerge" class="map-btn map-btn-merge" onclick="confirmSync('merge')">🔀 新しいほうを両方に反映</button>
-        <button id="mapBtnUpload" class="map-btn map-btn-upload" onclick="confirmSync('upload')">⬆ 家PC→サーバー</button>
+        <button id="mapBtnUpload" class="map-btn map-btn-upload" onclick="confirmSync('upload')">⬆ ローカル→サーバー</button>
+        <div class="tri-panel-divider"></div>
+        <div class="tri-panel-group-label">ファイル（PHP/JS/CSS/HTML）</div>
+        <button id="mapFileCompareBtn" class="map-btn map-btn-file" onclick="doFileCompare()">📁 比較を実行（結果は下に表示）</button>
+        <div id="fileCompareWarn" class="tri-panel-warn" style="display:none;">⚠️ ローカルからのみ実行できます</div>
+        <div class="tri-panel-divider"></div>
+        <div class="tri-panel-group-label">DBスキーマ（テーブル構造）</div>
+        <button id="mapSchemaBtn" class="map-btn map-btn-schema" onclick="doSchemaSync()">🗂️ 確認・同期を実行</button>
+        <div id="syncRemoteWarnSchema" class="tri-panel-warn" style="display:none;">⚠️ ローカルからのみ実行できます</div>
       </div>
 
-      <!-- 家PC ⇄ GitHub（右辺） -->
+      <!-- ローカル ⇄ GitHub（右辺） -->
       <div class="tri-panel" style="left:77%;top:52%;">
-        <div class="tri-panel-title">家PC ⇄ GitHub<span class="tri-panel-sub">（コード）</span></div>
+        <div class="tri-panel-title">ローカル ⇄ GitHub<span class="tri-panel-sub">（コード）</span></div>
+        <div class="tri-panel-group-label">コード全体</div>
         <button id="mapGitPull" class="map-btn map-btn-download" onclick="doGitPull()">⬇ GitHubから取得（Pull）</button>
         <button id="mapGitMerge" class="map-btn map-btn-merge" onclick="doGitMerge()">🔀 マージ（commit→Pull→Push）</button>
         <button id="mapGitPush" class="map-btn map-btn-upload" onclick="doGitPush()">⬆ GitHubへ送信（Push）</button>
+        <div class="tri-panel-divider"></div>
+        <div class="tri-panel-group-label">ファイル（PHP/JS/CSS/HTML）</div>
+        <button id="mapGitFileDiffBtn" class="map-btn map-btn-file" onclick="doGitFileDiff()">📁 GitHubとの差分を確認（結果は下に表示）</button>
+        <div class="tri-panel-note">🔀⬆⬇ 同期は上のPull/マージ/Pushで実行</div>
+        <div class="tri-panel-divider"></div>
+        <div class="tri-panel-group-label">DBスキーマ</div>
+        <button id="mapSchemaGithubDiffBtn" class="map-btn map-btn-schema" onclick="doSchemaGithubDiff()">🗂️ GitHubとの差分を確認</button>
+        <button id="mapSchemaExportBtn" class="map-btn map-btn-schema" onclick="doSchemaExportAndMerge()">🗂️ ローカルの構造をGitHubに反映</button>
       </div>
-    </div>
-    <p style="font-size:.72rem;color:#888;margin-top:10px;">
-      💡 職場PC・家PCの両方からpushする運用のため、「🔀 マージ」は自分の変更をコミット→GitHubの最新をPull（自動マージ）→Pushまで一括実行します。ただし同じ行を双方で編集した場合の衝突（コンフリクト）は自動解決できず、その場合はPushせず停止して通知します。
-    </p>
-  </div>
-
-  <!-- 同期ボタン -->
-  <div class="card">
-    <h2>同期操作</h2>
-    <div class="warn-box">
-      ⚠️ 同期すると<strong>相手側のデータが完全に上書き</strong>されます。<br>
-      どちらか一方で作業してから同期してください。
-    </div>
-    <div class="sync-btns">
-      <button class="sync-btn btn-download" id="btnDownload" onclick="confirmSync('download')">
-        <span class="icon">⬇️</span>
-        <span>サーバー → ローカル</span>
-        <span class="sub">本番データで家のPCを上書き</span>
-      </button>
-      <button class="sync-btn btn-merge" id="btnMerge" onclick="confirmSync('merge')">
-        <span class="icon">🔀</span>
-        <span>マージ同期</span>
-        <span class="sub">更新日時を比較して新しいほうを残す</span>
-      </button>
-      <button class="sync-btn btn-upload" id="btnUpload" onclick="confirmSync('upload')">
-        <span class="icon">⬆️</span>
-        <span>ローカル → サーバー</span>
-        <span class="sub">家のデータで本番を上書き</span>
-      </button>
     </div>
     <div class="progress" id="progress"><div class="progress-bar" id="progressBar"></div></div>
     <div class="merge-stats" id="mergeStats">
       <h4>🔀 マージ結果</h4>
       <table id="mergeStatsTable"></table>
     </div>
-    <div class="last-sync" id="lastSyncInfo"></div>
-  </div>
 
-  <!-- ログ -->
-  <div class="card">
-    <h2>実行ログ</h2>
-    <div class="log-box" id="logBox">同期ログがここに表示されます。</div>
-  </div>
-
-  <!-- スキーマ同期 -->
-  <div class="card" id="schemaSyncCard">
-    <h2>🗂️ スキーマ同期</h2>
-    <div id="syncRemoteWarnSchema" style="display:none;background:#fff7ed;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:.82rem;color:#92400e;margin-bottom:14px;">
-      ⚠️ サーバー上で実行しています。<strong>スキーマ同期はローカルPC（localhost）から実行してください。</strong>
-    </div>
-    <p style="font-size:.83rem;color:#555;margin-bottom:14px;">ローカルとサーバーのテーブル構造を比較し、不足カラムの追加・型の修正を行います。</p>
-    <button id="schemaSyncBtn" onclick="doSchemaSync()" style="background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;border:none;border-radius:7px;padding:10px 22px;cursor:pointer;font-size:.9rem;font-weight:700;">🗂️ スキーマ確認・同期</button>
+    <!-- ファイル比較・スキーマ確認の結果表示エリア（マップの下） -->
     <div id="schemaRes" style="display:none;margin-top:16px;background:#f8fffe;border:1px solid #99f6e4;border-radius:8px;padding:14px;">
+      <h4 style="font-size:.85rem;font-weight:700;color:#0f766e;margin-bottom:10px;">🗂️ スキーマ確認・同期の結果</h4>
       <div id="schemaDetail"></div>
     </div>
-  </div>
-
-  <!-- ファイル比較 -->
-  <div class="card">
-    <h2>📁 ファイル比較</h2>
-    <div id="fileCompareWarn" style="display:none;background:#fff7ed;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:.82rem;color:#92400e;margin-bottom:14px;">
-      ⚠️ サーバー上では比較できません。<strong>ローカルPC（localhost）から実行してください。</strong>
-    </div>
-    <p style="font-size:.83rem;color:#555;margin-bottom:14px;">ローカルとサーバーのファイル（PHP/JS/CSS/HTML）を比較し、差分をSCPコマンドで反映できます。<br>対象外：photos / uploads / sync フォルダ</p>
-    <button id="fileCompareBtn" onclick="doFileCompare()" style="background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff;border:none;border-radius:7px;padding:10px 22px;cursor:pointer;font-size:.9rem;font-weight:700;">📁 ファイル比較を実行</button>
     <div id="fileCompareRes" style="display:none;margin-top:16px;"></div>
-  </div>
 
-  <!-- GitHub同期 -->
-  <div class="card">
-    <h2>🐙 GitHub同期</h2>
-    <div id="gitWarn" style="display:none;background:#fff7ed;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:.82rem;color:#92400e;margin-bottom:14px;">
-      ⚠️ Pull・Push・デプロイはローカルPC（localhost）からのみ実行できます。
+    <!-- GitHub Pull/Push/マージ の状態・ログ（マップの下） -->
+    <div id="gitWarn" style="display:none;background:#fff7ed;border:1px solid #fcd34d;border-radius:6px;padding:10px 14px;font-size:.82rem;color:#92400e;margin:16px 0 4px;">
+      ⚠️ Pull・Push・マージ・デプロイはローカルPC（localhost）からのみ実行できます。
     </div>
-    <div class="status-grid" style="margin-bottom:10px;">
+    <div class="status-grid" style="margin-top:16px;margin-bottom:10px;">
       <div class="status-box">
-        <h3>🏠 ローカル（家のPC）<span class="env-badge env-local">LOCAL</span></h3>
+        <h3>🏠 ローカル<span class="env-badge env-local">LOCAL</span></h3>
         <div id="gitStatusLocal" style="font-size:.8rem;">読み込み中…</div>
       </div>
       <div class="status-box">
-        <h3>🌐 サーバー（本番）<span class="env-badge env-remote">REMOTE</span></h3>
+        <h3>🌐 サーバー<span class="env-badge env-remote">REMOTE</span></h3>
         <div id="gitStatusRemote" style="font-size:.8rem;">読み込み中…</div>
       </div>
     </div>
     <div id="gitCompareBox" style="margin-bottom:14px;"></div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
-      <input type="text" id="gitMsgInput" placeholder="コミットメッセージ（省略時は自動生成）"
-        style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #c8d0ea;border-radius:6px;font-size:.85rem;font-family:inherit;">
+    <div id="gitFileDiffRes" style="display:none;margin-bottom:14px;"></div>
+    <div id="schemaGithubRes" style="display:none;margin-bottom:14px;background:#f8fffe;border:1px solid #99f6e4;border-radius:8px;padding:14px;">
+      <h4 style="font-size:.85rem;font-weight:700;color:#0f766e;margin-bottom:10px;">🗂️ ローカル ⇄ GitHub スキーマ差分</h4>
+      <div id="schemaGithubDetail"></div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-      <button id="gitPullBtn" onclick="doGitPull()"
-        style="background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;border:none;border-radius:7px;padding:10px 20px;cursor:pointer;font-size:.9rem;font-weight:700;">⬇️ Pull（ローカルに取得）</button>
-      <button id="gitPushBtn" onclick="doGitPush()"
-        style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:7px;padding:10px 20px;cursor:pointer;font-size:.9rem;font-weight:700;">⬆️ Push（GitHubへ送信）</button>
-      <button id="gitDeployBtn" onclick="doGitDeploy()"
-        style="background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:7px;padding:10px 20px;cursor:pointer;font-size:.9rem;font-weight:700;">🚀 サーバーへデプロイ（サーバーでPull）</button>
+    <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="gitMsgInput" placeholder="コミットメッセージ（Push・マージ時。省略時は自動生成）"
+        style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #c8d0ea;border-radius:6px;font-size:.85rem;font-family:inherit;">
       <button onclick="loadGitStatus()"
-        style="font-size:.8rem;padding:8px 14px;border:1px solid #c8d0ea;background:#f5f7ff;border-radius:5px;cursor:pointer;">🔃 状態更新</button>
+        style="font-size:.8rem;padding:8px 14px;border:1px solid #c8d0ea;background:#f5f7ff;border-radius:5px;cursor:pointer;">🔃 Git状態更新</button>
     </div>
     <div class="log-box" id="gitLogBox" style="display:none;min-height:80px;"></div>
     <div style="margin-top:14px;background:#f5f7ff;border:1px solid #c8d0ea;border-radius:7px;padding:12px 16px;font-size:.8rem;color:#555;">
@@ -315,6 +284,18 @@ git -C C:\xampp\htdocs\karte push</pre>
       </div>
       <div style="margin-top:6px;color:#888;font-size:.75rem;">PATをURLに埋め込むと次回以降WebUIのPushボタンも認証なしで使えます。サーバー側は認証情報がキャッシュ済みのため、🚀デプロイは追加設定なしで使えます。</div>
     </div>
+
+    <div class="last-sync" id="lastSyncInfo"></div>
+    <p style="font-size:.72rem;color:#888;margin-top:10px;">
+      💡 職場PC・ローカル（家PC）の両方からpushする運用のため、「🔀 マージ」は自分の変更をコミット→GitHubの最新をPull（自動マージ）→Pushまで一括実行します。ただし同じ行を双方で編集した場合の衝突（コンフリクト）は自動解決できず、その場合はPushせず停止して通知します。<br>
+      📁 ファイル比較は対象外：photos / uploads / sync フォルダ。差分はSCPコマンドで反映できます。
+    </p>
+  </div>
+
+  <!-- ログ -->
+  <div class="card">
+    <h2>実行ログ</h2>
+    <div class="log-box" id="logBox">同期ログがここに表示されます。</div>
   </div>
 
   <!-- 3者の関係 -->
@@ -339,25 +320,25 @@ git -C C:\xampp\htdocs\karte push</pre>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">DBデータ</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">家PC ⇄ さくら（直接）</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">HTTP API（export/import）</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「同期操作」</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「同期操作マップ」ローカル⇄サーバー</td>
       </tr>
       <tr>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">コードファイルの状態確認</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">家PC ⇄ さくら（直接）</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">MD5比較 + SCPコマンド生成</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「ファイル比較」</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「同期操作マップ」ローカル⇄サーバー（ファイル）</td>
       </tr>
       <tr>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">コードのバージョン管理</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">家PC ⇄ GitHub ⇄ 職場PC</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;">git push / git pull</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「GitHub同期」Pull / Push</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;">「同期操作マップ」ローカル⇄GitHub</td>
       </tr>
       <tr>
         <td style="padding:6px 10px;">コードの本番デプロイ</td>
         <td style="padding:6px 10px;">GitHub → さくら</td>
         <td style="padding:6px 10px;">サーバー上でgit pull</td>
-        <td style="padding:6px 10px;">「GitHub同期」🚀 デプロイ</td>
+        <td style="padding:6px 10px;">「同期操作マップ」サーバー⇄GitHub</td>
       </tr>
     </table>
     <div style="margin-top:14px;font-size:.76rem;color:#888;">
@@ -477,7 +458,7 @@ async function confirmSync(dir) {
 }
 
 async function doSync(dir) {
-  const btn = document.getElementById(dir==='download'?'btnDownload':'btnUpload');
+  const btn = document.getElementById(dir==='download'?'mapBtnDownload':'mapBtnUpload');
   btn.disabled = true;
   setProgress(10);
   document.getElementById('logBox').textContent = '';
@@ -531,7 +512,7 @@ async function doSync(dir) {
 }
 
 async function doMerge() {
-  const btn = document.getElementById('btnMerge');
+  const btn = document.getElementById('mapBtnMerge');
   btn.disabled = true;
   setProgress(10);
   document.getElementById('logBox').textContent = '';
@@ -616,15 +597,14 @@ document.addEventListener('click',function(){const d=document.getElementById('ke
   const isRemote=location.hostname!=='localhost'&&location.hostname!=='127.0.0.1';
   if(isRemote){
     document.getElementById('syncRemoteWarnSchema').style.display='block';
-    const btn=document.getElementById('schemaSyncBtn');
-    if(btn){btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';}
-    ['btnDownload','btnMerge','btnUpload','mapBtnDownload','mapBtnMerge','mapBtnUpload'].forEach(id=>{
+    ['mapBtnDownload','mapBtnMerge','mapBtnUpload','mapSchemaBtn'].forEach(id=>{
       const b=document.getElementById(id);
       if(b){b.disabled=true;b.style.opacity='0.4';b.style.cursor='not-allowed';}
     });
-    // データ同期の warn-box に追記
-    const wb=document.querySelector('.warn-box');
-    if(wb) wb.innerHTML+='<br><strong style="color:#b91c1c;">⚠️ サーバー上では同期できません。ローカルPC（localhost）から実行してください。</strong>';
+    // データ同期の warn-box に追記（同期操作マップ・同期操作の両方）
+    document.querySelectorAll('.warn-box').forEach(wb=>{
+      wb.innerHTML+='<br><strong style="color:#b91c1c;">⚠️ サーバー上では同期できません。ローカルPC（localhost）から実行してください。</strong>';
+    });
   }
 })();
 
@@ -806,7 +786,7 @@ async function doSchemaSync(){
   if (isRemote) {
     const w = document.getElementById('gitWarn');
     if (w) w.style.display = 'block';
-    ['gitPullBtn','gitPushBtn','gitDeployBtn','mapGitPull','mapGitPush','mapGitDeploy','mapGitMerge'].forEach(id => {
+    ['mapGitPull','mapGitPush','mapGitDeploy','mapGitMerge','mapGitFileDiffBtn','mapSchemaGithubDiffBtn','mapSchemaExportBtn'].forEach(id => {
       const b = document.getElementById(id);
       if (b) { b.disabled = true; b.style.opacity = '0.4'; b.style.cursor = 'not-allowed'; }
     });
@@ -860,7 +840,7 @@ function renderGithubTop(locD, remD) {
   box.innerHTML = `
     <div>📌 最新: <code style="font-size:.72rem;background:#eef0fa;padding:1px 5px;border-radius:3px;">${d.originHash}</code></div>
     <div style="font-size:.72rem;color:#555;margin:3px 0 6px;word-break:break-all;">${d.originLog.replace(/^\S+\s/,'')}</div>
-    <div style="font-size:.76rem;">${diffPart('家PC', locD)}</div>
+    <div style="font-size:.76rem;">${diffPart('ローカル', locD)}</div>
     <div style="font-size:.76rem;margin-top:2px;">${diffPart('サーバー', remD)}</div>`;
 }
 
@@ -898,7 +878,7 @@ function gitLog(msg, type='') {
 window.doGitPull = async function() {
   if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
   if (!confirm('⬇️ GitHubから最新のコードを取得します（git pull）。\nローカルの未コミット変更が競合する場合があります。続行しますか？')) return;
-  const btn = document.getElementById('gitPullBtn');
+  const btn = document.getElementById('mapGitPull');
   btn.disabled = true;
   document.getElementById('gitLogBox').textContent = '';
   gitLog('git pull 実行中…', 'info');
@@ -916,7 +896,7 @@ window.doGitPull = async function() {
 window.doGitDeploy = async function() {
   if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
   if (!confirm('🚀 サーバー上でgit pullを実行し、GitHubの最新コードを本番に反映します（デプロイ）。\n続行しますか？')) return;
-  const btn = document.getElementById('gitDeployBtn');
+  const btn = document.getElementById('mapGitDeploy');
   btn.disabled = true;
   document.getElementById('gitLogBox').textContent = '';
   gitLog('サーバーでgit pull実行中…', 'info');
@@ -935,7 +915,7 @@ window.doGitPush = async function() {
   if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
   const msg = document.getElementById('gitMsgInput').value.trim() || ('Update ' + new Date().toLocaleString('ja-JP'));
   if (!confirm(`⬆️ GitHubにプッシュします（git add -A → commit → push）。\nコミットメッセージ：「${msg}」\n続行しますか？`)) return;
-  const btn = document.getElementById('gitPushBtn');
+  const btn = document.getElementById('mapGitPush');
   btn.disabled = true;
   document.getElementById('gitLogBox').textContent = '';
   gitLog('プッシュ開始…', 'info');
@@ -989,6 +969,140 @@ window.doGitMerge = async function() {
   finally { btn.disabled = false; }
 };
 
+// ── ローカル ⇄ GitHub：ファイル比較 ──────────────────────────
+window.doGitFileDiff = async function() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
+  const btn = document.getElementById('mapGitFileDiffBtn');
+  const resDiv = document.getElementById('gitFileDiffRes');
+  btn.disabled = true; resDiv.style.display = 'none';
+  gitLog('GitHubとのファイル差分を確認中…', 'info');
+  try {
+    const d = await fetch(`${LOCAL_API}?action=git_file_diff&token=${TOKEN}`).then(r => r.json());
+    if (!d.success) throw new Error(d.error || '取得失敗');
+    const labels = {M:['内容差分','#92400e','#fffbeb'], A:['ローカルのみ（未push）','#9d174d','#fff0f9'], D:['GitHubのみ（ローカルで削除）','#1e3a8a','#eff6ff']};
+    if (d.files.length === 0) {
+      resDiv.innerHTML = '<p style="color:#059669;font-weight:700;font-size:.85rem;">✅ GitHubとローカルのPHP/JS/CSS/HTMLファイルはすべて一致しています。</p>';
+    } else {
+      let h = `<table style="width:100%;border-collapse:collapse;font-size:.75rem;">
+        <tr style="font-weight:700;color:#555;background:#f5f7ff;">
+          <td style="padding:5px 8px;border-bottom:2px solid #e0e4f0;">ファイル</td>
+          <td style="padding:5px 8px;border-bottom:2px solid #e0e4f0;">状態</td>
+        </tr>`;
+      d.files.forEach(f => {
+        const [label, color, bg] = labels[f.status] || [f.status, '#555', '#fff'];
+        h += `<tr style="background:${bg}">
+          <td style="padding:4px 8px;border-bottom:1px solid #eee;font-family:monospace;font-size:.72rem;">${f.path}</td>
+          <td style="padding:4px 8px;border-bottom:1px solid #eee;color:${color};font-weight:700;white-space:nowrap;">${label}</td>
+        </tr>`;
+      });
+      h += '</table><p style="font-size:.72rem;color:#888;margin-top:8px;">💡 反映するには上の⬇Pull・🔀マージ・⬆Pushボタンを使ってください。</p>';
+      resDiv.innerHTML = h;
+    }
+    resDiv.style.display = 'block';
+    gitLog(`✅ ファイル差分確認完了：${d.files.length}件`, 'ok');
+  } catch(e) { gitLog('❌ ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+};
+
+// ── ローカル ⇄ GitHub：DBスキーマ比較 ──────────────────────────
+window.doSchemaGithubDiff = async function() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
+  const btn = document.getElementById('mapSchemaGithubDiffBtn');
+  const resDiv = document.getElementById('schemaGithubRes');
+  const detail = document.getElementById('schemaGithubDetail');
+  btn.disabled = true; resDiv.style.display = 'none';
+  gitLog('GitHubのschema.jsonと比較中…', 'info');
+  try {
+    const [lS, gS] = await Promise.all([
+      fetch(`${LOCAL_API}?action=schema&token=${TOKEN}`).then(r=>r.json()),
+      fetch(`${LOCAL_API}?action=schema_github&token=${TOKEN}`).then(r=>r.json()),
+    ]);
+    if (!lS.success) throw new Error('ローカルのスキーマ取得に失敗しました');
+    if (!gS.success) throw new Error('GitHubのschema.json取得に失敗しました');
+    if (!gS.exists) {
+      detail.innerHTML = '<p style="color:#b45309;font-weight:700;font-size:.85rem;">⚠️ GitHubにはまだ schema.json がありません。「🗂️ ローカルの構造をGitHubに反映」を実行してください。</p>';
+      resDiv.style.display = 'block';
+      gitLog('⚠️ GitHub側にschema.jsonがありません', 'err');
+      return;
+    }
+    const gSchema = gS.schema;
+    const missingOnGithub = [], missingOnLocal = [], typeDiff = [];
+    for (const [tbl, lCols] of Object.entries(lS.schema)) {
+      const gCols = gSchema[tbl] || {};
+      for (const [col, info] of Object.entries(lCols)) {
+        if (!(col in gCols)) missingOnGithub.push({tbl, col, type: info.type});
+        else if (normalizeType(gCols[col].type) !== normalizeType(info.type)) {
+          typeDiff.push({tbl, col, localType: info.type, githubType: gCols[col].type});
+        }
+      }
+    }
+    for (const [tbl, gCols] of Object.entries(gSchema)) {
+      const lCols = lS.schema[tbl] || {};
+      for (const col of Object.keys(gCols)) {
+        if (!(col in lCols)) missingOnLocal.push({tbl, col, type: gCols[col].type});
+      }
+    }
+    const th = (cols) => `<table style="width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:10px;"><tr style="font-weight:700;color:#555;">${cols.map(c=>`<td style="padding:3px 6px">${c}</td>`).join('')}</tr>`;
+    let h = '';
+    if (missingOnGithub.length===0 && missingOnLocal.length===0 && typeDiff.length===0) {
+      h = `<p style="color:#059669;font-weight:700;font-size:.85rem;">✅ ローカルとGitHub（schema.json、${gS.exported_at ? new Date(gS.exported_at).toLocaleString('ja-JP') : '?'}時点）のスキーマは一致しています。</p>`;
+    } else {
+      if (missingOnGithub.length) {
+        h += `<p style="margin:0 0 5px;color:#0f766e;font-weight:700;">GitHub側に未反映のカラム（${missingOnGithub.length}件）</p>` + th(['テーブル','カラム','型']);
+        missingOnGithub.forEach(r=>{h+=`<tr><td style="padding:3px 6px">${r.tbl}</td><td style="padding:3px 6px;color:#0f766e">${r.col}</td><td style="padding:3px 6px">${r.type}</td></tr>`;});
+        h += '</table>';
+      }
+      if (missingOnLocal.length) {
+        h += `<p style="margin:4px 0 5px;color:#b45309;font-weight:700;">ローカル側に無いカラム（GitHub側のみ・${missingOnLocal.length}件）</p>` + th(['テーブル','カラム','型']);
+        missingOnLocal.forEach(r=>{h+=`<tr><td style="padding:3px 6px">${r.tbl}</td><td style="padding:3px 6px;color:#b45309">${r.col}</td><td style="padding:3px 6px">${r.type}</td></tr>`;});
+        h += '</table>';
+      }
+      if (typeDiff.length) {
+        h += `<p style="margin:4px 0 5px;color:#7c3aed;font-weight:700;">型が異なるカラム（${typeDiff.length}件）</p>` + th(['テーブル','カラム','ローカル','GitHub']);
+        typeDiff.forEach(r=>{h+=`<tr><td style="padding:3px 6px">${r.tbl}</td><td style="padding:3px 6px">${r.col}</td><td style="padding:3px 6px;color:#dc2626">${r.localType}</td><td style="padding:3px 6px;color:#7c3aed">${r.githubType}</td></tr>`;});
+        h += '</table>';
+      }
+      h += '<p style="font-size:.72rem;color:#888;margin-top:6px;">💡 GitHubに現在のローカル構造を反映するには「🗂️ ローカルの構造をGitHubに反映」を使ってください。</p>';
+    }
+    detail.innerHTML = h;
+    resDiv.style.display = 'block';
+    gitLog('✅ スキーマ差分確認完了', 'ok');
+  } catch(e) { gitLog('❌ ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+};
+
+window.doSchemaExportAndMerge = async function() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
+  if (!confirm('🗂️ ローカルの現在のDBスキーマをschema.jsonとして書き出し、GitHubにマージ同期（commit→Pull→Push）します。\n続行しますか？')) return;
+  const btn = document.getElementById('mapSchemaExportBtn');
+  btn.disabled = true;
+  document.getElementById('gitLogBox').textContent = '';
+  gitLog('ローカルのスキーマをschema.jsonへ書き出し中…', 'info');
+  try {
+    const exp = await fetch(`${LOCAL_API}?action=schema_export_json&token=${TOKEN}`, {method:'POST'}).then(r=>r.json());
+    if (!exp.success) throw new Error('schema.jsonの書き出しに失敗しました');
+    gitLog('✅ schema.json 書き出し完了', 'ok');
+
+    const msg = 'schema.json更新 ' + new Date().toLocaleString('ja-JP');
+    gitLog('GitHubへマージ同期中…', 'info');
+    const d = await fetch(`${LOCAL_API}?action=git_merge&token=${TOKEN}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: msg})
+    }).then(r => r.json());
+    (d.steps || []).forEach(s => {
+      gitLog(`▶ ${s.label}`, 'info');
+      if (s.out) { const isErr = /error|fatal|conflict/i.test(s.out); gitLog(s.out, isErr ? 'err' : 'ok'); }
+    });
+    if (d.conflict) {
+      gitLog('⚠️ コンフリクトが発生しました。Pushは行っていません。手動で解決してください。', 'err');
+    } else {
+      gitLog(d.success ? '✅ スキーマのGitHub反映が完了しました' : '❌ 反映に失敗しました（ログを確認してください）', d.success ? 'ok' : 'err');
+    }
+    await loadGitStatus();
+  } catch(e) { gitLog('❌ ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+};
+
 loadGitStatus(); // 「現在の状態」カードのGitHub欄も含め、どちらの画面からでも状態表示は行う
 
 // ── ファイル比較 ────────────────────────────────────────────
@@ -997,7 +1111,7 @@ loadGitStatus(); // 「現在の状態」カードのGitHub欄も含め、どち
   if(isRemote){
     const w=document.getElementById('fileCompareWarn');
     if(w) w.style.display='block';
-    const b=document.getElementById('fileCompareBtn');
+    const b=document.getElementById('mapFileCompareBtn');
     if(b){b.disabled=true;b.style.opacity='0.4';b.style.cursor='not-allowed';}
   }
 })();
@@ -1006,7 +1120,7 @@ window.doFileCompare=async function(){
   if(location.hostname!=='localhost'&&location.hostname!=='127.0.0.1'){
     alert('ファイル比較はローカルPC（localhost）から実行してください。');return;
   }
-  const btn=document.getElementById('fileCompareBtn');
+  const btn=document.getElementById('mapFileCompareBtn');
   const resDiv=document.getElementById('fileCompareRes');
   btn.disabled=true; resDiv.style.display='none';
   log('ファイルリスト取得中…','info');
