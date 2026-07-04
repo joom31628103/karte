@@ -288,22 +288,31 @@ if ($action === 'schema_apply' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// ── Git同期（localhostのみ） ──────────────────────────────────
-if (in_array($action, ['git_status','git_push','git_pull'])) {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    if (!in_array($ip, ['127.0.0.1','::1'])) {
+// ── Git同期 ──────────────────────────────────────────
+// git_status / git_pull / github_data_status はサーバー自身（さくら）からの実行＝デプロイ用途も許可する。
+// git_push / git_merge は誤って本番からpushしないよう、ローカルPC（loopback）からのみ許可。
+if (in_array($action, ['git_status','git_push','git_pull','git_merge','github_data_status'])) {
+    $ip         = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isLoopback = in_array($ip, ['127.0.0.1','::1']);
+    if (in_array($action, ['git_push','git_merge']) && !$isLoopback) {
         http_response_code(403);
-        die(json_encode(['success'=>false,'error'=>'Git操作はローカルからのみ実行できます']));
+        die(json_encode(['success'=>false,'error'=>'この操作はローカルPCからのみ実行できます']));
+    }
+    if (!$isLoopback && ENV_NAME !== 'sakura') {
+        http_response_code(403);
+        die(json_encode(['success'=>false,'error'=>'Git操作はローカルPC、またはサーバー自身からのみ実行できます']));
     }
     $root    = realpath(dirname(__DIR__));
     $safeDir = str_replace('\\', '/', $root);
     shell_exec('git config --global --add safe.directory ' . escapeshellarg($safeDir) . ' 2>&1');
     $g = 'git -C ' . escapeshellarg($root);
 
+    // HOME: Linux(さくら)では実際の$HOMEを、Windows(ローカル)ではUSERPROFILEを使う。
+    // これがないとgitが ~/.git-credentials や ~/.gitconfig を見つけられず認証に失敗する。
     $gitEnv = array_merge(getenv() ?: [], [
         'GIT_TERMINAL_PROMPT' => '0',
         'GIT_ASKPASS'         => 'echo',
-        'HOME'                => getenv('USERPROFILE') ?: 'C:/Users/hi',
+        'HOME'                => getenv('HOME') ?: (getenv('USERPROFILE') ?: 'C:/Users/hi'),
     ]);
     $gitRun = function(string $cmd, int $timeout = 30) use ($gitEnv): string {
         $desc = [0 => ['pipe','r'], 1 => ['pipe','w'], 2 => ['pipe','w']];
@@ -320,20 +329,81 @@ if (in_array($action, ['git_status','git_push','git_pull'])) {
     if ($action === 'git_status') {
         $isRepo = $gitRun("$g rev-parse --is-inside-work-tree", 5) === 'true';
         if (!$isRepo) {
-            echo json_encode(['success'=>true,'initialized'=>false], JSON_UNESCAPED_UNICODE);
+            echo json_encode(['success'=>true,'initialized'=>false,'env'=>ENV_NAME], JSON_UNESCAPED_UNICODE);
             exit;
         }
+        $gitRun("$g fetch --quiet origin", 15); // GitHubの最新状態を取得（失敗しても無視）
         $branch = $gitRun("$g branch --show-current", 5);
         $status = $gitRun("$g status --porcelain", 5);
         $log5   = $gitRun("$g log --oneline -5", 5);
         $remote = $gitRun("$g remote get-url origin", 5);
+        $hash   = $gitRun("$g rev-parse --short HEAD", 5);
+        $ahead = $behind = 0;
+        $originHash = $originLog = '';
+        if ($branch) {
+            $ab = $gitRun("$g rev-list --left-right --count HEAD...origin/$branch", 5);
+            if (preg_match('/^(\d+)\s+(\d+)$/', $ab, $m)) { $ahead = (int)$m[1]; $behind = (int)$m[2]; }
+            $originHash = $gitRun("$g rev-parse --short origin/$branch", 5);
+            $originLog  = $gitRun("$g log origin/$branch -1 --oneline", 5);
+        }
         echo json_encode([
             'success'     => true,
             'initialized' => true,
+            'env'         => ENV_NAME,
             'branch'      => $branch,
+            'hash'        => $hash,
+            'ahead'       => $ahead,
+            'behind'      => $behind,
+            'originHash'  => $originHash,
+            'originLog'   => $originLog,
             'changes'     => $status ? array_values(array_filter(explode("\n", $status))) : [],
             'log'         => $log5   ? array_values(array_filter(explode("\n", $log5)))   : [],
             'remote'      => $remote,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // GitHub（origin）に実際にpush済みのdata/students/*.jsonを読み、
+    // ローカル/サーバーと同じ形式（生徒・学籍台帳・年度情報・面談記録・出欠・面談）の件数を集計する。
+    // ＝「GitHub上のDB状態」を、作業ツリーの未コミット変更に左右されずに見せるための機能。
+    if ($action === 'github_data_status') {
+        $isRepo = $gitRun("$g rev-parse --is-inside-work-tree", 5) === 'true';
+        if (!$isRepo) {
+            echo json_encode(['success'=>true,'initialized'=>false], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        $gitRun("$g fetch --quiet origin", 15);
+        $branch = $gitRun("$g branch --show-current", 5) ?: 'master';
+
+        $lsOut = $gitRun("$g ls-tree -r --name-only origin/" . escapeshellarg($branch) . " -- data/students", 10);
+        $files = $lsOut ? array_values(array_filter(explode("\n", $lsOut))) : [];
+        $files = array_values(array_filter($files, function($f) {
+            return strpos($f, '/history/') === false && substr($f, -5) === '.json';
+        }));
+
+        // ローカル/サーバーの表と行の並びを揃えるため、$SYNC_TABLESと同じ順序にする（teachersは対象外）。
+        $counts = ['students'=>0,'karte_records'=>0,'karte_attendance'=>0,'karte_interviews'=>0,'gakuseki'=>0,'student_nendo'=>0];
+        $lastExport = null;
+        foreach ($files as $f) {
+            $content = $gitRun("$g show " . escapeshellarg("origin/$branch:$f"), 5);
+            $data = json_decode($content, true);
+            if (!$data) continue;
+            if (!empty($data['student']))   $counts['students']++;
+            if (!empty($data['gakuseki']))  $counts['gakuseki']++;
+            if (!empty($data['nendo']))     $counts['student_nendo']    += count($data['nendo']);
+            if (!empty($data['records']))   $counts['karte_records']    += count($data['records']);
+            if (!empty($data['attendance']))$counts['karte_attendance'] += count($data['attendance']);
+            if (!empty($data['interviews']))$counts['karte_interviews'] += count($data['interviews']);
+            $exp = $data['_meta']['exported_at'] ?? null;
+            if ($exp && (!$lastExport || $exp > $lastExport)) $lastExport = $exp;
+        }
+        echo json_encode([
+            'success'      => true,
+            'initialized'  => true,
+            'branch'       => $branch,
+            'file_count'   => count($files),
+            'counts'       => $counts,
+            'last_export'  => $lastExport,
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -365,6 +435,48 @@ if (in_array($action, ['git_status','git_push','git_pull'])) {
         echo json_encode(['success'=>$ok,'output'=>$pull], JSON_UNESCAPED_UNICODE);
         exit;
     }
+
+    // 職場PC・家PCの双方からGitHubへpushする運用のため、
+    // 「ローカルの変更をコミット → pull（フェッチ＋マージ） → push」を1操作でまとめて行う。
+    // 文字レベルでの衝突（同じ行の同時編集）はgitでも自動解決できないため、その場合はpushせず停止する。
+    if ($action === 'git_merge' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $body   = json_decode(file_get_contents('php://input'), true);
+        $msg    = trim($body['message'] ?? '') ?: ('Update ' . date('Y-m-d H:i'));
+        $gc     = $g . ' -c user.email=joom31628103@gmail.com -c user.name=hide';
+
+        $add    = $gitRun("$g add -A");
+        $commit = $gitRun("$gc commit -m " . escapeshellarg($msg));
+        $pull   = $gitRun("$g pull --no-edit", 30);
+        $conflict = (bool)preg_match('/CONFLICT|Automatic merge failed/i', $pull);
+
+        $steps = [
+            ['label'=>'git add -A',              'out'=>$add],
+            ['label'=>'git commit',              'out'=>$commit],
+            ['label'=>'git pull（フェッチ＋マージ）', 'out'=>$pull],
+        ];
+
+        if ($conflict) {
+            echo json_encode([
+                'success'  => false,
+                'conflict' => true,
+                'steps'    => $steps,
+                'error'    => 'コンフリクトが発生しました。手動での解決が必要です（pushは行っていません）。',
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        $push  = $gitRun("$g push", 30);
+        $lower = strtolower($push);
+        $ok    = strpos($lower,'タイムアウト')===false && strpos($lower,'error')===false && strpos($lower,'fatal')===false;
+        $steps[] = ['label'=>'git push', 'out'=>$push];
+
+        echo json_encode([
+            'success'  => $ok,
+            'conflict' => false,
+            'steps'    => $steps,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
 // ── ファイル一覧（MD5付き） ──────────────────────────────────
@@ -391,7 +503,9 @@ if ($action === 'files') {
             $abs = $f->getPathname();
             $rel = ltrim(str_replace([$root . DIRECTORY_SEPARATOR, $root . '/'], '', $abs), '/\\');
             $rel = str_replace('\\', '/', $rel);
-            $files[$rel] = ['md5' => md5_file($abs), 'size' => $f->getSize(), 'mtime' => $f->getMTime()];
+            // 改行コード（CRLF/LF）の違いだけで差分と誤検知しないよう正規化してからハッシュ化
+            $normalized = str_replace("\r\n", "\n", file_get_contents($abs));
+            $files[$rel] = ['md5' => md5($normalized), 'size' => $f->getSize(), 'mtime' => $f->getMTime()];
         }
         ksort($files);
     } catch (Exception $e) { /* ignore */ }
