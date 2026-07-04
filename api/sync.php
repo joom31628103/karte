@@ -541,6 +541,20 @@ if ($action === 'schema_export_json' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// ── 全生徒のDBデータを data/students/*.json に書き出す（GitHubへコミットするため） ──
+// 既存のkarteBackupAll()を再利用。github_data_status で読んでいるのと同じファイル。
+if ($action === 'backup_export_all' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!in_array($ip, ['127.0.0.1','::1'])) {
+        http_response_code(403);
+        die(json_encode(['success'=>false,'error'=>'この操作はローカルPCからのみ実行できます']));
+    }
+    require_once __DIR__ . '/../lib/backup.php';
+    $r = karteBackupAll($conn);
+    echo json_encode(['success'=>true,'ok'=>$r['ok'],'fail'=>$r['fail'],'ids'=>$r['ids']], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // ── ファイル一覧（MD5付き） ──────────────────────────────────
 if ($action === 'files') {
     $root = realpath(dirname(__DIR__));

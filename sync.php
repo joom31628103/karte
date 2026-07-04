@@ -67,6 +67,8 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 .map-btn-file:hover{background:linear-gradient(135deg,#0284c7,#0369a1);}
 .map-btn-schema{background:linear-gradient(135deg,#0f766e,#0d9488);}
 .map-btn-schema:hover{background:linear-gradient(135deg,#0d9488,#0f766e);}
+.map-btn-data{background:linear-gradient(135deg,#b45309,#92400e);}
+.map-btn-data:hover{background:linear-gradient(135deg,#92400e,#b45309);}
 @media (max-width:640px){
   .triangle-wrap{height:820px;max-width:100%;}
   .tri-panel{width:150px;padding:8px;}
@@ -216,15 +218,19 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
 
       <!-- ローカル ⇄ GitHub（右辺） -->
       <div class="tri-panel" style="left:77%;top:52%;">
-        <div class="tri-panel-title">ローカル ⇄ GitHub<span class="tri-panel-sub">（コード）</span></div>
+        <div class="tri-panel-title">ローカル ⇄ GitHub<span class="tri-panel-sub">（コード・DBデータ）</span></div>
         <div class="tri-panel-group-label">コード全体</div>
         <button id="mapGitPull" class="map-btn map-btn-download" onclick="doGitPull()">⬇ GitHubから取得（Pull）</button>
         <button id="mapGitMerge" class="map-btn map-btn-merge" onclick="doGitMerge()">🔀 マージ（commit→Pull→Push）</button>
         <button id="mapGitPush" class="map-btn map-btn-upload" onclick="doGitPush()">⬆ GitHubへ送信（Push）</button>
         <div class="tri-panel-divider"></div>
+        <div class="tri-panel-group-label">DBデータ（生徒バックアップ）</div>
+        <button id="mapDbGithubDiffBtn" class="map-btn map-btn-data" onclick="doDbGithubDiff()">💾 GitHubとの差分を確認</button>
+        <button id="mapDbExportBtn" class="map-btn map-btn-data" onclick="doDbExportAndMerge()">💾 ローカルのDBをGitHubに反映</button>
+        <div class="tri-panel-divider"></div>
         <div class="tri-panel-group-label">ファイル（PHP/JS/CSS/HTML）</div>
         <button id="mapGitFileDiffBtn" class="map-btn map-btn-file" onclick="doGitFileDiff()">📁 GitHubとの差分を確認（結果は下に表示）</button>
-        <div class="tri-panel-note">🔀⬆⬇ 同期は上のPull/マージ/Pushで実行</div>
+        <div class="tri-panel-note">🔀⬆⬇ 反映は上の「コード全体」のPull/マージ/Push（PHP等のファイルもここに含まれます。DBデータとは無関係）</div>
         <div class="tri-panel-divider"></div>
         <div class="tri-panel-group-label">DBスキーマ</div>
         <button id="mapSchemaGithubDiffBtn" class="map-btn map-btn-schema" onclick="doSchemaGithubDiff()">🗂️ GitHubとの差分を確認</button>
@@ -259,6 +265,10 @@ h2{font-size:1.15rem;font-weight:700;color:#3b4f8a;margin-bottom:16px;padding-bo
       </div>
     </div>
     <div id="gitCompareBox" style="margin-bottom:14px;"></div>
+    <div id="dbGithubRes" style="display:none;margin-bottom:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px;">
+      <h4 style="font-size:.85rem;font-weight:700;color:#b45309;margin-bottom:10px;">💾 ローカル ⇄ GitHub DBデータ差分</h4>
+      <div id="dbGithubDetail"></div>
+    </div>
     <div id="gitFileDiffRes" style="display:none;margin-bottom:14px;"></div>
     <div id="schemaGithubRes" style="display:none;margin-bottom:14px;background:#f8fffe;border:1px solid #99f6e4;border-radius:8px;padding:14px;">
       <h4 style="font-size:.85rem;font-weight:700;color:#0f766e;margin-bottom:10px;">🗂️ ローカル ⇄ GitHub スキーマ差分</h4>
@@ -786,7 +796,7 @@ async function doSchemaSync(){
   if (isRemote) {
     const w = document.getElementById('gitWarn');
     if (w) w.style.display = 'block';
-    ['mapGitPull','mapGitPush','mapGitDeploy','mapGitMerge','mapGitFileDiffBtn','mapSchemaGithubDiffBtn','mapSchemaExportBtn'].forEach(id => {
+    ['mapGitPull','mapGitPush','mapGitDeploy','mapGitMerge','mapGitFileDiffBtn','mapSchemaGithubDiffBtn','mapSchemaExportBtn','mapDbGithubDiffBtn','mapDbExportBtn'].forEach(id => {
       const b = document.getElementById(id);
       if (b) { b.disabled = true; b.style.opacity = '0.4'; b.style.cursor = 'not-allowed'; }
     });
@@ -1097,6 +1107,78 @@ window.doSchemaExportAndMerge = async function() {
       gitLog('⚠️ コンフリクトが発生しました。Pushは行っていません。手動で解決してください。', 'err');
     } else {
       gitLog(d.success ? '✅ スキーマのGitHub反映が完了しました' : '❌ 反映に失敗しました（ログを確認してください）', d.success ? 'ok' : 'err');
+    }
+    await loadGitStatus();
+  } catch(e) { gitLog('❌ ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+};
+
+// ── ローカル ⇄ GitHub：DBデータ比較（data/students/*.json ベース） ──────────
+window.doDbGithubDiff = async function() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
+  const btn = document.getElementById('mapDbGithubDiffBtn');
+  const resDiv = document.getElementById('dbGithubRes');
+  const detail = document.getElementById('dbGithubDetail');
+  btn.disabled = true; resDiv.style.display = 'none';
+  gitLog('ローカルDBとGitHub上のバックアップを比較中…', 'info');
+  try {
+    const [lStat, ghStat] = await Promise.all([
+      fetch(`${LOCAL_API}?action=status&token=${TOKEN}`).then(r=>r.json()),
+      fetch(`${LOCAL_API}?action=github_data_status&token=${TOKEN}`).then(r=>r.json()),
+    ]);
+    if (!lStat.success) throw new Error('ローカルDBの件数取得に失敗しました');
+    if (!ghStat.success || !ghStat.initialized) {
+      detail.innerHTML = '<p style="color:#b45309;font-weight:700;font-size:.85rem;">⚠️ GitHubにまだバックアップ（data/students/*.json）がありません。「💾 ローカルのDBをGitHubに反映」を実行してください。</p>';
+      resDiv.style.display = 'block';
+      gitLog('⚠️ GitHub側にバックアップがありません', 'err');
+      return;
+    }
+    const keys = new Set([...Object.keys(lStat.counts), ...Object.keys(ghStat.counts)]);
+    let h = `<table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:8px;">
+      <tr style="font-weight:700;color:#555;"><td style="padding:3px 6px">テーブル</td><td style="padding:3px 6px;text-align:right">ローカル</td><td style="padding:3px 6px;text-align:right">GitHub</td><td style="padding:3px 6px"></td></tr>`;
+    let anyDiff = false;
+    keys.forEach(k => {
+      const lv = lStat.counts[k] ?? null, gv = ghStat.counts[k] ?? null;
+      const diff = (lv !== gv);
+      if (diff) anyDiff = true;
+      h += `<tr><td style="padding:3px 6px">${tableLabels[k]||k}</td><td style="padding:3px 6px;text-align:right">${lv===null?'—':lv.toLocaleString()}</td><td style="padding:3px 6px;text-align:right">${gv===null?'—':gv.toLocaleString()}</td><td style="padding:3px 6px;color:${diff?'#dc2626':'#059669'}">${diff?'⚠️ 差分':'✅'}</td></tr>`;
+    });
+    h += '</table>';
+    const t = ghStat.last_export ? new Date(ghStat.last_export).toLocaleString('ja-JP') : '?';
+    h += `<p style="font-size:.72rem;color:#888;">GitHub上のバックアップ最終エクスポート：${t}${anyDiff ? '　💡 「💾 ローカルのDBをGitHubに反映」で最新化できます' : ''}</p>`;
+    detail.innerHTML = h;
+    resDiv.style.display = 'block';
+    gitLog(anyDiff ? '⚠️ 件数に差分があります' : '✅ 件数は一致しています', anyDiff ? 'err' : 'ok');
+  } catch(e) { gitLog('❌ ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+};
+
+window.doDbExportAndMerge = async function() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') { alert('ローカルから実行してください'); return; }
+  if (!confirm('💾 ローカルDBの全生徒データを data/students/*.json へ書き出し、GitHubにマージ同期（commit→Pull→Push）します。\n続行しますか？')) return;
+  const btn = document.getElementById('mapDbExportBtn');
+  btn.disabled = true;
+  document.getElementById('gitLogBox').textContent = '';
+  gitLog('生徒データをJSONへ書き出し中…', 'info');
+  try {
+    const exp = await fetch(`${LOCAL_API}?action=backup_export_all&token=${TOKEN}`, {method:'POST'}).then(r=>r.json());
+    if (!exp.success) throw new Error('データの書き出しに失敗しました');
+    gitLog(`✅ 書き出し完了：${exp.ok}件成功${exp.fail?` / ${exp.fail}件失敗`:''}`, 'ok');
+
+    const msg = '生徒データバックアップ更新 ' + new Date().toLocaleString('ja-JP');
+    gitLog('GitHubへマージ同期中…', 'info');
+    const d = await fetch(`${LOCAL_API}?action=git_merge&token=${TOKEN}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: msg})
+    }).then(r => r.json());
+    (d.steps || []).forEach(s => {
+      gitLog(`▶ ${s.label}`, 'info');
+      if (s.out) { const isErr = /error|fatal|conflict/i.test(s.out); gitLog(s.out, isErr ? 'err' : 'ok'); }
+    });
+    if (d.conflict) {
+      gitLog('⚠️ コンフリクトが発生しました。Pushは行っていません。手動で解決してください。', 'err');
+    } else {
+      gitLog(d.success ? '✅ DBデータのGitHub反映が完了しました' : '❌ 反映に失敗しました（ログを確認してください）', d.success ? 'ok' : 'err');
     }
     await loadGitStatus();
   } catch(e) { gitLog('❌ ' + e.message, 'err'); }
