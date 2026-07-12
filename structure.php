@@ -7,7 +7,10 @@ requireLogin();
 <head>
 <meta charset="UTF-8">
 <link rel="icon" type="image/svg+xml" href="/karte/favicon.php">
-  <link rel="apple-touch-icon" href="/karte/favicon.php?size=180">
+  <link rel="icon" type="image/png" sizes="32x32" href="/karte/icon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/karte/icon-180.png">
+  <link rel="manifest" href="/karte/manifest.json">
+  <meta name="theme-color" content="#1a2a55">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>システム構造図 - 生徒カルテ</title>
 <style>
