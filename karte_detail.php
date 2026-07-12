@@ -1414,7 +1414,7 @@ async function saveBasic(sid, showIndicator = true) {
       return false;
     }
     // キャッシュ破棄（最新データを再取得させる）
-    if (typeof studentCache !== 'undefined') delete studentCache[sid];
+    window._invalidateStudentCache?.(sid);
     if (showIndicator && ind) {
       ind.textContent = '✓ 保存しました';
       ind.className = 'autosave-indicator saved';
@@ -1720,6 +1720,12 @@ async function loadHistory(sid=SID) {
     Object.keys(tabCache).forEach(k=>{ if(k.startsWith(sid+':')) delete tabCache[k]; });
   }
   window._invalidateTabCache = invalidateTabCache;
+
+  function invalidateStudentCache(sid) {
+    // 基本情報保存後、SPA切替キャッシュに古いデータが残らないよう破棄
+    delete studentCache[sid];
+  }
+  window._invalidateStudentCache = invalidateStudentCache;
 
   function prefetchAdjacent() {
     const tab = (document.querySelector('.fm-tab.active')||{}).dataset?.panel || '';
