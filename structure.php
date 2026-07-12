@@ -962,7 +962,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo',sans-serif;background:#
         <code>use_strict_mode=1</code>, <code>use_only_cookies=1</code><br>
         セッション名: <code>karte_session</code><br>
         初回アクセス時: <code>session_regenerate_id(true)</code><br>
-        タイムアウト: <code>gc_maxlifetime=7200</code>（2時間）<br>
+        タイムアウト: <code>gc_maxlifetime=43200</code>（12時間）<br>
         タイムアウト検出: <code>requireLogin()</code> 内で <code>_last_activity</code> チェック
       </div>
     </div>

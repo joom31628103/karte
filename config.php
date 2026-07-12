@@ -68,7 +68,8 @@ function getDB(): mysqli {
 
 function _isAjax(): bool {
     return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) ||
-           (($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json');
+           (($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json') ||
+           (strpos($_SERVER['SCRIPT_NAME'] ?? '', '/api/') !== false);
 }
 
 /* ── セッション開始（セキュア設定） ── */
@@ -87,7 +88,7 @@ function startSession(): void {
     ]);
     ini_set('session.use_strict_mode', 1);
     ini_set('session.use_only_cookies', 1);
-    ini_set('session.gc_maxlifetime', 7200); // 2時間
+    ini_set('session.gc_maxlifetime', 43200); // 12時間
 
     session_name('karte_session');
     session_start();
@@ -129,10 +130,15 @@ function requireLogin(): void {
         header('Location: /karte/index.php');
         exit;
     }
-    // セッションタイムアウトチェック（2時間）
-    if (isset($_SESSION['_last_activity']) && (time() - $_SESSION['_last_activity']) > 7200) {
+    // セッションタイムアウトチェック（12時間）
+    if (isset($_SESSION['_last_activity']) && (time() - $_SESSION['_last_activity']) > 43200) {
         session_unset();
         session_destroy();
+        if (_isAjax()) {
+            http_response_code(401);
+            echo json_encode(['success'=>false,'error'=>'セッションがタイムアウトしました']);
+            exit;
+        }
         header('Location: /karte/index.php?timeout=1');
         exit;
     }
