@@ -514,6 +514,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             logActivity($conn, $sid, '面談記録を追加', "[$type] $date" . ($parti ? " 参加: $parti" : '') . " — $content");
             jout_backup($conn, ['success'=>true,'id'=>$stmt->insert_id], $sid);
 
+        case 'update_interview':
+            $id      = (int)($_POST['id'] ?? 0);
+            $date    = trim($_POST['interview_date'] ?? '');
+            $type    = trim($_POST['interview_type'] ?? '');
+            $parti   = trim($_POST['participants'] ?? '');
+            $content = trim($_POST['content'] ?? '');
+            $next    = trim($_POST['next_action'] ?? '');
+            if (!$id) err('IDが不正です');
+            if (!$content) err('内容は必須です');
+            $prevR = ps($conn, "SELECT student_id FROM karte_interviews WHERE id=?", 'i', [$id]);
+            $prevRow = $prevR ? $prevR->fetch_assoc() : null;
+            $intSid = $prevRow['student_id'] ?? '';
+            $stmt = $conn->prepare("UPDATE karte_interviews SET interview_date=?,interview_type=?,participants=?,content=?,next_action=? WHERE id=?");
+            $stmt->bind_param('sssssi', $date,$type,$parti,$content,$next,$id);
+            $stmt->execute();
+            logActivity($conn, $intSid, '面談記録を編集', "[$type] $date" . ($parti ? " 参加: $parti" : '') . " — $content");
+            jout_backup($conn, ['success'=>true], $intSid);
+
         case 'delete_interview':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) err('IDが不正です');

@@ -1042,8 +1042,9 @@ if ($prevId): ?>
 <!-- 面談記録モーダル -->
 <div class="modal-overlay" id="intModal">
   <div class="modal">
-    <div class="modal-header"><h3>面談記録を追加</h3></div>
+    <div class="modal-header"><h3 id="intModalTitle">面談記録を追加</h3></div>
     <div class="modal-body">
+      <input type="hidden" id="int-id">
       <div class="modal-2col">
         <div class="modal-form-row"><label>日付</label><input type="date" id="int-date"></div>
         <div class="modal-form-row"><label>面談種別</label><select id="int-type">
@@ -1145,6 +1146,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('cli
 
 /* ── 指導記録 ── */
 let editingRecId = null;
+let editingIntId = null;
 function renderRecords(data) {
   const tbody = document.getElementById('tbody-records');
   const empty = document.getElementById('empty-records');
@@ -1262,12 +1264,15 @@ async function delAtt(id) {
 }
 
 /* ── 面談記録 ── */
-function openIntModal() {
-  document.getElementById('int-date').value = today;
-  document.getElementById('int-type').value = '三者面談';
-  document.getElementById('int-parti').value = '';
-  document.getElementById('int-content').value = '';
-  document.getElementById('int-next').value = '';
+function openIntModal(id, date, type, parti, content, next) {
+  editingIntId = id || null;
+  document.getElementById('intModalTitle').textContent = id ? '面談記録を編集' : '面談記録を追加';
+  document.getElementById('int-id').value = id || '';
+  document.getElementById('int-date').value = date || today;
+  document.getElementById('int-type').value = type || '三者面談';
+  document.getElementById('int-parti').value = parti || '';
+  document.getElementById('int-content').value = content || '';
+  document.getElementById('int-next').value = next || '';
   document.getElementById('intModal').classList.add('show');
 }
 
@@ -1275,7 +1280,10 @@ document.getElementById('btnSaveInt').onclick = async () => {
   const content = document.getElementById('int-content').value.trim();
   if (!content) { alert('内容を入力してください。'); return; }
   const fd = new FormData();
-  fd.append('action','add_interview'); fd.append('csrf_token',CSRF); fd.append('student_id',SID);
+  const isEdit = !!editingIntId;
+  fd.append('action', isEdit ? 'update_interview' : 'add_interview');
+  fd.append('csrf_token', CSRF);
+  if (isEdit) fd.append('id', editingIntId); else fd.append('student_id', SID);
   fd.append('interview_date', document.getElementById('int-date').value);
   fd.append('interview_type', document.getElementById('int-type').value);
   fd.append('participants',   document.getElementById('int-parti').value);
@@ -1299,7 +1307,10 @@ function renderInt(data) {
       <td>${esc(r.participants)}</td>
       <td class="content-cell">${esc(r.content)}</td>
       <td class="content-cell">${esc(r.next_action)}</td>
-      <td><button class="btn-sm btn-del-sm" onclick="delInt(${r.id})">削除</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn-sm btn-edit-sm" onclick="openIntModal(${r.id},'${esc2(r.interview_date)}','${esc2(r.interview_type)}','${esc2(r.participants)}',\`${esc3(r.content)}\`,\`${esc3(r.next_action)}\`)">編集</button>
+        <button class="btn-sm btn-del-sm" onclick="delInt(${r.id})">削除</button>
+      </td>
     </tr>
   `).join('');
 }
@@ -1603,13 +1614,13 @@ document.querySelector('.fm-tab[data-panel="panel-map"]').addEventListener('clic
 const HIST_ICONS = {
   '指導記録を追加':'add','指導記録を編集':'edit','指導記録を削除':'del',
   '出欠記録を追加':'add','出欠記録を削除':'del',
-  '面談記録を追加':'add','面談記録を削除':'del',
+  '面談記録を追加':'add','面談記録を編集':'edit','面談記録を削除':'del',
   'メモ・所見を更新':'memo','基本情報を更新':'basic'
 };
 const HIST_EMOJI = {
   '指導記録を追加':'📝','指導記録を編集':'✏️','指導記録を削除':'🗑',
   '出欠記録を追加':'📅','出欠記録を削除':'🗑',
-  '面談記録を追加':'💬','面談記録を削除':'🗑',
+  '面談記録を追加':'💬','面談記録を編集':'✏️','面談記録を削除':'🗑',
   'メモ・所見を更新':'📋','基本情報を更新':'👤'
 };
 
