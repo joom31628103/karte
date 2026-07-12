@@ -1142,13 +1142,7 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
 
 
 function closeModal(id){document.getElementById(id).classList.remove('show');}
-// 背景クリックで閉じる：入力欄のテキストをドラッグ選択して離した位置がたまたま背景側にずれた場合に
-// 誤ってモーダルが閉じてしまわないよう、mousedown・click（mouseup）が両方とも背景自身の場合のみ閉じる
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  let downOnOverlay = false;
-  m.addEventListener('mousedown', e => { downOnOverlay = (e.target === m); });
-  m.addEventListener('click', e => { if (e.target === m && downOnOverlay) m.classList.remove('show'); });
-});
+// 背景クリックでは閉じない（入力中の内容を誤って失わないよう、キャンセル/保存ボタンでのみ閉じる）
 
 /* ── 指導記録 ── */
 let editingRecId = null;
