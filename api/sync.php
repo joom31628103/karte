@@ -289,12 +289,13 @@ if ($action === 'schema_apply' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ── Git同期 ──────────────────────────────────────────
-// git_status / git_pull / github_data_status はサーバー自身（さくら）からの実行＝デプロイ用途も許可する。
-// git_push / git_merge は誤って本番からpushしないよう、ローカルPC（loopback）からのみ許可。
+// 読み取り専用の比較系（git_status/git_pull/github_data_status/git_file_diff/schema_github）は
+// サーバー自身（さくら）からの実行も許可する（デプロイ・サーバー側の比較表示のため）。
+// git_push / git_merge は書き込みを伴うため、誤って本番からpushしないようローカルPC（loopback）からのみ許可。
 if (in_array($action, ['git_status','git_push','git_pull','git_merge','github_data_status','git_file_diff','schema_github'])) {
     $ip         = $_SERVER['REMOTE_ADDR'] ?? '';
     $isLoopback = in_array($ip, ['127.0.0.1','::1']);
-    if (in_array($action, ['git_push','git_merge','git_file_diff','schema_github']) && !$isLoopback) {
+    if (in_array($action, ['git_push','git_merge']) && !$isLoopback) {
         http_response_code(403);
         die(json_encode(['success'=>false,'error'=>'この操作はローカルPCからのみ実行できます']));
     }
