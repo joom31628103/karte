@@ -1126,6 +1126,7 @@ document.querySelectorAll('.fm-tab').forEach(tab => {
     else if (tab.dataset.panel === 'panel-att') loadAtt();
     else if (tab.dataset.panel === 'panel-interview') loadInt();
     else if (tab.dataset.panel === 'panel-history') loadHistory();
+    else if (tab.dataset.panel === 'panel-survey') loadSurvey();
   });
 });
 

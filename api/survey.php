@@ -25,8 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $gakno = trim($_GET['gakno'] ?? '');
     $sid   = trim($_GET['student_id'] ?? '');
     if (!$gakno && !$sid) err('IDが不正です');
-    $key  = surveyKey($gakno, $sid);
-    $file = findSurveyFile($uploadDir, $key);
+    // 学籍番号リンク前（生徒ID命名）でアップロードされた画像も見つけられるよう、
+    // 学籍番号キー→生徒IDキーの順にフォールバックして検索する
+    $candidates = [];
+    if ($gakno) $candidates[] = surveyKey($gakno, '');
+    if ($sid)   $candidates[] = surveyKey('', $sid);
+    $file = null;
+    foreach (array_unique($candidates) as $k) {
+        $file = findSurveyFile($uploadDir, $k);
+        if ($file) break;
+    }
     jout(['success'=>true, 'url'=> $file ? '/karte/uploads/survey/'.$file : null]);
 }
 
