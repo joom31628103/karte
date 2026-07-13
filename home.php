@@ -134,10 +134,27 @@ td:last-child{border-right:none;}
   .search-input{min-width:0;width:100%;order:2;}
   .filter-select{font-size:.78rem;}
   .fm-add-btn{font-size:.76rem;padding:4px 10px;}
-  table{font-size:.76rem;}
-  th,td{padding:6px 8px;}
   .modal{width:96%;}
   .form-2col{grid-template-columns:1fr;}
+}
+
+/* スマホ：テーブルをカード表示に切り替え */
+@media(max-width:640px){
+  .table-wrap{overflow-x:visible;}
+  #studentTable{border:none;}
+  #studentTable thead{display:none;}
+  #studentTable, #studentTable tbody, #studentTable tr, #studentTable td{display:block;width:100%;}
+  #studentTable tr{
+    background:#fff;border:1px solid #c5cce0;border-radius:8px;margin-bottom:10px;padding:10px 12px;
+  }
+  #studentTable tr:nth-child(even){background:#fff;}
+  #studentTable tr:active{background:#eef1fb;}
+  #studentTable td{border:none;padding:3px 0;}
+  #studentTable td.td-namecell{padding:2px 0 8px;margin-bottom:6px;border-bottom:1px solid #eef0f6;}
+  #studentTable td:not(.td-namecell){display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  #studentTable td:not(.td-namecell)::before{content:attr(data-label);font-size:.68rem;color:#8890ab;font-weight:700;letter-spacing:.03em;}
+  #studentTable .td-name{font-size:.95rem;}
+  #studentTable .td-furi{font-size:.72rem;}
 }
 </style>
 </head>
@@ -276,15 +293,15 @@ function renderTable(rows) {
   table.style.display=''; empty.style.display='none';
   tbody.innerHTML = rows.map(r => `
     <tr onclick="location.href='/karte/karte_detail.php?id=${encodeURIComponent(r.student_id)}'">
-      <td><span class="td-id">${esc(r.student_id)}</span></td>
-      <td>
-        <div class="td-name">${esc(r.name)}</div>
+      <td data-label="番号"><span class="td-id">${esc(r.student_id)}</span></td>
+      <td data-label="氏名" class="td-namecell">
         ${r.furigana ? `<div class="td-furi">${esc(r.furigana)}</div>` : ''}
+        <div class="td-name">${esc(r.name)}</div>
       </td>
-      <td>${r.class_name ? `<span class="td-class">${esc(r.class_name)}</span>` : '<span style="color:#cbd5e1">—</span>'}</td>
-      <td><span class="badge-count ${r.rec_count>0?'has':''}">${r.rec_count}件</span></td>
-      <td><span class="badge-count ${r.att_count>0?'has':''}">${r.att_count}件</span></td>
-      <td style="color:#64748b;font-size:.82rem">${r.last_record || '—'}</td>
+      <td data-label="クラス">${r.class_name ? `<span class="td-class">${esc(r.class_name)}</span>` : '<span style="color:#cbd5e1">—</span>'}</td>
+      <td data-label="指導記録"><span class="badge-count ${r.rec_count>0?'has':''}">${r.rec_count}件</span></td>
+      <td data-label="出欠記録"><span class="badge-count ${r.att_count>0?'has':''}">${r.att_count}件</span></td>
+      <td data-label="最終記録日" style="color:#64748b;font-size:.82rem">${r.last_record || '—'}</td>
     </tr>
   `).join('');
 }
