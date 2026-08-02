@@ -102,6 +102,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 .fm-topbar-right{display:flex;gap:8px;align-items:center;}
 .fm-btn-top{font-size:.78rem;color:#c4d4ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:4px;padding:4px 10px;cursor:pointer;text-decoration:none;font-family:inherit;}
 .fm-btn-top:hover{background:rgba(255,255,255,.18);}
+.app-switcher{position:relative;}
+.app-switcher-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;align-items:center;justify-content:center;width:38px;height:34px;}
+.app-switcher-btn:hover{background:rgba(255,255,255,.25);}
+.app-switcher-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.app-switcher-dropdown.open{display:block;}
+.app-switcher-dropdown a,.app-switcher-dropdown span{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.08);box-sizing:border-box;}
+.app-switcher-dropdown a:last-child,.app-switcher-dropdown span:last-child{border-bottom:none;}
+.app-switcher-dropdown a:hover{background:rgba(255,255,255,.15);}
+.app-switcher-dropdown .current-page{color:#6a7a99;cursor:default;}
 .kebab-menu{position:relative;}
 .kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
 .kebab-btn span{display:block;width:18px;height:2px;background:#e8ecff;border-radius:1px;}
@@ -140,6 +149,16 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 <div class="fm-topbar">
   <div class="fm-topbar-title"><span class="dot"></span>生徒カルテ — アカウント設定</div>
   <div class="fm-topbar-right">
+    <div class="app-switcher">
+      <button class="app-switcher-btn" onclick="toggleAppSwitcher(event)" title="アプリ切替">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+      </button>
+      <div class="app-switcher-dropdown" id="appSwitcherDropdown">
+        <a href="https://opened.sakura.ne.jp/mytube/home.php">📺 MyTube</a>
+        <span class="current-page">📋 生徒カルテ</span>
+        <a href="https://opened.sakura.ne.jp/diary/">📔 日記カレンダー</a>
+      </div>
+    </div>
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
@@ -226,7 +245,11 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 <div class="fm-footer"><p>生徒カルテ システム</p></div>
 <script>
 function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
-document.addEventListener('click',function(){const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');});
+function toggleAppSwitcher(e){e.stopPropagation();document.getElementById('appSwitcherDropdown').classList.toggle('open');}
+document.addEventListener('click',function(){
+  const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');
+  const a=document.getElementById('appSwitcherDropdown');if(a)a.classList.remove('open');
+});
 </script>
 </body>
 </html>
