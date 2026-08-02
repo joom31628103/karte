@@ -183,6 +183,7 @@ td:last-child{border-right:none;}
         <a href="https://opened.sakura.ne.jp/mytube/home.php">📺 MyTube</a>
         <span class="current-page">📋 生徒カルテ</span>
         <a href="https://opened.sakura.ne.jp/diary/">📔 日記カレンダー</a>
+        <a href="https://opened.sakura.ne.jp/tasks/">✅ Googleタスク</a>
       </div>
     </div>
     <div class="kebab-menu">
