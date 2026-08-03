@@ -367,8 +367,8 @@ document.getElementById('btnSaveAdd').onclick = async () => {
 
 loadStudents();
 
-function toggleKebab(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.toggle('open'); }
-function toggleAppSwitcher(e) { e.stopPropagation(); document.getElementById('appSwitcherDropdown').classList.toggle('open'); }
+function toggleKebab(e) { e.stopPropagation(); document.getElementById('appSwitcherDropdown').classList.remove('open'); document.getElementById('kebabDropdown').classList.toggle('open'); }
+function toggleAppSwitcher(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.remove('open'); document.getElementById('appSwitcherDropdown').classList.toggle('open'); }
 document.addEventListener('click', function() {
   document.getElementById('kebabDropdown').classList.remove('open');
   document.getElementById('appSwitcherDropdown').classList.remove('open');

@@ -245,8 +245,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
 
 <div class="fm-footer"><p>生徒カルテ システム</p></div>
 <script>
-function toggleKebab(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.toggle('open');}
-function toggleAppSwitcher(e){e.stopPropagation();document.getElementById('appSwitcherDropdown').classList.toggle('open');}
+function toggleKebab(e){e.stopPropagation();document.getElementById('appSwitcherDropdown').classList.remove('open');document.getElementById('kebabDropdown').classList.toggle('open');}
+function toggleAppSwitcher(e){e.stopPropagation();document.getElementById('kebabDropdown').classList.remove('open');document.getElementById('appSwitcherDropdown').classList.toggle('open');}
 document.addEventListener('click',function(){
   const d=document.getElementById('kebabDropdown');if(d)d.classList.remove('open');
   const a=document.getElementById('appSwitcherDropdown');if(a)a.classList.remove('open');
