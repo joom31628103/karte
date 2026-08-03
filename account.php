@@ -156,7 +156,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
       <div class="app-switcher-dropdown" id="appSwitcherDropdown">
         <a href="https://opened.sakura.ne.jp/mytube/home.php"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px"><rect x="1" y="4" width="22" height="16" rx="5" fill="#FF0000"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg> MyTube</a>
         <span class="current-page">📋 生徒カルテ</span>
-        <a href="https://opened.sakura.ne.jp/diary/">📔 日記カレンダー</a>
+        <a href="https://opened.sakura.ne.jp/diary/"><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-3px"><rect x="3" y="3" width="94" height="94" rx="22" fill="#ffffff"/><rect x="3.5" y="3.5" width="93" height="93" rx="21.5" fill="none" stroke="#e5e7eb" stroke-width="1"/><g transform="translate(100 0) scale(-1 1)"><g transform="translate(14 15) scale(2.9)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#4f46e5"/></g><polygon points="54.14,40.31 78.14,82.31 85.86,77.69 61.86,35.69" fill="#1e293b"/><polygon points="78.14,82.31 88,88 85.86,77.69" fill="#1e293b"/><polygon points="54.14,40.31 58.25,47.17 65.97,42.55 61.86,35.69" fill="#94a3b8"/></g></svg> 日記カレンダー</a>
         <a href="https://opened.sakura.ne.jp/tasks/">✅ Googleタスク</a>
       </div>
     </div>
