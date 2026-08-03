@@ -180,7 +180,7 @@ td:last-child{border-right:none;}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
       </button>
       <div class="app-switcher-dropdown" id="appSwitcherDropdown">
-        <a href="https://opened.sakura.ne.jp/mytube/home.php">📺 MyTube</a>
+        <a href="https://opened.sakura.ne.jp/mytube/home.php"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px"><rect x="1" y="4" width="22" height="16" rx="5" fill="#FF0000"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg> MyTube</a>
         <span class="current-page">📋 生徒カルテ</span>
         <a href="https://opened.sakura.ne.jp/diary/">📔 日記カレンダー</a>
         <a href="https://opened.sakura.ne.jp/tasks/">✅ Googleタスク</a>
