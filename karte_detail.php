@@ -1328,16 +1328,25 @@ async function delInt(id) {
   loadInt();
 }
 
-/* ── メモ・所見 ── */
-(async () => {
-  const res = await fetch(`/karte/api/karte.php?action=get_memos&student_id=${SID}`);
+/* ── メモ・所見 ──
+   SPA切替(go())からも同じ処理を呼べるよう、名前付き関数として定義する。
+   以前はここが即時実行の無名関数だったため、生徒切替時にgo()から
+   呼んでいたloadMemos()が「関数が存在しない」エラーとなり、
+   catchブロックのlocation.hrefによるフルページ再読み込みにフォールバックしていた。
+   それが「メモ・所見タブ表示中に生徒を切り替えると一瞬基本情報タブが見える」
+   ちらつきの原因だった（再読み込み直後はサーバー側で常に基本情報タブが
+   アクティブな状態でHTMLが返るため）。 */
+async function loadMemos(sid=SID) {
+  const res = await fetch(`/karte/api/karte.php?action=get_memos&student_id=${encodeURIComponent(sid)}`);
   const data = await res.json();
-  if (data.success) {
+  // 取得中に別の生徒へ切り替わっていた場合は反映しない（他タブのloadXXXと同様のガード）
+  if (data.success && sid === window.SID) {
     document.getElementById('memo-posi').value = data.posi || '';
     document.getElementById('memo-nega').value = data.nega || '';
     document.getElementById('memo-main').value = data.main || '';
   }
-})();
+}
+loadMemos(SID);
 
 document.getElementById('btnSaveMemo').onclick = async () => {
   const fd = new FormData();
