@@ -365,6 +365,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI','Meiryo','Noto Sans JP',sans-ser
   .fm-save-btn{min-height:40px;}
 }
 
+/* ── アプリ切り替え（detail用） ── */
+.app-switcher{position:relative;}
+.app-switcher-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;align-items:center;justify-content:center;width:38px;height:34px;}
+.app-switcher-btn:hover{background:rgba(255,255,255,.25);}
+.app-switcher-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:linear-gradient(180deg,#2c3e6b,#1a2a55);border:1px solid rgba(255,255,255,.2);border-radius:8px;min-width:170px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+.app-switcher-dropdown.open{display:block;}
+.app-switcher-dropdown a,.app-switcher-dropdown span{display:block;width:100%;padding:10px 16px;color:#e8ecff;text-decoration:none;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.08);box-sizing:border-box;}
+.app-switcher-dropdown a:last-child,.app-switcher-dropdown span:last-child{border-bottom:none;}
+.app-switcher-dropdown a:hover{background:rgba(255,255,255,.15);}
+.app-switcher-dropdown .current-page{color:#6a7a99;cursor:default;}
+
 /* ── ハンバーガーメニュー（detail用） ── */
 .kebab-menu{position:relative;}
 .kebab-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#e8ecff;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1;font-family:inherit;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;width:38px;height:34px;}
@@ -507,6 +518,18 @@ if ($prevId): ?>
     <button class="fm-btn-top fm-header-toggle" id="headerToggleBtn" onclick="toggleStudentHeader()" title="生徒情報を折りたたむ/展開する">
       <span id="headerToggleIcon">▲</span> <span id="headerToggleLabel">情報を隠す</span>
     </button>
+    <div class="app-switcher">
+      <button class="app-switcher-btn" onclick="toggleAppSwitcher(event)" title="アプリ切替">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+      </button>
+      <div class="app-switcher-dropdown" id="appSwitcherDropdown">
+        <a href="https://opened.sakura.ne.jp/mytube/home.php"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px"><rect x="1" y="4" width="22" height="16" rx="5" fill="#FF0000"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg> MyTube</a>
+        <span class="current-page"><svg width="16" height="16" viewBox="0 0 1024 1024" style="vertical-align:-3px"><defs><linearGradient id="karteg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2F83FF"/><stop offset="100%" stop-color="#0E67E8"/></linearGradient><clipPath id="karteclip"><circle cx="512" cy="432" r="300"/></clipPath></defs><rect x="32" y="32" width="960" height="960" rx="176" fill="url(#karteg)"/><circle cx="512" cy="432" r="300" fill="#fff"/><g clip-path="url(#karteclip)"><circle cx="512" cy="382" r="142" fill="url(#karteg)"/><rect x="292" y="556" width="440" height="320" rx="150" fill="url(#karteg)"/></g><rect x="262" y="792" width="500" height="66" rx="33" fill="#fff"/><rect x="262" y="900" width="500" height="66" rx="33" fill="#fff"/></svg> 生徒カルテ</span>
+        <a href="https://opened.sakura.ne.jp/diary/"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAD8UlEQVRIibWWXWwUVRTHz92Z3em2hS6koNkW+XKFFLCEiHykiGhqFGugTy3wQPCFGGP0RY2JiTEqCT5oiPoAiQnRRKM2Kr74kTa6JRKglFZbLLVJyy40dBXs6q67Oztz79+HmZ25M7vbGmNvJjuTnbm///mac4YBoIVcgQWlE5HqXAlQ7xiNp2AKIhARQNYFoezkeG0HAFSr0Z71yoao32KGEueZj9E/Ye+GtdH9ITgnS7nSLYXRG51K17YaWcAWPD9JfjqVI2gOOkCGwKtfmbMZvYLA5K0yOsrp1d0CgaBf65uJH2s7cPybs6N+AS6q0Wl+OhEIxm8jerJfFP++cTN1+IVTv/+R8QhIuXPCTK7lVYNW+gfQk3EIE5yT4Plc/uerCb+ABCJXAhWF4RYQiEDG7XGRnSHBSXAIHiCsXxv1Csh0ybz5isq+KCb7Ibhz7H9kS9MdS30e/Cc6AUQ8PWWmp0p0E4I/d2SvExe15ICHHmB0pC3QEGaOcKlKnRMR4btRPnjN1JNxBw3BWzfGNres8gu4dhEACmt4fJOySHpjyhoWCJQt4OKVGePWmByfzo498nOq9Lxb0Zk87XtPl0q2atD0xA+O7RA8sGjFppaYLBBwDUQZYj66KKSNmWELTYKTMLU17T5nPUmuQK92iwiAnvgevGihITgLN6rLN/tCKTc/F2Mz5nILMHPF6QvWy2U5EVrdDsZ8AnKSXT6A3euU2mCpguATJxCNXRq8bOSd6FOoXm3aXj6+VInu9Es0hNk7B4J1mt8ceb2UygxKxaOtfJgxtXw6uh7Ir1I6Jza+kp8j7U8/FLp3e/s98aGrEwkIk7TFoZW7ne0VBao2YW8XsYvq857PmpeId187Ops13v7ownBhC6lhaWq4S+qm89Pte2r6l/07oydf7uzpHTnxQe+xpx6INjdL7bVKDv4lHYZ+Z3HoxSePBlXlref3nekb6npzJLtkp7vduzweyAPEHZDeLlJ/u+/4s+0DI4n3e84S0ekzA5naFpLKpLqAnOdSOfndyk7fd5d4cGvs+nRq/Ncpw+QTyT+ZFpE9rhwi5vRNuH2pPGiRv851H9xGRF0dO7o6dnwdH54NrfHF01fatgd3L2PyAJFLVm7/eaVxdHxKL5rWrpOf/FhY3CrTFYbmCKsg0BZTdq0lqbN541MKWy60+noqe+mnCQBffDtwZXKW1USk2ODQVjTUq7IAczJvcJzqzVxOiiL3DF2364EAfvP86e7HWj/88qK6NLZsXZsS1Cx6nUb3r6JHN7Do8kiNFqwgYK1coagXzUr1Zq/XT3y6oqmx+4ldmkSx86kE6mo1JeD5evQL/O9rwb+u/wH6/11CAv6mWwAAAABJRU5ErkJggg==" alt="" width="16" height="16" style="vertical-align:-3px;border-radius:3px"> 日記カレンダー</a>
+        <a href="https://opened.sakura.ne.jp/tasks/">✅ Googleタスク</a>
+        <a href="https://opened.sakura.ne.jp/golf/"><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-3px"><rect x="3" y="3" width="94" height="94" rx="22" fill="#16a34a"/><rect x="46" y="18" width="4" height="54" rx="2" fill="#fff"/><path d="M50 20 L50 38 L70 29 Z" fill="#fff"/><ellipse cx="48" cy="76" rx="20" ry="6" fill="#fff"/></svg> ゴルフ</a>
+      </div>
+    </div>
     <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="kebabDropdown">
@@ -2198,11 +2221,15 @@ async function uploadPhoto(input) {
   input.value = '';
 }
 
-function toggleKebab(e) { e.stopPropagation(); document.getElementById('kebabDropdown').classList.toggle('open'); }
-function toggleListKebab(e) { e.stopPropagation(); document.getElementById('listKebabDropdown').classList.toggle('open'); }
+function toggleKebab(e) { e.stopPropagation(); document.getElementById('appSwitcherDropdown')?.classList.remove('open'); document.getElementById('kebabDropdown').classList.toggle('open'); }
+function toggleListKebab(e) { e.stopPropagation(); document.getElementById('listAppSwitcherDropdown')?.classList.remove('open'); document.getElementById('listKebabDropdown').classList.toggle('open'); }
+function toggleAppSwitcher(e) { e.stopPropagation(); document.getElementById('kebabDropdown')?.classList.remove('open'); document.getElementById('appSwitcherDropdown').classList.toggle('open'); }
+function toggleListAppSwitcher(e) { e.stopPropagation(); document.getElementById('listKebabDropdown')?.classList.remove('open'); document.getElementById('listAppSwitcherDropdown').classList.toggle('open'); }
 document.addEventListener('click', function() {
   const d = document.getElementById('kebabDropdown'); if(d) d.classList.remove('open');
   const d2 = document.getElementById('listKebabDropdown'); if(d2) d2.classList.remove('open');
+  const d3 = document.getElementById('appSwitcherDropdown'); if(d3) d3.classList.remove('open');
+  const d4 = document.getElementById('listAppSwitcherDropdown'); if(d4) d4.classList.remove('open');
 });
 
 async function deletePhoto(e) {
@@ -2694,7 +2721,19 @@ window.openHeaderList = async function() {
     <button class="hl-back" onclick="closeListScreen()">← 戻る</button>
     <h2>📋 一覧表示</h2>
     <span class="hl-count" id="hlCount"></span>
-    <div class="kebab-menu" style="margin-left:auto;">
+    <div class="app-switcher" style="margin-left:auto;">
+      <button class="app-switcher-btn" onclick="toggleListAppSwitcher(event)" title="アプリ切替">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+      </button>
+      <div class="app-switcher-dropdown" id="listAppSwitcherDropdown">
+        <a href="https://opened.sakura.ne.jp/mytube/home.php"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px"><rect x="1" y="4" width="22" height="16" rx="5" fill="#FF0000"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg> MyTube</a>
+        <span class="current-page"><svg width="16" height="16" viewBox="0 0 1024 1024" style="vertical-align:-3px"><defs><linearGradient id="karteg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2F83FF"/><stop offset="100%" stop-color="#0E67E8"/></linearGradient><clipPath id="karteclip3"><circle cx="512" cy="432" r="300"/></clipPath></defs><rect x="32" y="32" width="960" height="960" rx="176" fill="url(#karteg3)"/><circle cx="512" cy="432" r="300" fill="#fff"/><g clip-path="url(#karteclip3)"><circle cx="512" cy="382" r="142" fill="url(#karteg3)"/><rect x="292" y="556" width="440" height="320" rx="150" fill="url(#karteg3)"/></g><rect x="262" y="792" width="500" height="66" rx="33" fill="#fff"/><rect x="262" y="900" width="500" height="66" rx="33" fill="#fff"/></svg> 生徒カルテ</span>
+        <a href="https://opened.sakura.ne.jp/diary/"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAABmJLR0QA/wD/AP+gvaeTAAAD8UlEQVRIibWWXWwUVRTHz92Z3em2hS6koNkW+XKFFLCEiHykiGhqFGugTy3wQPCFGGP0RY2JiTEqCT5oiPoAiQnRRKM2Kr74kTa6JRKglFZbLLVJyy40dBXs6q67Oztz79+HmZ25M7vbGmNvJjuTnbm///mac4YBoIVcgQWlE5HqXAlQ7xiNp2AKIhARQNYFoezkeG0HAFSr0Z71yoao32KGEueZj9E/Ye+GtdH9ITgnS7nSLYXRG51K17YaWcAWPD9JfjqVI2gOOkCGwKtfmbMZvYLA5K0yOsrp1d0CgaBf65uJH2s7cPybs6N+AS6q0Wl+OhEIxm8jerJfFP++cTN1+IVTv/+R8QhIuXPCTK7lVYNW+gfQk3EIE5yT4Plc/uerCb+ABCJXAhWF4RYQiEDG7XGRnSHBSXAIHiCsXxv1Csh0ybz5isq+KCb7Ibhz7H9kS9MdS30e/Cc6AUQ8PWWmp0p0E4I/d2SvExe15ICHHmB0pC3QEGaOcKlKnRMR4btRPnjN1JNxBw3BWzfGNres8gu4dhEACmt4fJOySHpjyhoWCJQt4OKVGePWmByfzo498nOq9Lxb0Zk87XtPl0q2atD0xA+O7RA8sGjFppaYLBBwDUQZYj66KKSNmWELTYKTMLU17T5nPUmuQK92iwiAnvgevGihITgLN6rLN/tCKTc/F2Mz5nILMHPF6QvWy2U5EVrdDsZ8AnKSXT6A3euU2mCpguATJxCNXRq8bOSd6FOoXm3aXj6+VInu9Es0hNk7B4J1mt8ceb2UygxKxaOtfJgxtXw6uh7Ir1I6Jza+kp8j7U8/FLp3e/s98aGrEwkIk7TFoZW7ne0VBao2YW8XsYvq857PmpeId187Ops13v7ownBhC6lhaWq4S+qm89Pte2r6l/07oydf7uzpHTnxQe+xpx6INjdL7bVKDv4lHYZ+Z3HoxSePBlXlref3nekb6npzJLtkp7vduzweyAPEHZDeLlJ/u+/4s+0DI4n3e84S0ekzA5naFpLKpLqAnOdSOfndyk7fd5d4cGvs+nRq/Ncpw+QTyT+ZFpE9rhwi5vRNuH2pPGiRv851H9xGRF0dO7o6dnwdH54NrfHF01fatgd3L2PyAJFLVm7/eaVxdHxKL5rWrpOf/FhY3CrTFYbmCKsg0BZTdq0lqbN541MKWy60+noqe+mnCQBffDtwZXKW1USk2ODQVjTUq7IAczJvcJzqzVxOiiL3DF2364EAfvP86e7HWj/88qK6NLZsXZsS1Cx6nUb3r6JHN7Do8kiNFqwgYK1coagXzUr1Zq/XT3y6oqmx+4ldmkSx86kE6mo1JeD5evQL/O9rwb+u/wH6/11CAv6mWwAAAABJRU5ErkJggg==" alt="" width="16" height="16" style="vertical-align:-3px;border-radius:3px"> 日記カレンダー</a>
+        <a href="https://opened.sakura.ne.jp/tasks/">✅ Googleタスク</a>
+        <a href="https://opened.sakura.ne.jp/golf/"><svg width="16" height="16" viewBox="0 0 100 100" style="vertical-align:-3px"><rect x="3" y="3" width="94" height="94" rx="22" fill="#16a34a"/><rect x="46" y="18" width="4" height="54" rx="2" fill="#fff"/><path d="M50 20 L50 38 L70 29 Z" fill="#fff"/><ellipse cx="48" cy="76" rx="20" ry="6" fill="#fff"/></svg> ゴルフ</a>
+      </div>
+    </div>
+    <div class="kebab-menu">
       <button class="kebab-btn" onclick="toggleListKebab(event)" title="メニュー"><span></span><span></span><span></span></button>
       <div class="kebab-dropdown" id="listKebabDropdown">
         <a href="/karte/karte_detail.php?id=<?= urlencode($sid) ?>">🏫 生徒情報</a>
